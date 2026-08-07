@@ -33,6 +33,13 @@ header .logo-link { display: inline-flex; line-height: 0; }
   background: var(--color-brand);
 }
 
+.cover-foreground {
+  position: relative; z-index: 1; width: 100%; min-height: 100%; flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  transition: opacity 0.7s ease;
+}
+.cover-foreground.hidden { opacity: 0; pointer-events: none; }
+
 .cover-mesh { position: absolute; inset: 0; z-index: 0; }
 .blob { position: absolute; border-radius: 50%; filter: blur(90px); }
 .blob-a { width: 70vmax; height: 70vmax; top: -25%; left: -20%; background: var(--blue-80); opacity: 0.75; animation: driftA 22s ease-in-out infinite; }
@@ -81,6 +88,76 @@ header .logo-link { display: inline-flex; line-height: 0; }
 .cover-logo-btn { all: unset; cursor: pointer; display: inline-flex; line-height: 0; }
 .cover-logo-btn:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 .cover-logo-btn.bouncing { position: fixed; top: 0; left: 0; z-index: 60; will-change: transform; }
+
+/* ——— Cursor a medida (element-20) ——— */
+@media (pointer: fine) {
+  .cover-gate, .cover-gate * { cursor: none; }
+  .custom-cursor { display: block; }
+}
+.custom-cursor {
+  display: none;
+  position: fixed; top: 0; left: 0; z-index: 999;
+  width: 22px; height: 22px;
+  fill: #fff;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.12s ease-out;
+}
+.custom-cursor.active { opacity: 1; }
+.custom-cursor svg { width: 100%; height: 100%; }
+
+/* ——— Grilla de vistas previas (tras Entrar) ——— */
+.menu-grid {
+  position: absolute; z-index: 1;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(88vw, 1100px); aspect-ratio: 16 / 9;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.7s ease;
+}
+.menu-grid.visible { opacity: 1; pointer-events: auto; }
+
+.menu-card {
+  all: unset; box-sizing: border-box; cursor: pointer;
+  position: absolute;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: var(--gray-5);
+  border-radius: 16px;
+  transition: top 0.5s cubic-bezier(0.4, 0, 0.2, 1), left 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.5s cubic-bezier(0.4, 0, 0.2, 1), height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.menu-card:nth-child(1) { top: 0%;    left: 0%;  width: 32%; height: 48.5%; }
+.menu-card:nth-child(2) { top: 0%;    left: 34%; width: 32%; height: 48.5%; }
+.menu-card:nth-child(3) { top: 0%;    left: 68%; width: 32%; height: 48.5%; }
+.menu-card:nth-child(4) { top: 51.5%; left: 0%;  width: 32%; height: 48.5%; }
+.menu-card:nth-child(5) { top: 51.5%; left: 34%; width: 32%; height: 48.5%; }
+.menu-card:nth-child(6) { top: 51.5%; left: 68%; width: 32%; height: 48.5%; }
+.menu-card:hover, .menu-card:focus-visible {
+  top: 0; left: 0; width: 100%; height: 100%; z-index: 2;
+}
+.menu-card:focus-visible { outline: 2px solid var(--color-brand); outline-offset: -4px; }
+
+.menu-card-icon { width: 15%; max-width: 64px; fill: var(--color-brand); opacity: 0.85; }
+.menu-card-icon svg { width: 100%; height: 100%; display: block; }
+.menu-card-label { font-family: var(--font-mono, monospace); font-size: 13px; letter-spacing: 0.05em; color: var(--text-secondary); }
+
+.anim-spin-slow { animation: cardSpin 14s linear infinite; }
+.anim-pulse { animation: cardPulse 3.2s ease-in-out infinite; }
+.anim-float { animation: cardFloat 3.6s ease-in-out infinite; }
+@keyframes cardSpin { to { transform: rotate(360deg); } }
+@keyframes cardPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.14); opacity: 1; } }
+@keyframes cardFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) {
+  .anim-spin-slow, .anim-pulse, .anim-float { animation: none; }
+}
+
+@media (max-width: 720px) {
+  .menu-grid { width: 90vw; aspect-ratio: 3 / 4; }
+  .menu-card:nth-child(1) { top: 0%;     left: 0%; width: 100%; height: 15.5%; }
+  .menu-card:nth-child(2) { top: 17.5%;  left: 0%; width: 100%; height: 15.5%; }
+  .menu-card:nth-child(3) { top: 35%;    left: 0%; width: 100%; height: 15.5%; }
+  .menu-card:nth-child(4) { top: 52.5%;  left: 0%; width: 100%; height: 15.5%; }
+  .menu-card:nth-child(5) { top: 70%;    left: 0%; width: 100%; height: 15.5%; }
+  .menu-card:nth-child(6) { top: 87.5%;  left: 0%; width: 100%; height: 15.5%; }
+}
 
 /* ——— Home / hero ——— */
 .hero { display: flex; align-items: center; gap: 56px; padding: 40px 80px 88px; }

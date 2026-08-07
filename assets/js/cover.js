@@ -193,4 +193,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     btnMore.addEventListener('click', renderScatter);
   }
+
+  /* ——— Cursor a medida (element-20) ——— */
+  var cursorEl = document.getElementById('custom-cursor');
+  if (cursorEl && window.matchMedia && window.matchMedia('(pointer: fine)').matches) {
+    document.addEventListener('mousemove', function (e) {
+      cursorEl.classList.add('active');
+      cursorEl.style.transform = 'translate(' + (e.clientX - 11) + 'px,' + (e.clientY - 11) + 'px)';
+    });
+    document.addEventListener('mouseleave', function () {
+      cursorEl.classList.remove('active');
+    });
+  }
+
+  /* ——— Entrar: la portada desaparece y queda la grilla sobre el fondo ——— */
+  var btnEnter = document.getElementById('btn-enter');
+  var coverForeground = document.getElementById('cover-foreground');
+  var menuGrid = document.getElementById('menu-grid');
+  if (btnEnter && coverForeground && menuGrid) {
+    btnEnter.addEventListener('click', function () {
+      btnEnter.disabled = true;
+      coverForeground.classList.add('hidden');
+      setTimeout(function () {
+        menuGrid.removeAttribute('aria-hidden');
+        menuGrid.classList.add('visible');
+      }, 700);
+    });
+  }
 });
