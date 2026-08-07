@@ -1,9 +1,37 @@
 document.addEventListener('DOMContentLoaded', function () {
-  /* ——— Botón 1: cambia el peso/estilo de la frase ——— */
+  /* ——— Entrada: la frase se escribe sola al cargar la página ——— */
   var phrase = document.getElementById('cover-phrase');
+  var PHRASE_TEXT = phrase ? phrase.textContent.trim() : '';
+
+  if (phrase) {
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      phrase.textContent = PHRASE_TEXT;
+    } else {
+      phrase.textContent = '';
+      phrase.classList.add('is-typing');
+      var caret = document.createElement('span');
+      caret.className = 'cover-caret';
+      phrase.appendChild(caret);
+      var typeI = 0;
+      var TYPE_SPEED = 32; // ms por carácter — lento y elegante
+      function typeTick() {
+        if (typeI < PHRASE_TEXT.length) {
+          caret.insertAdjacentText('beforebegin', PHRASE_TEXT.charAt(typeI));
+          typeI++;
+          setTimeout(typeTick, TYPE_SPEED);
+        } else {
+          phrase.classList.remove('is-typing');
+          setTimeout(function () { if (caret.parentNode) caret.parentNode.removeChild(caret); }, 1000);
+        }
+      }
+      setTimeout(typeTick, 500); // pausa breve para que asiente el fondo antes de escribir
+    }
+  }
+
+  /* ——— Botón 1: cambia el peso/estilo de la frase ——— */
   var btnType = document.getElementById('btn-action-type');
   if (phrase && btnType) {
-    var PHRASE_TEXT = phrase.textContent.trim();
     var WORDS = PHRASE_TEXT.split(/\s+/);
     var MIX_WEIGHTS = ['300', '400', '500', '600', '700', '800'];
     var TYPE_STATES = ['bold', 'regular', 'italic', 'mixed'];

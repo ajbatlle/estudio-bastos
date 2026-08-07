@@ -68,6 +68,10 @@ header .logo-link { display: inline-flex; line-height: 0; }
 .cover-phrase.is-regular { font-weight: 400; font-style: normal; }
 .cover-phrase.is-italic { font-weight: 400; font-style: italic; }
 .cover-phrase.is-mixed span { display: inline; }
+.cover-phrase.is-typing { text-wrap: wrap; }
+.cover-caret { display: inline-block; width: 2px; height: 0.9em; margin-left: 2px; background: #fff; vertical-align: -0.1em; animation: caretBlink 0.85s step-end infinite; }
+@keyframes caretBlink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cover-caret { animation: none; } }
 
 .cover-bottom { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 24px; }
 .cover-isotipo-slot { height: 44px; display: flex; align-items: center; justify-content: center; }
