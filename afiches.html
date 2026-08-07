@@ -252,13 +252,7 @@
 <div class="page">
   <header>
     <a class="logo-link" href="index.html" aria-label="Inicio"><img class="logo" src="assets/img/Logo-blanco.svg" alt="bastos"></a>
-    <nav>
-      <a href="index.html">proyectos</a>
-      <a href="servicios.html">servicios</a>
-      <a href="nosotros.html">nosotros</a>
-      <a href="archivo.html">archivo</a>
-    </nav>
-    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false"><span></span><span></span><span></span></button>
+    <a class="back-board" href="index.html">◂ volver al tablero</a>
   </header>
   <section class="wrap wrap-afiches">
 
@@ -369,8 +363,8 @@
             <input type="range" id="density" min="30" max="100" value="100">
           </div>
           <div class="control">
-            <label>Variedad <span class="val" id="valVariety">100</span></label>
-            <input type="range" id="variety" min="1" max="100" value="100">
+            <label>Variedad <span class="val" id="valVariety">122</span></label>
+            <input type="range" id="variety" min="1" max="122" value="122">
           </div>
         </div>
       </div>
@@ -447,7 +441,6 @@
     </div>
   </footer>
 </div>
-<script src="assets/js/nav.js"></script>
 
 <script>
 (() => {
@@ -457,7 +450,14 @@
   // W:H = 3:4. Margen lateral/superior = 4.6% de W. Grilla cuadrada.
   // Isótipo: diámetro 6.2% de W, centrado, base alineada a la línea del texto.
   // Línea de texto: baseline a 4.2% de H desde el borde inferior.
-  const N_ELEMENTS = 100;
+  const ARCANOS = ['00-el-loco','01-el-mago','02-la-sacerdotisa','03-la-emperatriz','04-el-emperador','05-el-hierofante','06-los-enamorados','07-el-carro','08-la-fuerza','09-el-ermitano','10-la-rueda-de-la-fortuna','11-la-justicia','12-el-colgado','13-la-muerte','14-la-templanza','15-el-diablo','16-la-torre','17-la-estrella','18-la-luna','19-el-sol','20-el-juicio','21-el-mundo'];
+  const ELEMENT_SOURCES = (() => {
+    const arr = [];
+    for (let i = 1; i <= 100; i++) arr.push('assets/elements/element-' + String(i).padStart(2, '0') + '.svg');
+    ARCANOS.forEach((name) => arr.push('assets/elements/arcanos/' + name + '.svg'));
+    return arr;
+  })();
+  const N_ELEMENTS = ELEMENT_SOURCES.length;
   const AUTO_INK = { '#F2F3F9':'#003EC0', '#F2EDE0':'#003EC0', '#FAFAF8':'#1B1B1B', '#003EC0':'#F2F3F9' };
 
   // PRNG reproducible
@@ -470,7 +470,7 @@
   let rotMode = 'fija';        // 'fija' | 'giros'
   let symMode = 'libre';       // 'libre' | 'espejo' | 'cuaterna'
   let density = 100;           // % de celdas llenas
-  let variety = 100;           // nº de elementos distintos en el sorteo
+  let variety = 122;           // nº de elementos distintos en el sorteo
   let bgColor = '#F2F3F9';
   let inkMode = 'auto';
   let ink2 = 'none';
@@ -496,10 +496,9 @@
   }
   async function loadAssets() {
     const jobs = [];
-    for (let i = 1; i <= N_ELEMENTS; i++) {
-      const name = i < 100 ? String(i).padStart(2, '0') : String(i);
-      jobs.push(loadImage('assets/elements/element-' + name + '.svg').then(img => { elementImgs[i - 1] = img; }));
-    }
+    ELEMENT_SOURCES.forEach((src, i) => {
+      jobs.push(loadImage(src).then(img => { elementImgs[i] = img; }));
+    });
     jobs.push(loadImage('assets/img/Isotipo-b.svg').then(img => { isotipoImg = img; }));
     await Promise.all(jobs);
     assetsReady = true;
@@ -769,7 +768,7 @@
     rotMode = pick(['fija', 'fija', 'giros']);
     symMode = pick(['libre', 'libre', 'libre', 'espejo', 'cuaterna']);
     density = pick([100, 100, 100, 85, 70, 55]);
-    variety = pick([100, 100, 60, 24, 8]);
+    variety = pick([122, 122, 100, 60, 24, 8]);
     bgColor = pick(['#F2F3F9', '#F2F3F9', '#F2EDE0', '#FAFAF8', '#003EC0']);
     inkMode = 'auto';
     ink2 = pick(['none', 'none', 'none', '#D0452B', '#1B1B1B']);

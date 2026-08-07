@@ -1,0 +1,74 @@
+/* Bastos — El tablero
+ * La interfaz completa del sitio es un tablero 2D: elegir ficha y moverse
+ * es la forma de navegar. Superficie de juego en gris claro (como
+ * .grid-band) para que las fichas azules del sistema de marca se lean
+ * con contraste.
+ */
+
+.board-wrap { padding-bottom: 96px; }
+.board-intro { font-size: 17px; line-height: 1.55; color: rgba(255,255,255,0.82); max-width: 60ch; margin-bottom: 24px; }
+.board-intro.on-zone { color: #fff; font-weight: 600; }
+.board-note { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.6); max-width: 56ch; margin-top: 24px; }
+
+.board-screen { display: none; }
+.board-screen.active { display: block; }
+
+.board-surface { background: var(--surface-subtle); padding: 20px; max-width: 720px; }
+
+/* ——— Selección de ficha ——— */
+.piece-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; max-height: 420px; overflow-y: auto; }
+.piece-btn { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; padding: 6px; background: #fff; border: 2px solid transparent; cursor: pointer; }
+.piece-btn img { width: 100%; height: 100%; object-fit: contain; }
+.piece-btn:hover { border-color: var(--blue-20); }
+.piece-btn:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+.piece-btn.selected { border-color: var(--color-brand); background: var(--blue-10); }
+
+/* ——— Tablero ——— */
+.board { position: relative; width: 100%; aspect-ratio: 10 / 7; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(7, 1fr); background: #fff; }
+.tile { border: 1px solid rgba(0,60,192,0.10); }
+.tile-wall-l { border-left: 4px solid var(--color-brand); }
+.tile-wall-r { border-right: 4px solid var(--color-brand); }
+.tile-wall-t { border-top: 4px solid var(--color-brand); }
+.tile-wall-b { border-bottom: 4px solid var(--color-brand); }
+.tile.zone-tile { position: relative; cursor: pointer; padding: 3px; }
+.zone-shape { display: block; width: 100%; height: 100%; overflow: visible; }
+.zone-shape path { fill: var(--color-brand); transition: fill 0.15s; }
+.tile.zone-tile:hover .zone-shape path, .tile.zone-tile:focus-visible .zone-shape path { fill: var(--blue-90); }
+
+.board-player { position: absolute; top: 0; left: 0; transition: left var(--transition-normal), top var(--transition-normal); pointer-events: none; }
+.board-player img { display: block; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); }
+
+/* ——— D-pad ——— */
+.dpad { margin-top: 28px; display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 6px; justify-content: center; }
+.dpad-btn { background: transparent; border: 2px solid #fff; color: #fff; font-size: 16px; cursor: pointer; padding: 0; }
+.dpad-btn:hover { background: rgba(255,255,255,0.12); }
+.dpad-up { grid-column: 2; grid-row: 1; }
+.dpad-left { grid-column: 1; grid-row: 2; }
+.dpad-right { grid-column: 3; grid-row: 2; }
+.dpad-down { grid-column: 2; grid-row: 3; }
+
+/* ——— Volver al tablero (subpáginas) ——— */
+.back-board { color: rgba(255,255,255,0.78); text-decoration: none; font-size: 15px; font-weight: 500; transition: color 0.15s; }
+.back-board:hover { color: #fff; }
+
+.board-link { display: inline; background: none; border: 0; padding: 0; margin: 0; font: inherit; color: #fff; text-decoration: underline; cursor: pointer; }
+.board-link:hover { opacity: 0.75; }
+
+/* ——— Casilla-juego: armar un afiche ——— */
+.game-layout { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 8px; }
+.poster-wrap { background: var(--surface-subtle); padding: 20px; }
+#poster-canvas { display: block; width: 220px; height: 293px; }
+.game-controls { flex: 1; min-width: 260px; max-width: 420px; }
+.game-field { margin-bottom: 20px; }
+.game-label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 10px; }
+.bg-options { display: flex; gap: 10px; }
+.bg-btn { width: 36px; height: 36px; padding: 0; border: 2px solid rgba(255,255,255,0.4); cursor: pointer; }
+.bg-btn[data-bg="blue"] { background: #003ec0; }
+.bg-btn[data-bg="white"] { background: #ffffff; }
+.bg-btn.selected { border-color: #fff; outline: 2px solid #003ec0; outline-offset: 1px; }
+.piece-grid-sm { grid-template-columns: repeat(8, 1fr); max-height: 240px; }
+
+@media (max-width: 720px) {
+  .piece-grid { grid-template-columns: repeat(6, 1fr); max-height: 340px; }
+  .piece-grid-sm { grid-template-columns: repeat(6, 1fr); }
+}
