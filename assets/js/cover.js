@@ -31,6 +31,47 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  /* ——— Logo: rebota por la pantalla, como el viejo protector de pantalla ——— */
+  var logoBtn = document.getElementById('btn-logo-bounce');
+  if (logoBtn) {
+    var bounceRaf = null;
+    var bx, by, bvx, bvy, bw, bh;
+
+    function bounceStep() {
+      var vw = window.innerWidth, vh = window.innerHeight;
+      bx += bvx; by += bvy;
+      if (bx <= 0) { bx = 0; bvx = Math.abs(bvx); }
+      if (bx + bw >= vw) { bx = vw - bw; bvx = -Math.abs(bvx); }
+      if (by <= 0) { by = 0; bvy = Math.abs(bvy); }
+      if (by + bh >= vh) { by = vh - bh; bvy = -Math.abs(bvy); }
+      logoBtn.style.transform = 'translate(' + bx + 'px,' + by + 'px)';
+      bounceRaf = requestAnimationFrame(bounceStep);
+    }
+
+    function startBounce() {
+      var rect = logoBtn.getBoundingClientRect();
+      bx = rect.left; by = rect.top; bw = rect.width; bh = rect.height;
+      logoBtn.classList.add('bouncing');
+      logoBtn.style.transform = 'translate(' + bx + 'px,' + by + 'px)';
+      var speed = 2.4;
+      bvx = (Math.random() < 0.5 ? -1 : 1) * (speed + Math.random());
+      bvy = (Math.random() < 0.5 ? -1 : 1) * (speed + Math.random());
+      bounceRaf = requestAnimationFrame(bounceStep);
+    }
+
+    function stopBounce() {
+      cancelAnimationFrame(bounceRaf);
+      logoBtn.classList.remove('bouncing');
+      logoBtn.style.transform = '';
+    }
+
+    logoBtn.addEventListener('click', function () {
+      var bouncing = logoBtn.getAttribute('aria-pressed') === 'true';
+      logoBtn.setAttribute('aria-pressed', bouncing ? 'false' : 'true');
+      if (bouncing) stopBounce(); else startBounce();
+    });
+  }
+
   /* ——— Botón 2: isotipo sobre el logo ——— */
   var isotipo = document.getElementById('cover-isotipo');
   var btnMark = document.getElementById('btn-action-mark');
