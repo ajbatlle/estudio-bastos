@@ -47,16 +47,10 @@ header .logo-link { display: inline-flex; line-height: 0; }
 .cover-noise { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; filter: url(#cover-grain-filter); transition: opacity 0.3s ease; }
 .cover-noise.visible { opacity: 0.45; }
 
-/* Piezas dispersas — botón 4 */
+/* Piezas dispersas — botón 4 (posición/tamaño/forma asignados por JS en cada clic) */
 .cover-scatter { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .scatter-piece { position: absolute; fill: rgba(255,255,255,0.32); opacity: 0; transition: opacity 0.6s ease; }
-.cover-scatter.visible .scatter-piece { opacity: 1; }
-.sp-1 { width: 42px; height: 42px; top: 14%; left: 6%; }
-.sp-2 { width: 34px; height: 34px; top: 20%; right: 7%; }
-.sp-3 { width: 50px; height: 50px; top: 46%; left: 4%; }
-.sp-4 { width: 46px; height: 46px; top: 52%; right: 5%; }
-.sp-5 { width: 36px; height: 36px; top: 74%; left: 8%; }
-.sp-6 { width: 42px; height: 42px; top: 70%; right: 6%; }
+.scatter-piece.visible { opacity: 1; }
 @media (max-width: 880px) { .cover-scatter { display: none; } }
 
 /* Fila de botones — controles de la portada */
