@@ -71,10 +71,14 @@ header .logo-link { display: inline-flex; line-height: 0; }
 .cover-action-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
 .cover-content { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; max-width: 720px; margin: 0 auto; }
-.cover-phrase { font-size: clamp(20px, 3vw, 32px); font-weight: 700; line-height: 1.35; letter-spacing: -0.01em; color: #fff; text-wrap: wrap; }
-.cover-phrase-p + .cover-phrase-p { margin-top: 0.85em; }
-.cover-phrase.is-regular { font-weight: 400; font-style: normal; }
-.cover-phrase.is-italic { font-weight: 400; font-style: italic; }
+.cover-phrase { font-size: clamp(17px, 2.5vw, 27px); line-height: 1.45; letter-spacing: -0.01em; color: #fff; text-wrap: wrap; }
+/* Jerarquía: el problema (párrafo 1) más liviano, el aporte de Bastos
+   (párrafo 2) en bold -- guía la lectura de la queja hacia la solución. */
+.cover-phrase-p { font-weight: 500; }
+.cover-phrase-p:last-child { font-weight: 700; }
+.cover-phrase-p + .cover-phrase-p { margin-top: 0.9em; }
+.cover-phrase.is-regular .cover-phrase-p { font-weight: 400; font-style: normal; }
+.cover-phrase.is-italic .cover-phrase-p { font-weight: 400; font-style: italic; }
 .cover-phrase.is-mixed span { display: inline; }
 .cover-caret { display: inline-block; width: 2px; height: 0.9em; margin-left: 2px; background: #fff; vertical-align: -0.1em; animation: caretBlink 0.85s step-end infinite; }
 @keyframes caretBlink { 50% { opacity: 0; } }
