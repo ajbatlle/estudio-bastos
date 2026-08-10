@@ -206,8 +206,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ——— Entrar: la portada desaparece y queda la grilla sobre el fondo ——— */
+  /* ——— Entrar / Volver: transición entre la portada y la grilla ——— */
   var btnEnter = document.getElementById('btn-enter');
+  var btnGridBack = document.getElementById('btn-grid-back');
   var coverForeground = document.getElementById('cover-foreground');
   var menuGrid = document.getElementById('menu-grid');
   if (btnEnter && coverForeground && menuGrid) {
@@ -217,6 +218,18 @@ document.addEventListener('DOMContentLoaded', function () {
       setTimeout(function () {
         menuGrid.removeAttribute('aria-hidden');
         menuGrid.classList.add('visible');
+        if (btnGridBack) btnGridBack.classList.add('visible');
+      }, 700);
+    });
+  }
+  if (btnGridBack && coverForeground && menuGrid && btnEnter) {
+    btnGridBack.addEventListener('click', function () {
+      btnGridBack.classList.remove('visible');
+      menuGrid.classList.remove('visible');
+      menuGrid.setAttribute('aria-hidden', 'true');
+      setTimeout(function () {
+        coverForeground.classList.remove('hidden');
+        btnEnter.disabled = false;
       }, 700);
     });
   }
