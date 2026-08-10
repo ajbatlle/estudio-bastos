@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   /* ——— Entrada: la frase (dos párrafos) se escribe sola al cargar ——— */
   var phrase = document.getElementById('cover-phrase');
-  var paragraphs = phrase ? Array.prototype.slice.call(phrase.querySelectorAll('.cover-phrase-p')) : [];
+  var paragraphs = phrase ? Array.prototype.slice.call(phrase.querySelectorAll('.cover-phrase-line')) : [];
   var PARA_TEXTS = paragraphs.map(function (p) { return p.textContent.trim(); });
 
   if (paragraphs.length) {
