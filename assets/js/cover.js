@@ -233,4 +233,169 @@ document.addEventListener('DOMContentLoaded', function () {
       }, 700);
     });
   }
+
+  /* ——— Portafolio: carrusel con desplazamiento propio + arrastre ——— */
+  var portfolioMarquee = document.getElementById('portfolio-marquee');
+  if (portfolioMarquee) {
+    var PROJECTS = [
+      { title: "Diseño editorial Catastro campamentos 2021", year: "2021", client: "TECHO Chile", desc: "Diseño editorial del catastro nacional de campamentos de Chile. La publicación ordena datos territoriales, cartografía y testimonios en una secuencia por región, con los mapas como eje de lectura.", imgs: ["assets/portfolio/catastro-campamentos-2021.jpg", "assets/portfolio/catastro-campamentos-2021-2.jpg", "assets/portfolio/catastro-campamentos-2021-3.jpg"] },
+      { title: "Diseño editorial Informe 8 años Meric", year: "2024", client: "Centro MERIC", desc: "Diseño editorial de la memoria por los ocho años del Centro MERIC, dedicado a la investigación en innovación en energía marina. La pieza organiza resultados, cifras y contenidos del centro en un sistema editorial impreso.", imgs: ["assets/portfolio/informe-8-anos-meric.jpg", "assets/portfolio/informe-8-anos-meric-2.jpg", "assets/portfolio/informe-8-anos-meric-3.jpg"] },
+      { title: "Coordinación de marca Fundación Vivienda", year: "2019", client: "Fundación Vivienda", desc: "Gestión gráfica de la marca de Fundación Vivienda: resguardo de su uso y desarrollo de aplicaciones para piezas y publicaciones.", imgs: ["assets/portfolio/marca-fundacion-vivienda.jpg", "assets/portfolio/marca-fundacion-vivienda-2.jpg", "assets/portfolio/marca-fundacion-vivienda-3.jpg", "assets/portfolio/marca-fundacion-vivienda-4.jpg", "assets/portfolio/marca-fundacion-vivienda-5.jpg"] },
+      { title: "Diseño de identidad de marca y web Contrafactual", year: "2018", client: "Contrafactual", desc: "Identidad de marca y sitio web para Contrafactual, medio digital especializado en temas económicos en Chile. El encargo abarcó el sistema visual y el diseño del sitio editorial.", imgs: ["assets/portfolio/identidad-web-contrafactual.jpg"] },
+      { title: "Diseño editorial y material de venta", year: "2023", client: "Aspid", desc: "Diseño editorial de material de venta para Genesal, Tisvol y Purever, centrado en la presentación de sus productos. El encargo llegó a través de la agencia Aspid.", imgs: ["assets/portfolio/material-de-venta.jpg", "assets/portfolio/material-de-venta-2.jpg", "assets/portfolio/material-de-venta-3.jpg"] },
+      { title: "Coordinación de marca Fundación Huella Local", year: "2024–2026", client: "Fundación Huella Local", desc: "Gestión gráfica de la marca de Fundación Huella Local: resguardo de su uso y desarrollo de aplicaciones y publicaciones.", imgs: ["assets/portfolio/marca-fundacion-huella-local.jpg", "assets/portfolio/marca-fundacion-huella-local-2.jpg", "assets/portfolio/marca-fundacion-huella-local-3.jpg", "assets/portfolio/marca-fundacion-huella-local-4.jpg", "assets/portfolio/marca-fundacion-huella-local-5.jpg", "assets/portfolio/marca-fundacion-huella-local-6.jpg"] },
+      { title: "Kit Concausa 2021", year: "2021", client: "América Solidaria", desc: "Diseño de un kit de materiales físicos para Concausa, encuentro digital de adolescentes de América Solidaria realizado durante la pandemia, orientado a entregar herramientas de participación e incidencia. El kit reunía una libreta de diseño propio, un mazo de cartas desarrollado en equipo y otros materiales, enviados a participantes de distintos países de Latinoamérica.", imgs: ["assets/portfolio/kit-concausa-2021.jpg", "assets/portfolio/kit-concausa-2021-2.jpg", "assets/portfolio/kit-concausa-2021-3.jpg", "assets/portfolio/kit-concausa-2021-4.jpg", "assets/portfolio/kit-concausa-2021-5.jpg", "assets/portfolio/kit-concausa-2021-6.jpg", "assets/portfolio/kit-concausa-2021-7.jpg", "assets/portfolio/kit-concausa-2021-8.jpg"] },
+      { title: "Acompañamiento escritura de cuentos, diseño y producción editorial", year: "2025", client: "Particular", desc: "Acompañamiento editorial a un grupo de autoras en la escritura de cuentos biográficos. El trabajo abarcó la corrección ortotipográfica y de estilo de más de cuarenta cuentos, la organización del conjunto como libro colectivo, el diseño editorial de interior y portada, y la gestión de imprenta para una tirada de 500 ejemplares.", imgs: ["assets/portfolio/acompanamiento-escritura-cuentos.jpg", "assets/portfolio/acompanamiento-escritura-cuentos-2.jpg", "assets/portfolio/acompanamiento-escritura-cuentos-3.jpg", "assets/portfolio/acompanamiento-escritura-cuentos-4.jpg"] },
+      { title: "Naming y diseño de identidad de marca Wift", year: "2022", client: "Wift", desc: "Naming e identificador gráfico de Wift, startup chilena de renting de autos. Desarrollado en colaboración con el diseñador <a href=\"https://www.instagram.com/juan_croxatto/\" target=\"_blank\" rel=\"noopener noreferrer\">Juan Croxatto</a>.", imgs: ["assets/portfolio/naming-identidad-wift.png", "assets/portfolio/naming-identidad-wift-2.jpg", "assets/portfolio/naming-identidad-wift-3.jpg", "assets/portfolio/naming-identidad-wift-4.jpg"] }
+    ];
+
+    Array.prototype.forEach.call(portfolioMarquee.querySelectorAll('.portfolio-thumb'), function (el) {
+      var p = PROJECTS[+el.dataset.idx];
+      if (p) el.setAttribute('data-title', p.title);
+    });
+
+    var CYCLE_MS = 36000; // mismo ritmo que tenía la animación CSS original
+
+    Array.prototype.forEach.call(portfolioMarquee.querySelectorAll('.portfolio-col'), function (colEl) {
+      var track = colEl.querySelector('.portfolio-col-track');
+      var dir = +colEl.dataset.dir;
+      var offset = 0;
+      var velocity = 0; // impulso extra por arrastre, en px/ms, decae solo
+      var half = 1;
+      var dragging = false;
+      var dragMoved = false;
+      var lastY = 0, startY = 0;
+      var vEstimate = 0, lastMoveT = 0;
+      var rafId = null;
+
+      function measure() { half = (track.scrollHeight / 2) || 1; }
+      measure();
+      window.addEventListener('resize', measure);
+      Array.prototype.forEach.call(track.querySelectorAll('img'), function (img) {
+        if (!img.complete) img.addEventListener('load', measure, { once: true });
+      });
+
+      function wrap(v) { return ((v % half) + half) % half; }
+
+      var lastT = 0;
+      function tick(t) {
+        if (!lastT) lastT = t;
+        var dt = Math.min(t - lastT, 48);
+        lastT = t;
+        if (!dragging) {
+          offset += (half / CYCLE_MS) * dir * dt + velocity * dt;
+          if (velocity) {
+            velocity *= Math.pow(0.92, dt / 16.67);
+            if (Math.abs(velocity) < 0.0006) velocity = 0;
+          }
+        }
+        offset = wrap(offset);
+        track.style.transform = 'translateY(' + (-offset) + 'px)';
+        rafId = requestAnimationFrame(tick);
+      }
+      rafId = requestAnimationFrame(tick);
+
+      function onDown(e) {
+        dragging = true;
+        dragMoved = false;
+        velocity = 0;
+        colEl.classList.add('dragging');
+        startY = lastY = e.clientY;
+        vEstimate = 0; lastMoveT = e.timeStamp;
+        if (colEl.setPointerCapture && e.pointerId != null) {
+          try { colEl.setPointerCapture(e.pointerId); } catch (err) {}
+        }
+      }
+      function onMove(e) {
+        if (!dragging) return;
+        var y = e.clientY;
+        var delta = y - lastY;
+        if (Math.abs(y - startY) > 4) dragMoved = true;
+        offset -= delta;
+        var dt = Math.max(e.timeStamp - lastMoveT, 8);
+        vEstimate = vEstimate * 0.7 + (-delta / dt) * 0.3;
+        lastMoveT = e.timeStamp;
+        lastY = y;
+      }
+      function onUp() {
+        if (!dragging) return;
+        dragging = false;
+        colEl.classList.remove('dragging');
+        velocity = Math.max(-0.9, Math.min(0.9, vEstimate));
+      }
+
+      colEl.addEventListener('pointerdown', onDown);
+      colEl.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      colEl.addEventListener('pointercancel', onUp);
+
+      colEl.addEventListener('click', function (e) {
+        if (dragMoved) { dragMoved = false; return; }
+        var thumb = e.target.closest ? e.target.closest('.portfolio-thumb') : null;
+        if (!thumb) return;
+        openProjectModal(+thumb.dataset.idx);
+      });
+    });
+
+    /* ——— Ficha de proyecto (modal) ——— */
+    var pmodal = document.getElementById('pmodal');
+    function openProjectModal(i) {
+      var p = PROJECTS[i];
+      if (!p || !pmodal) return;
+      document.getElementById('pm-title').textContent = p.title;
+      document.getElementById('pm-year').textContent = p.year;
+      document.getElementById('pm-client').textContent = p.client;
+      document.getElementById('pm-desc').innerHTML = p.desc;
+      renderGallery(p.imgs, p.title);
+      pmodal.classList.add('open');
+      pmodal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('noscroll');
+      pmodal.querySelector('.pmodal-panel').scrollTop = 0;
+    }
+    function closeProjectModal() {
+      pmodal.classList.remove('open');
+      pmodal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('noscroll');
+    }
+    function renderGallery(imgs, title) {
+      var wrap = document.getElementById('pm-imgs');
+      var multi = imgs.length > 1;
+      wrap.innerHTML = '<div class="pgallery">' +
+        '<div class="pgallery-main">' +
+          (multi ? '<button class="pgallery-arrow prev" aria-label="Anterior">‹</button>' : '') +
+          '<img id="pgallery-main-img" src="' + imgs[0] + '" alt="' + title + '">' +
+          (multi ? '<button class="pgallery-arrow next" aria-label="Siguiente">›</button>' : '') +
+        '</div>' +
+        (multi ? '<div class="pgallery-thumbs">' + imgs.map(function (s, idx) {
+          return '<button class="pgallery-thumb' + (idx === 0 ? ' active' : '') + '" data-idx="' + idx + '"><img src="' + s + '" alt=""></button>';
+        }).join('') + '</div>' : '') +
+      '</div>';
+      var mainImg = wrap.querySelector('#pgallery-main-img');
+      if (!multi) { mainImg.addEventListener('click', function () { openZoom(mainImg.src); }); return; }
+      var idx = 0;
+      var thumbs = wrap.querySelectorAll('.pgallery-thumb');
+      function show(n) {
+        idx = (n + imgs.length) % imgs.length;
+        mainImg.src = imgs[idx];
+        thumbs.forEach(function (t, ti) { t.classList.toggle('active', ti === idx); });
+      }
+      mainImg.addEventListener('click', function () { openZoom(mainImg.src); });
+      wrap.querySelector('.prev').addEventListener('click', function () { show(idx - 1); });
+      wrap.querySelector('.next').addEventListener('click', function () { show(idx + 1); });
+      thumbs.forEach(function (t) { t.addEventListener('click', function () { show(+t.dataset.idx); }); });
+    }
+    var pzoom = document.getElementById('pzoom');
+    var pzoomImg = document.getElementById('pzoom-img');
+    function openZoom(src) { pzoomImg.src = src; pzoom.classList.add('open'); }
+    function closeZoom() { pzoom.classList.remove('open'); pzoomImg.src = ''; }
+    if (pzoom) pzoom.addEventListener('click', closeZoom);
+    if (pmodal) {
+      pmodal.querySelectorAll('[data-close]').forEach(function (el) { el.addEventListener('click', closeProjectModal); });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (pzoom && pzoom.classList.contains('open')) { closeZoom(); return; }
+      if (pmodal && pmodal.classList.contains('open')) closeProjectModal();
+    });
+  }
 });

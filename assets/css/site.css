@@ -159,33 +159,32 @@ header .logo-link { display: inline-flex; line-height: 0; }
 .menu-card-icon svg { width: 100%; height: 100%; display: block; }
 .menu-card-label { font-family: var(--font-mono, monospace); font-size: 13px; letter-spacing: 0.05em; color: var(--text-secondary); }
 
-/* ——— Card 1: Portafolio, carrusel de dos columnas ——— */
+/* ——— Card 1: Portafolio, carrusel de dos columnas ———
+ * El desplazamiento lo maneja JS (requestAnimationFrame) para poder
+ * combinarlo con arrastre manual sin cortar el loop. Ver cover.js. */
 .menu-card-portfolio { display: block; padding: 0; overflow: hidden; background: var(--gray-5); }
 .portfolio-marquee { position: absolute; inset: 0; display: flex; gap: 4%; padding: 5%; }
 .portfolio-col {
   flex: 1; min-width: 0; overflow: hidden; position: relative;
+  cursor: grab; touch-action: pan-x;
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
   mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
 }
-.portfolio-col-track {
-  display: flex; flex-direction: column; gap: 8%;
-  animation: portfolioScroll 36s linear infinite;
-}
-.portfolio-col-reverse .portfolio-col-track { animation-direction: reverse; }
-.portfolio-col-track:has(.portfolio-thumb:hover) { animation-play-state: paused; }
-@keyframes portfolioScroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-@media (prefers-reduced-motion: reduce) { .portfolio-col-track { animation: none; } }
+.portfolio-col.dragging { cursor: grabbing; }
+.portfolio-col-track { display: flex; flex-direction: column; gap: 8%; will-change: transform; }
+.portfolio-col-track, .portfolio-col-track * { user-select: none; -webkit-user-select: none; }
+@media (prefers-reduced-motion: reduce) { .portfolio-marquee { display: none; } }
 
-.portfolio-thumb { position: relative; flex: none; width: 100%; aspect-ratio: 4 / 3; border-radius: 6px; overflow: hidden; background: var(--gray-10); }
-.portfolio-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.portfolio-thumb { position: relative; flex: none; width: 100%; aspect-ratio: 4 / 3; border-radius: 6px; overflow: hidden; background: var(--gray-10); cursor: pointer; }
+.portfolio-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
 .portfolio-thumb::after {
-  content: attr(data-title) " · " attr(data-year);
+  content: attr(data-title);
   position: absolute; left: 0; right: 0; bottom: 0;
   padding: 8% 10%;
   font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: #fff; line-height: 1.3;
   background: linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0));
   opacity: 0; transform: translateY(6px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
   pointer-events: none;
 }
 .portfolio-thumb:hover::after { opacity: 1; transform: translateY(0); }
