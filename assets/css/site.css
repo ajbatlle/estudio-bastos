@@ -70,7 +70,7 @@ header .logo-link { display: inline-flex; line-height: 0; }
 .cover-action-btn[aria-pressed="true"] svg { fill: #fff; }
 .cover-action-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
-.cover-content { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; max-width: 720px; margin: 0 auto; }
+.cover-content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; max-width: 720px; margin: 0 auto; }
 .cover-phrase { color: #fff; text-wrap: wrap; }
 
 /* Titular grande y contundente, cuerpo chico y liviano abajo -- misma
