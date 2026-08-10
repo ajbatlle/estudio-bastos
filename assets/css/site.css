@@ -350,11 +350,23 @@ footer { padding: 56px 80px 48px; border-top: 1px solid rgba(255,255,255,0.18); 
 .card:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
 /* Ficha de proyecto (ventana dentro de la web) */
-.pmodal { position: fixed; inset: 0; z-index: 100; display: none; }
-.pmodal.open { display: block; }
+.pmodal {
+  position: fixed; inset: 0; z-index: 100;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+}
+.pmodal.open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.35s ease; }
 .pmodal-bg { position: absolute; inset: 0; background: rgba(10,10,10,0.55); }
 .pmodal-panel { position: absolute; inset: 0; overflow-y: auto; }
-.pmodal-inner { position: relative; background: #E6E6E6; color: #1F1F23; max-width: 920px; margin: 48px auto; min-height: calc(100vh - 96px); padding: 24px 56px 72px; }
+.pmodal-inner {
+  position: relative; background: #E6E6E6; color: #1F1F23; max-width: 920px; margin: 48px auto; min-height: calc(100vh - 96px); padding: 24px 56px 72px;
+  opacity: 0; transform: translateY(28px) scale(0.98);
+  transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pmodal.open .pmodal-inner { opacity: 1; transform: translateY(0) scale(1); }
+@media (prefers-reduced-motion: reduce) {
+  .pmodal, .pmodal-inner { transition: opacity 0.2s ease; transform: none; }
+}
 .pmodal-close { position: sticky; top: 8px; margin-left: auto; display: block; background: none; border: 0; font-size: 30px; line-height: 1; color: #1F1F23; cursor: pointer; padding: 0 4px; }
 .pmodal-close:hover { opacity: 0.55; }
 .pmodal h2 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 4px 0 26px; max-width: 26ch; }
@@ -365,9 +377,16 @@ footer { padding: 56px 80px 48px; border-top: 1px solid rgba(255,255,255,0.18); 
 .pmodal-imgs { }
 .pgallery-main { position: relative; display: flex; align-items: center; justify-content: center; height: 60vh; max-height: 560px; overflow: hidden; }
 .pgallery-main img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block; cursor: zoom-in; background: #fff; border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-.pzoom { position: fixed; inset: 0; z-index: 200; display: none; align-items: flex-start; justify-content: center; background: rgba(10,10,10,0.9); padding: 40px; cursor: zoom-out; overflow-y: auto; }
-.pzoom.open { display: flex; }
-.pzoom img { max-width: 100%; width: auto; height: auto; display: block; margin: auto 0; cursor: zoom-out; }
+.pzoom {
+  position: fixed; inset: 0; z-index: 200; display: flex; align-items: flex-start; justify-content: center;
+  background: rgba(10,10,10,0.9); padding: 40px; cursor: zoom-out; overflow-y: auto;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+.pzoom.open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.3s ease; }
+.pzoom img { max-width: 100%; width: auto; height: auto; display: block; margin: auto 0; cursor: zoom-out; transform: scale(0.96); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+.pzoom.open img { transform: scale(1); }
+@media (prefers-reduced-motion: reduce) { .pzoom img { transition: opacity 0.2s ease; transform: none; } }
 .pgallery-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(31,31,35,0.55); color: #fff; font-size: 20px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .pgallery-arrow:hover { background: rgba(31,31,35,0.8); }
 .pgallery-arrow.prev { left: 12px; }
