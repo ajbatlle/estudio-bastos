@@ -264,11 +264,23 @@ document.addEventListener('DOMContentLoaded', function () {
       var half = 1;
       var dragging = false;
       var dragMoved = false;
+      var downThumb = null;
       var lastY = 0, startY = 0;
       var vEstimate = 0, lastMoveT = 0;
-      var rafId = null;
 
-      function measure() { half = (track.scrollHeight / 2) || 1; }
+      /* Distancia real entre el ítem 0 y su duplicado (mitad de la lista),
+       * no scrollHeight/2 -- con gaps impares esos dos valores no coinciden
+       * y el loop pega un salto visible al volver a 0. */
+      function measure() {
+        var kids = track.children;
+        var n = kids.length;
+        if (n >= 2 && kids[n / 2]) {
+          half = kids[n / 2].offsetTop - kids[0].offsetTop;
+        } else {
+          half = track.scrollHeight / 2;
+        }
+        if (!half) half = 1;
+      }
       measure();
       window.addEventListener('resize', measure);
       Array.prototype.forEach.call(track.querySelectorAll('img'), function (img) {
@@ -291,20 +303,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         offset = wrap(offset);
         track.style.transform = 'translateY(' + (-offset) + 'px)';
-        rafId = requestAnimationFrame(tick);
+        requestAnimationFrame(tick);
       }
-      rafId = requestAnimationFrame(tick);
+      requestAnimationFrame(tick);
 
+      /* El clic vs. arrastre se resuelve acá mismo (sin depender del evento
+       * "click" del navegador, que puede no llegar igual tras pointer
+       * capture / arrastre en todos los navegadores). */
       function onDown(e) {
         dragging = true;
         dragMoved = false;
         velocity = 0;
+        downThumb = e.target.closest ? e.target.closest('.portfolio-thumb') : null;
         colEl.classList.add('dragging');
         startY = lastY = e.clientY;
         vEstimate = 0; lastMoveT = e.timeStamp;
-        if (colEl.setPointerCapture && e.pointerId != null) {
-          try { colEl.setPointerCapture(e.pointerId); } catch (err) {}
-        }
       }
       function onMove(e) {
         if (!dragging) return;
@@ -322,19 +335,14 @@ document.addEventListener('DOMContentLoaded', function () {
         dragging = false;
         colEl.classList.remove('dragging');
         velocity = Math.max(-0.9, Math.min(0.9, vEstimate));
+        if (!dragMoved && downThumb) openProjectModal(+downThumb.dataset.idx);
+        downThumb = null;
       }
 
       colEl.addEventListener('pointerdown', onDown);
       colEl.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
-      colEl.addEventListener('pointercancel', onUp);
-
-      colEl.addEventListener('click', function (e) {
-        if (dragMoved) { dragMoved = false; return; }
-        var thumb = e.target.closest ? e.target.closest('.portfolio-thumb') : null;
-        if (!thumb) return;
-        openProjectModal(+thumb.dataset.idx);
-      });
+      colEl.addEventListener('pointercancel', function () { dragging = false; downThumb = null; colEl.classList.remove('dragging'); });
     });
 
     /* ——— Ficha de proyecto (modal) ——— */
