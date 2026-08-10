@@ -249,9 +249,37 @@ document.addEventListener('DOMContentLoaded', function () {
       { title: "Naming y diseño de identidad de marca Wift", year: "2022", client: "Wift", desc: "Naming e identificador gráfico de Wift, startup chilena de renting de autos. Desarrollado en colaboración con el diseñador <a href=\"https://www.instagram.com/juan_croxatto/\" target=\"_blank\" rel=\"noopener noreferrer\">Juan Croxatto</a>.", imgs: ["assets/portfolio/naming-identidad-wift.png", "assets/portfolio/naming-identidad-wift-2.jpg", "assets/portfolio/naming-identidad-wift-3.jpg", "assets/portfolio/naming-identidad-wift-4.jpg"] }
     ];
 
-    Array.prototype.forEach.call(portfolioMarquee.querySelectorAll('.portfolio-thumb'), function (el) {
-      var p = PROJECTS[+el.dataset.idx];
-      if (p) el.setAttribute('data-title', p.title);
+    /* Todas las fotos de todos los proyectos, mezcladas -- se puede entrar
+     * a cualquier proyecto por cualquiera de sus fotos, no solo la portada. */
+    var ALL_IMAGES = [];
+    PROJECTS.forEach(function (p, pIdx) {
+      p.imgs.forEach(function (src, imgIdx) {
+        ALL_IMAGES.push({ projectIdx: pIdx, imgIdx: imgIdx, src: src, title: p.title });
+      });
+    });
+
+    function shuffle(arr) {
+      var a = arr.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+      }
+      return a;
+    }
+
+    function thumbHTML(item) {
+      var title = item.title.replace(/"/g, '&quot;');
+      return '<div class="portfolio-thumb" data-idx="' + item.projectIdx + '" data-img="' + item.imgIdx + '" data-title="' + title + '"><img src="' + item.src + '" alt="" loading="lazy" draggable="false"></div>';
+    }
+
+    var shuffled = shuffle(ALL_IMAGES);
+    var mid = Math.ceil(shuffled.length / 2);
+    var colImages = [shuffled.slice(0, mid), shuffled.slice(mid)];
+
+    Array.prototype.forEach.call(portfolioMarquee.querySelectorAll('.portfolio-col'), function (colEl, colI) {
+      var track = colEl.querySelector('.portfolio-col-track');
+      var html = colImages[colI].map(thumbHTML).join('');
+      track.innerHTML = html + html; // duplicado para el loop continuo
     });
 
     var CYCLE_MS = 36000; // mismo ritmo que tenía la animación CSS original
@@ -346,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dragging = false;
         colEl.classList.remove('dragging');
         velocity = Math.max(-0.9, Math.min(0.9, vEstimate));
-        if (!dragMoved && downThumb) openProjectModal(+downThumb.dataset.idx);
+        if (!dragMoved && downThumb) openProjectModal(+downThumb.dataset.idx, +downThumb.dataset.img || 0);
         downThumb = null;
       }
 
@@ -358,14 +386,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ——— Ficha de proyecto (modal) ——— */
     var pmodal = document.getElementById('pmodal');
-    function openProjectModal(i) {
+    function openProjectModal(i, startImg) {
       var p = PROJECTS[i];
       if (!p || !pmodal) return;
       document.getElementById('pm-title').textContent = p.title;
       document.getElementById('pm-year').textContent = p.year;
       document.getElementById('pm-client').textContent = p.client;
       document.getElementById('pm-desc').innerHTML = p.desc;
-      renderGallery(p.imgs, p.title);
+      renderGallery(p.imgs, p.title, startImg || 0);
       pmodal.classList.add('open');
       pmodal.setAttribute('aria-hidden', 'false');
       document.body.classList.add('noscroll');
@@ -376,22 +404,23 @@ document.addEventListener('DOMContentLoaded', function () {
       pmodal.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('noscroll');
     }
-    function renderGallery(imgs, title) {
+    function renderGallery(imgs, title, startIdx) {
       var wrap = document.getElementById('pm-imgs');
       var multi = imgs.length > 1;
+      var start = Math.max(0, Math.min(startIdx || 0, imgs.length - 1));
       wrap.innerHTML = '<div class="pgallery">' +
         '<div class="pgallery-main">' +
           (multi ? '<button class="pgallery-arrow prev" aria-label="Anterior">‹</button>' : '') +
-          '<img id="pgallery-main-img" src="' + imgs[0] + '" alt="' + title + '">' +
+          '<img id="pgallery-main-img" src="' + imgs[start] + '" alt="' + title + '">' +
           (multi ? '<button class="pgallery-arrow next" aria-label="Siguiente">›</button>' : '') +
         '</div>' +
         (multi ? '<div class="pgallery-thumbs">' + imgs.map(function (s, idx) {
-          return '<button class="pgallery-thumb' + (idx === 0 ? ' active' : '') + '" data-idx="' + idx + '"><img src="' + s + '" alt=""></button>';
+          return '<button class="pgallery-thumb' + (idx === start ? ' active' : '') + '" data-idx="' + idx + '"><img src="' + s + '" alt=""></button>';
         }).join('') + '</div>' : '') +
       '</div>';
       var mainImg = wrap.querySelector('#pgallery-main-img');
       if (!multi) { mainImg.addEventListener('click', function () { openZoom(mainImg.src); }); return; }
-      var idx = 0;
+      var idx = start;
       var thumbs = wrap.querySelectorAll('.pgallery-thumb');
       function show(n) {
         idx = (n + imgs.length) % imgs.length;
@@ -402,6 +431,10 @@ document.addEventListener('DOMContentLoaded', function () {
       wrap.querySelector('.prev').addEventListener('click', function () { show(idx - 1); });
       wrap.querySelector('.next').addEventListener('click', function () { show(idx + 1); });
       thumbs.forEach(function (t) { t.addEventListener('click', function () { show(+t.dataset.idx); }); });
+      if (multi) {
+        var activeThumb = wrap.querySelector('.pgallery-thumb.active');
+        if (activeThumb && activeThumb.scrollIntoView) activeThumb.scrollIntoView({ block: 'nearest', inline: 'center' });
+      }
     }
     var pzoom = document.getElementById('pzoom');
     var pzoomImg = document.getElementById('pzoom-img');
