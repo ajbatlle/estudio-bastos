@@ -282,7 +282,12 @@ document.addEventListener('DOMContentLoaded', function () {
       track.innerHTML = html + html; // duplicado para el loop continuo
     });
 
-    var CYCLE_MS = 36000; // mismo ritmo que tenía la animación CSS original
+    /* Ritmo por foto, no por vuelta completa: con 36s fijos por ciclo, al
+     * pasar de 9 miniaturas a 37 fotos la misma "vuelta" cubre casi 4 veces
+     * más distancia en el mismo tiempo -> se veía mucho más rápido.
+     * 7.2s por foto es el ritmo original (36s / 5 fotos de la primera
+     * columna); con eso la velocidad no depende de cuántas fotos haya. */
+    var MS_PER_ITEM = 7200;
 
     Array.prototype.forEach.call(portfolioMarquee.querySelectorAll('.portfolio-col'), function (colEl) {
       var track = colEl.querySelector('.portfolio-col-track');
@@ -290,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var offset = 0;
       var velocity = 0; // impulso extra por arrastre, en px/ms, decae solo
       var half = 1;
+      var cycleMs = 1;
       var dragging = false;
       var dragMoved = false;
       var downThumb = null;
@@ -315,6 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!newHalf) newHalf = 1;
         if (half && newHalf !== half) offset = offset * (newHalf / half);
         half = newHalf;
+        cycleMs = Math.max(1, n / 2) * MS_PER_ITEM;
       }
       measure();
       if (window.ResizeObserver) {
@@ -334,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var dt = Math.min(t - lastT, 48);
         lastT = t;
         if (!dragging) {
-          offset += (half / CYCLE_MS) * dir * dt + velocity * dt;
+          offset += (half / cycleMs) * dir * dt + velocity * dt;
           if (velocity) {
             velocity *= Math.pow(0.92, dt / 16.67);
             if (Math.abs(velocity) < 0.0006) velocity = 0;
