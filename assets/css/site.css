@@ -79,7 +79,7 @@ header .logo-link { display: inline-flex; line-height: 0; }
    también al alto: en una pantalla ancha pero baja, el texto se achica
    igual, así todo entra sin scroll. */
 .cover-headline { font-size: clamp(24px, 5.5vmin, 58px); font-weight: 700; line-height: 1.08; letter-spacing: -0.02em; margin-bottom: clamp(10px, 1.5vh, 0.6em); text-wrap: balance; }
-.cover-body { font-size: clamp(14px, 2vmin, 18px); font-weight: 400; line-height: 1.6; color: rgba(255,255,255,0.78); max-width: 46ch; margin: 0 auto; }
+.cover-body { font-size: clamp(14px, 2vmin, 18px); font-weight: 400; line-height: 1.6; color: rgba(255,255,255,0.78); max-width: 46ch; margin: 0 auto; text-wrap: pretty; }
 
 .cover-phrase.is-regular .cover-phrase-line { font-weight: 400; font-style: normal; }
 .cover-phrase.is-italic .cover-phrase-line { font-weight: 400; font-style: italic; }
@@ -94,13 +94,36 @@ header .logo-link { display: inline-flex; line-height: 0; }
 .cover-isotipo.visible { opacity: 1; }
 .cover-bottom .logo { height: 28px; width: auto; }
 
+.cover-cta { position: relative; display: inline-block; }
 .cover-cta-link {
+  all: unset; cursor: pointer;
   font-family: var(--font-sans); font-size: 15px; font-weight: 700; letter-spacing: 0.01em;
   color: #fff; text-decoration: underline; text-underline-offset: 3px;
   transition: opacity 0.15s ease;
 }
 .cover-cta-link:hover, .cover-cta-link:focus-visible { opacity: 0.7; }
 .cover-cta-link:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+
+.cover-cta-menu {
+  position: absolute; bottom: calc(100% + 10px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  display: flex; flex-direction: column; gap: 4px;
+  background: rgba(24,24,24,0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px; padding: 6px; min-width: 168px;
+  opacity: 0; pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.cover-cta.is-open .cover-cta-menu,
+.cover-cta:hover .cover-cta-menu,
+.cover-cta:focus-within .cover-cta-menu {
+  opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0);
+}
+.cover-cta-option {
+  font-family: var(--font-sans); font-size: 14px; font-weight: 600;
+  color: #fff; text-decoration: none; white-space: nowrap;
+  padding: 9px 14px; border-radius: 8px; transition: background 0.15s ease;
+}
+.cover-cta-option:hover, .cover-cta-option:focus-visible { background: rgba(255,255,255,0.14); }
+.cover-cta-option:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
 
 .cover-logo-btn { all: unset; cursor: pointer; display: inline-flex; line-height: 0; }
 .cover-logo-btn:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }

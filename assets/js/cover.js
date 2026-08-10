@@ -29,7 +29,13 @@ document.addEventListener('DOMContentLoaded', function () {
           if (pI < paragraphs.length) {
             setTimeout(typeTick, PARA_PAUSE);
           } else {
-            setTimeout(function () { if (caret.parentNode) caret.parentNode.removeChild(caret); }, 1000);
+            setTimeout(function () {
+              if (caret.parentNode) caret.parentNode.removeChild(caret);
+              // El tipeo deja un nodo de texto por carácter; sin normalizar,
+              // ese fraccionamiento hace que el nbsp entre "las" y "personas"
+              // no siempre se respete al ajustar el texto.
+              paragraphs.forEach(function (p) { p.normalize(); });
+            }, 1000);
           }
         }
       }
@@ -69,6 +75,27 @@ document.addEventListener('DOMContentLoaded', function () {
     btnType.addEventListener('click', function () {
       typeIndex = (typeIndex + 1) % TYPE_STATES.length;
       applyTypeState();
+    });
+  }
+
+  /* ——— Escríbenos: menú con Gmail / WhatsApp — hover en desktop, tap en touch ——— */
+  var ctaWrap = document.getElementById('cover-cta');
+  var ctaTrigger = document.getElementById('cover-cta-trigger');
+  if (ctaWrap && ctaTrigger) {
+    function closeCta() {
+      ctaWrap.classList.remove('is-open');
+      ctaTrigger.setAttribute('aria-expanded', 'false');
+    }
+    ctaTrigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = ctaWrap.classList.toggle('is-open');
+      ctaTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', function (e) {
+      if (!ctaWrap.contains(e.target)) closeCta();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeCta();
     });
   }
 
