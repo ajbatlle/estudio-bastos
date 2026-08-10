@@ -72,10 +72,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ——— Logo: rebota por la pantalla, como el viejo protector de pantalla ——— */
+  /* ——— Logo: rebota por la pantalla, como el viejo protector de pantalla ———
+   * El botón real NUNCA sale del layout (se pone invisible nomás), así el
+   * resto de la portada no se reacomoda cuando el logo se va a rebotar ni
+   * cuando vuelve. Lo que rebota es un clon position:fixed; al frenar,
+   * el clon planea de vuelta a la posición real del botón y recién ahí
+   * se saca, para que no haya ningún salto ni reflow. */
   var logoBtn = document.getElementById('btn-logo-bounce');
   if (logoBtn) {
     var bounceRaf = null;
+    var bounceClone = null;
+    var bouncing = false;
     var bx, by, bvx, bvy, bw, bh;
 
     function bounceStep() {
@@ -85,30 +92,61 @@ document.addEventListener('DOMContentLoaded', function () {
       if (bx + bw >= vw) { bx = vw - bw; bvx = -Math.abs(bvx); }
       if (by <= 0) { by = 0; bvy = Math.abs(bvy); }
       if (by + bh >= vh) { by = vh - bh; bvy = -Math.abs(bvy); }
-      logoBtn.style.transform = 'translate(' + bx + 'px,' + by + 'px)';
+      bounceClone.style.transform = 'translate(' + bx + 'px,' + by + 'px)';
       bounceRaf = requestAnimationFrame(bounceStep);
     }
 
     function startBounce() {
       var rect = logoBtn.getBoundingClientRect();
       bx = rect.left; by = rect.top; bw = rect.width; bh = rect.height;
-      logoBtn.classList.add('bouncing');
-      logoBtn.style.transform = 'translate(' + bx + 'px,' + by + 'px)';
-      var speed = 2.4;
-      bvx = (Math.random() < 0.5 ? -1 : 1) * (speed + Math.random());
-      bvy = (Math.random() < 0.5 ? -1 : 1) * (speed + Math.random());
+
+      var clone = logoBtn.cloneNode(true);
+      clone.classList.add('cover-logo-clone');
+      clone.style.width = bw + 'px';
+      clone.style.height = bh + 'px';
+      clone.style.transform = 'translate(' + bx + 'px,' + by + 'px)';
+      clone.removeAttribute('id');
+      clone.tabIndex = -1;
+      clone.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(clone);
+      bounceClone = clone;
+
+      logoBtn.classList.add('bounce-source-hidden');
+      bouncing = true;
+      logoBtn.setAttribute('aria-pressed', 'true');
+
+      var speed = 1.8;
+      bvx = (Math.random() < 0.5 ? -1 : 1) * (speed + Math.random() * 0.8);
+      bvy = (Math.random() < 0.5 ? -1 : 1) * (speed + Math.random() * 0.8);
       bounceRaf = requestAnimationFrame(bounceStep);
+
+      clone.addEventListener('click', stopBounce);
+      document.addEventListener('pointerdown', stopBounceOnOutsideClick, true);
     }
 
+    function stopBounceOnOutsideClick() { stopBounce(); }
+
     function stopBounce() {
+      if (!bouncing) return;
+      bouncing = false;
+      logoBtn.setAttribute('aria-pressed', 'false');
+      document.removeEventListener('pointerdown', stopBounceOnOutsideClick, true);
       cancelAnimationFrame(bounceRaf);
-      logoBtn.classList.remove('bouncing');
-      logoBtn.style.transform = '';
+
+      var clone = bounceClone;
+      var home = logoBtn.getBoundingClientRect(); // su lugar real, que nunca se movió
+      clone.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+      clone.style.transform = 'translate(' + home.left + 'px,' + home.top + 'px)';
+      clone.style.pointerEvents = 'none';
+
+      setTimeout(function () {
+        if (clone.parentNode) clone.parentNode.removeChild(clone);
+        logoBtn.classList.remove('bounce-source-hidden');
+        bounceClone = null;
+      }, 520);
     }
 
     logoBtn.addEventListener('click', function () {
-      var bouncing = logoBtn.getAttribute('aria-pressed') === 'true';
-      logoBtn.setAttribute('aria-pressed', bouncing ? 'false' : 'true');
       if (bouncing) stopBounce(); else startBounce();
     });
   }

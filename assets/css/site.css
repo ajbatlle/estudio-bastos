@@ -88,7 +88,12 @@ header .logo-link { display: inline-flex; line-height: 0; }
 
 .cover-logo-btn { all: unset; cursor: pointer; display: inline-flex; line-height: 0; }
 .cover-logo-btn:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
-.cover-logo-btn.bouncing { position: fixed; top: 0; left: 0; z-index: 60; will-change: transform; }
+.cover-logo-btn.bounce-source-hidden { visibility: hidden; }
+.cover-logo-clone {
+  all: unset; position: fixed; top: 0; left: 0; z-index: 60;
+  display: inline-flex; line-height: 0; cursor: pointer; will-change: transform;
+}
+.cover-logo-clone .logo { height: 28px; width: auto; }
 
 /* En pantallas altas y angostas, space-between + flex:1 en la frase deja
  * huecos enormes arriba/abajo. Se agrupan los tres bloques al centro. */
