@@ -29,7 +29,7 @@ header .logo-link { display: inline-flex; line-height: 0; }
   position: relative;
   min-height: 100vh;
   display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  overflow: hidden; padding: 48px 40px 40px; text-align: center;
+  overflow: hidden; padding: clamp(20px, 4vh, 48px) 40px clamp(20px, 4vh, 40px); text-align: center;
   background: var(--color-brand);
 }
 
@@ -61,7 +61,7 @@ header .logo-link { display: inline-flex; line-height: 0; }
 @media (max-width: 880px) { .cover-scatter { display: none; } }
 
 /* Fila de botones — controles de la portada */
-.cover-actions { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 36px; }
+.cover-actions { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: clamp(14px, 3vh, 36px); }
 .cover-action-btn { all: unset; box-sizing: border-box; cursor: pointer; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.15s ease; }
 .cover-action-btn svg { width: 18px; height: 18px; fill: rgba(255,255,255,0.65); transition: fill 0.15s ease; }
 .cover-action-btn:hover { background: rgba(255,255,255,0.12); }
@@ -70,14 +70,16 @@ header .logo-link { display: inline-flex; line-height: 0; }
 .cover-action-btn[aria-pressed="true"] svg { fill: #fff; }
 .cover-action-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
-.cover-content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; max-width: 720px; margin: 0 auto; }
+.cover-content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(14px, 2.5vh, 28px); max-width: 720px; margin: 0 auto; }
 .cover-phrase { color: #fff; text-wrap: wrap; }
 
 /* Titular grande y contundente, cuerpo chico y liviano abajo -- misma
    lógica que una portada editorial: una sola cosa grita, el resto
-   explica en voz baja. */
-.cover-headline { font-size: clamp(30px, 5.2vw, 58px); font-weight: 700; line-height: 1.08; letter-spacing: -0.02em; margin-bottom: 0.6em; text-wrap: balance; }
-.cover-body { font-size: clamp(15px, 1.6vw, 18px); font-weight: 400; line-height: 1.65; color: rgba(255,255,255,0.78); max-width: 46ch; margin: 0 auto; }
+   explica en voz baja. Los tamaños usan vmin (no vw) para reaccionar
+   también al alto: en una pantalla ancha pero baja, el texto se achica
+   igual, así todo entra sin scroll. */
+.cover-headline { font-size: clamp(24px, 5.5vmin, 58px); font-weight: 700; line-height: 1.08; letter-spacing: -0.02em; margin-bottom: clamp(10px, 1.5vh, 0.6em); text-wrap: balance; }
+.cover-body { font-size: clamp(14px, 2vmin, 18px); font-weight: 400; line-height: 1.6; color: rgba(255,255,255,0.78); max-width: 46ch; margin: 0 auto; }
 
 .cover-phrase.is-regular .cover-phrase-line { font-weight: 400; font-style: normal; }
 .cover-phrase.is-italic .cover-phrase-line { font-weight: 400; font-style: italic; }
@@ -86,7 +88,7 @@ header .logo-link { display: inline-flex; line-height: 0; }
 @keyframes caretBlink { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .cover-caret { animation: none; } }
 
-.cover-bottom { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+.cover-bottom { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 2vh, 24px); }
 .cover-isotipo-slot { height: 44px; display: flex; align-items: center; justify-content: center; }
 .cover-isotipo { height: 40px; width: auto; filter: brightness(0) invert(1); opacity: 0; transition: opacity 0.6s ease; }
 .cover-isotipo.visible { opacity: 1; }
