@@ -270,19 +270,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
       /* Distancia real entre el ítem 0 y su duplicado (mitad de la lista),
        * no scrollHeight/2 -- con gaps impares esos dos valores no coinciden
-       * y el loop pega un salto visible al volver a 0. */
+       * y el loop pega un salto visible al volver a 0.
+       * Se remide con ResizeObserver porque al agrandar la tarjeta (hover)
+       * las miniaturas cambian de tamaño y "half" queda desactualizado
+       * -- eso era lo que hacía "reiniciar" el loop. Si half cambia, offset
+       * se reescala en la misma proporción para no saltar de posición. */
       function measure() {
         var kids = track.children;
         var n = kids.length;
+        var newHalf;
         if (n >= 2 && kids[n / 2]) {
-          half = kids[n / 2].offsetTop - kids[0].offsetTop;
+          newHalf = kids[n / 2].offsetTop - kids[0].offsetTop;
         } else {
-          half = track.scrollHeight / 2;
+          newHalf = track.scrollHeight / 2;
         }
-        if (!half) half = 1;
+        if (!newHalf) newHalf = 1;
+        if (half && newHalf !== half) offset = offset * (newHalf / half);
+        half = newHalf;
       }
       measure();
-      window.addEventListener('resize', measure);
+      if (window.ResizeObserver) {
+        new ResizeObserver(measure).observe(colEl);
+      } else {
+        window.addEventListener('resize', measure);
+      }
       Array.prototype.forEach.call(track.querySelectorAll('img'), function (img) {
         if (!img.complete) img.addEventListener('load', measure, { once: true });
       });
