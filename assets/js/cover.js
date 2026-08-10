@@ -1,28 +1,36 @@
 document.addEventListener('DOMContentLoaded', function () {
-  /* ——— Entrada: la frase se escribe sola al cargar la página ——— */
+  /* ——— Entrada: la frase (dos párrafos) se escribe sola al cargar ——— */
   var phrase = document.getElementById('cover-phrase');
-  var PHRASE_TEXT = phrase ? phrase.textContent.trim() : '';
+  var paragraphs = phrase ? Array.prototype.slice.call(phrase.querySelectorAll('.cover-phrase-p')) : [];
+  var PARA_TEXTS = paragraphs.map(function (p) { return p.textContent.trim(); });
 
-  if (phrase) {
+  if (paragraphs.length) {
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) {
-      phrase.textContent = PHRASE_TEXT;
+      paragraphs.forEach(function (p, i) { p.textContent = PARA_TEXTS[i]; });
     } else {
-      phrase.textContent = '';
-      phrase.classList.add('is-typing');
+      paragraphs.forEach(function (p) { p.textContent = ''; });
       var caret = document.createElement('span');
       caret.className = 'cover-caret';
-      phrase.appendChild(caret);
-      var typeI = 0;
       var TYPE_SPEED = 32; // ms por carácter — lento y elegante
+      var PARA_PAUSE = 380; // pausa extra al saltar de párrafo
+      var pI = 0, cI = 0;
       function typeTick() {
-        if (typeI < PHRASE_TEXT.length) {
-          caret.insertAdjacentText('beforebegin', PHRASE_TEXT.charAt(typeI));
-          typeI++;
+        var p = paragraphs[pI];
+        if (cI === 0) p.appendChild(caret);
+        var text = PARA_TEXTS[pI];
+        if (cI < text.length) {
+          caret.insertAdjacentText('beforebegin', text.charAt(cI));
+          cI++;
           setTimeout(typeTick, TYPE_SPEED);
         } else {
-          phrase.classList.remove('is-typing');
-          setTimeout(function () { if (caret.parentNode) caret.parentNode.removeChild(caret); }, 1000);
+          pI++;
+          cI = 0;
+          if (pI < paragraphs.length) {
+            setTimeout(typeTick, PARA_PAUSE);
+          } else {
+            setTimeout(function () { if (caret.parentNode) caret.parentNode.removeChild(caret); }, 1000);
+          }
         }
       }
       setTimeout(typeTick, 500); // pausa breve para que asiente el fondo antes de escribir
@@ -31,22 +39,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ——— Botón 1: cambia el peso/estilo de la frase ——— */
   var btnType = document.getElementById('btn-action-type');
-  if (phrase && btnType) {
-    var WORDS = PHRASE_TEXT.split(/\s+/);
+  if (phrase && paragraphs.length && btnType) {
     var MIX_WEIGHTS = ['300', '400', '500', '600', '700', '800'];
     var TYPE_STATES = ['bold', 'regular', 'italic', 'mixed'];
     var typeIndex = 0;
+    var wordCounter = 0;
 
     function applyTypeState() {
       var state = TYPE_STATES[typeIndex];
       phrase.classList.remove('is-regular', 'is-italic', 'is-mixed');
       if (state === 'mixed') {
         phrase.classList.add('is-mixed');
-        phrase.innerHTML = WORDS.map(function (w, i) {
-          return '<span style="font-weight:' + MIX_WEIGHTS[i % MIX_WEIGHTS.length] + '">' + w + '</span>';
-        }).join(' ');
+        wordCounter = 0;
+        paragraphs.forEach(function (p, i) {
+          p.innerHTML = PARA_TEXTS[i].split(/\s+/).map(function (w) {
+            var weight = MIX_WEIGHTS[wordCounter % MIX_WEIGHTS.length];
+            wordCounter++;
+            return '<span style="font-weight:' + weight + '">' + w + '</span>';
+          }).join(' ');
+        });
       } else {
-        phrase.textContent = PHRASE_TEXT;
+        paragraphs.forEach(function (p, i) { p.textContent = PARA_TEXTS[i]; });
         if (state === 'regular') phrase.classList.add('is-regular');
         if (state === 'italic') phrase.classList.add('is-italic');
       }

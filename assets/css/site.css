@@ -72,6 +72,7 @@ header .logo-link { display: inline-flex; line-height: 0; }
 
 .cover-content { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; max-width: 720px; margin: 0 auto; }
 .cover-phrase { font-size: clamp(20px, 3vw, 32px); font-weight: 700; line-height: 1.35; letter-spacing: -0.01em; color: #fff; text-wrap: wrap; }
+.cover-phrase-p + .cover-phrase-p { margin-top: 0.85em; }
 .cover-phrase.is-regular { font-weight: 400; font-style: normal; }
 .cover-phrase.is-italic { font-weight: 400; font-style: italic; }
 .cover-phrase.is-mixed span { display: inline; }
