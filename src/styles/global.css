@@ -93,12 +93,13 @@ a:hover {
 }
 
 /* ——— Contenedor ———
- * Gutters generosos: 64–80px en escritorio, comprimidos en móvil.
+ * Gutters generosos: el contenido ocupa ~70% del ancho de pantalla en
+ * escritorio, como en los mockups. Se comprime en móvil.
  */
 
 .container {
   width: 100%;
-  max-width: var(--container-max);
+  max-width: 1480px;
   margin-inline: auto;
   padding-inline: var(--spacing-06);
 }

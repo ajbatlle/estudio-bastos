@@ -1,0 +1,155 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+
+const proyectos = (await getCollection('proyectos')).sort(
+  (a, b) => a.data.orden - b.data.orden,
+);
+---
+
+<Base
+  title="Proyectos"
+  description="Proyectos del estudio: identidad, publicaciones editoriales, plataformas digitales y otros productos de comunicación."
+  accion="Volver al inicio"
+  accionHref={import.meta.env.BASE_URL}
+>
+  <h1 class="visually-hidden">Proyectos</h1>
+
+  <div class="container listado">
+    {
+      proyectos.map((proyecto) => {
+        const { titulo, descripcion, tipo, rol, anio, enlace, enlaceTexto, media, mediaAlt } =
+          proyecto.data;
+
+        return (
+          <article class="fila">
+            <div class="ficha">
+              <h2>{titulo}</h2>
+              <p class="descripcion">{descripcion}</p>
+
+              <dl class="meta">
+                <dt class="visually-hidden">Tipo</dt>
+                <dd>{tipo}</dd>
+                <dt class="visually-hidden">Rol</dt>
+                <dd>{rol}</dd>
+                <dt class="visually-hidden">Año</dt>
+                <dd>{anio}</dd>
+              </dl>
+
+              {enlace && (
+                <a class="enlace" href={enlace} target="_blank" rel="noopener">
+                  {enlaceTexto ?? enlace}
+                  <svg
+                    class="flecha"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M4.5 11.5 11.5 4.5" />
+                    <path d="M5.5 4.5h6v6" />
+                  </svg>
+                  <span class="visually-hidden">(se abre en una pestaña nueva)</span>
+                </a>
+              )}
+            </div>
+
+            {/* Sin imagen se muestra el marcador blanco de los mockups. */}
+            <div class="media">
+              {media && <Image src={media} alt={mediaAlt ?? ''} widths={[640, 1024, 1440]} />}
+            </div>
+          </article>
+        );
+      })
+    }
+  </div>
+</Base>
+
+<style>
+  .listado {
+    padding-block: var(--spacing-10) var(--spacing-12);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-12);
+  }
+
+  /* Ficha de texto estrecha a la izquierda, media ancha a la derecha.
+     Proporción tomada de los mockups: ~27% / ~66%, con un canal entre medio. */
+  .fila {
+    display: grid;
+    grid-template-columns: minmax(0, 27fr) minmax(0, 66fr);
+    gap: 7%;
+    align-items: start;
+  }
+
+  h2 {
+    font-size: var(--text-body-lg);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .descripcion {
+    margin-top: 1.8em;
+  }
+
+  .meta {
+    margin-top: 1.8em;
+  }
+
+  .descripcion,
+  .meta {
+    font-size: var(--text-body);
+    line-height: 1.95;
+  }
+
+  .enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    margin-top: 0.2em;
+    font-weight: var(--weight-bold);
+    line-height: 1.95;
+  }
+
+  .flecha {
+    width: 0.9em;
+    height: 0.9em;
+    flex: none;
+  }
+
+  /* ⚠ Radio grande: se aparta del sistema de diseño, que pide cards sin
+     redondeo. Los mockups lo piden así. */
+  .media {
+    aspect-ratio: 16 / 10;
+    background: var(--white);
+    border-radius: 24px;
+    overflow: hidden;
+  }
+
+  .media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (max-width: 60rem) {
+    .fila {
+      grid-template-columns: 1fr;
+      gap: var(--spacing-07);
+    }
+
+    .listado {
+      gap: var(--spacing-10);
+      padding-block: var(--spacing-08) var(--spacing-10);
+    }
+
+    .media {
+      border-radius: 16px;
+    }
+  }
+</style>

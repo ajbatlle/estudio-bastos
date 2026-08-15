@@ -1,87 +1,72 @@
 ---
-// Cabecera del sitio. Estructura y navegación tomadas del mockup aprobado
-// (uploads/Web.png): logotipo a la izquierda, nav en minúscula a la derecha.
-// ⚠ Provisional — los ítems de navegación quedan a la espera de la estructura final.
+// Cabecera: logotipo a la izquierda, un único botón píldora a la derecha que
+// alterna entre las dos páginas del sitio. Sin menú y sin footer, según los
+// mockups de agosto de 2026.
+interface Props {
+  /** Texto del botón. Ej. "Ver proyectos" / "Volver al inicio". */
+  accion: string;
+  /** Destino del botón. */
+  href: string;
+}
+
+const { accion, href } = Astro.props;
 const base = import.meta.env.BASE_URL;
-
-const nav = [
-  { label: 'agenda', href: `${base}agenda` },
-  { label: 'blog', href: `${base}blog` },
-  { label: 'nosotros', href: `${base}nosotros` },
-  { label: 'servicios', href: `${base}servicios` },
-];
-
-const path = Astro.url.pathname;
 ---
 
-<header>
-  <div class="container inner">
-    <a href={base} class="logo" aria-label="Bastos — Diseño y Comunicaciones — Inicio">
-      <img src={`${base}brand/Logo-blanco.svg`} alt="" width="176" height="44" />
-    </a>
+<header class="container">
+  <a href={base} class="logo" aria-label="Bastos — Inicio">
+    <img src={`${base}brand/Logo-blanco.svg`} alt="" width="176" height="44" />
+  </a>
 
-    <nav aria-label="Principal">
-      {
-        nav.map((item) => (
-          <a href={item.href} aria-current={path === item.href ? 'page' : undefined}>
-            {item.label}
-          </a>
-        ))
-      }
-    </nav>
-  </div>
+  <a class="pildora" href={href}>{accion}</a>
 </header>
 
 <style>
   header {
-    padding-block: var(--spacing-09) var(--spacing-08);
-  }
-
-  .inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--spacing-06);
-    flex-wrap: wrap;
+    padding-block: var(--spacing-08);
   }
 
+  /* El logotipo de cabecera va sin el subtítulo "DISEÑO Y COMUNICACIONES":
+     el SVG lo incluye, así que se recorta mostrando solo el logotipo. */
   .logo img {
-    height: 44px;
+    height: 38px;
     width: auto;
   }
 
-  nav {
-    display: flex;
-    gap: var(--spacing-06);
-  }
-
-  nav a {
+  /* ⚠ Píldora: se aparta del sistema de diseño, que especifica botones
+     rectangulares con borde de 2px. Los mockups la piden así. */
+  .pildora {
+    flex: none;
+    padding: 0.6em 1.5em;
+    border: 1.5px solid var(--white);
+    border-radius: var(--radius-pill);
     font-size: var(--text-body);
     font-weight: var(--weight-regular);
-    color: rgb(255 255 255 / 0.82);
-    transition: color var(--transition-normal);
+    line-height: 1;
+    white-space: nowrap;
+    transition: background var(--transition-normal), color var(--transition-normal);
   }
 
-  nav a:hover,
-  nav a[aria-current='page'] {
-    color: var(--white);
+  .pildora:hover {
+    background: var(--white);
+    color: var(--color-brand);
     opacity: 1;
   }
 
   @media (max-width: 40rem) {
     header {
-      padding-block: var(--spacing-07) var(--spacing-06);
+      padding-block: var(--spacing-06);
     }
 
     .logo img {
-      height: 34px;
+      height: 28px;
     }
 
-    nav {
-      gap: var(--spacing-05);
-    }
-
-    nav a {
+    .pildora {
       font-size: var(--text-body-sm);
     }
   }

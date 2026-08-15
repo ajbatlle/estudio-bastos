@@ -1,161 +1,79 @@
 ---
 import Base from '../layouts/Base.astro';
+import MarcaInline from '../components/MarcaInline.astro';
 
-// ⚠ PROVISIONAL — port fiel del mockup aprobado (uploads/Web.png) sobre la base
-// del proyecto. El contenido es marcador de posición: la estructura definitiva
-// de secciones y el tratamiento del portafolio están pendientes de definición.
-
-const categorias = ['Proyectos', 'Cultura', 'Publicaciones', 'Servicios'];
-
-const destacados = [
-  { categoria: 'Publicaciones', titulo: 'Título', extracto: 'Marcador de posición.' },
-  { categoria: 'Publicaciones', titulo: 'Título', extracto: 'Marcador de posición.' },
-  { categoria: 'Publicaciones', titulo: 'Título', extracto: 'Marcador de posición.' },
-];
+// ⚠ PENDIENTE: dirección de contacto real del estudio.
+const CORREO = 'hola@estudiobastos.cl';
 ---
 
-<Base title="Diseño y Comunicaciones" surface="brand">
-  <section class="container hero">
-    <h1>{categorias.join(' | ')}</h1>
-  </section>
+<Base
+  title="Diseño y Comunicaciones"
+  accion="Ver proyectos"
+  accionHref={`${import.meta.env.BASE_URL}proyectos`}
+>
+  <section class="container manifiesto">
+    <h1>
+      Bastos es un <strong>estudio de diseño</strong>
+      <MarcaInline forma="rombos" /> especializado en <strong
+        >organizar y dar forma a información dispersa</strong
+      > para convertirla en conocimiento claro, accesible y útil.
+      <MarcaInline forma="flor" /><br />
 
-  <section class="container">
-    <div class="grid">
-      {
-        destacados.map((item) => (
-          <article class="card">
-            <div class="card-img" />
-            <div class="card-body">
-              <p class="card-cat">{item.categoria}</p>
-              <h2 class="card-title display">{item.titulo}</h2>
-              <p class="card-excerpt">{item.extracto}</p>
-            </div>
-            <hr class="card-rule" />
-          </article>
-        ))
-      }
-    </div>
-  </section>
+      Trabajamos con la <strong>identidad</strong> de marcas y organizaciones, y desarrollamos
+      <strong>publicaciones editoriales, plataformas digitales y otros productos de comunicación.</strong>
+      <MarcaInline forma="flor" /><br />
 
-  <section class="container suscribir">
-    <a class="boton" href="#suscripcion">Suscríbete</a>
-  </section>
+      Cada proyecto toma un mínimo de 6 semanas.<br />
 
-  <section class="container social">
-    <a class="ig" href="https://instagram.com/" aria-label="Bastos en Instagram">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-        <circle cx="12" cy="12" r="4"></circle>
-        <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor"></circle>
-      </svg>
-    </a>
+      <MarcaInline forma="rombos" /><a class="cta" href={`mailto:${CORREO}`}
+        ><strong>Escríbenos y agendamos una conversación.</strong></a
+      >
+    </h1>
   </section>
 </Base>
 
 <style>
-  .hero {
-    text-align: center;
-    padding-block: var(--spacing-02) var(--spacing-09);
-  }
-
-  .hero h1 {
-    font-size: var(--text-heading-sm);
-    font-weight: var(--weight-bold);
-    text-transform: uppercase;
-    letter-spacing: var(--tracking-wide);
-    line-height: var(--leading-snug);
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-08);
-  }
-
-  /* Imagen de proyecto: retrato 3:4, marcador blanco sólido. */
-  .card-img {
-    aspect-ratio: 3 / 4;
-    background: var(--white);
-    width: 100%;
-  }
-
-  .card-body {
-    padding-block: var(--spacing-05) var(--spacing-04);
-  }
-
-  .card-cat {
-    font-size: var(--text-label);
-    color: rgb(255 255 255 / 0.6);
-    margin-bottom: var(--spacing-01);
-  }
-
-  .card-title {
-    font-size: var(--text-heading);
-    font-weight: var(--weight-bold);
-    margin-bottom: var(--spacing-03);
-  }
-
-  .card-excerpt {
-    font-size: var(--text-body-sm);
-    line-height: var(--leading-normal);
-    color: rgb(255 255 255 / 0.68);
-  }
-
-  /* Sin sombra, sin radio, sin borde: solo una regla de 1px al pie. */
-  .card-rule {
-    border: none;
-    border-top: 1px solid var(--border-inverse);
-  }
-
-  .suscribir {
-    text-align: center;
-    padding-block: var(--spacing-09);
-  }
-
-  /* Botón inverso: relleno blanco sobre azul, rectangular. */
-  .boton {
-    display: inline-block;
-    padding: var(--spacing-04) var(--spacing-08);
-    background: var(--white);
-    color: var(--color-brand);
-    border: 2px solid var(--white);
-    border-radius: var(--radius-none);
-    font-size: var(--text-body-sm);
-    font-weight: var(--weight-bold);
-    letter-spacing: var(--tracking-wider);
-  }
-
-  .boton:hover {
-    opacity: var(--opacity-active);
-  }
-
-  .social {
+  .manifiesto {
+    flex: 1;
     display: flex;
-    justify-content: center;
-    padding-bottom: var(--spacing-08);
+    align-items: center;
+    padding-block: var(--spacing-09) var(--spacing-12);
   }
 
-  .ig {
-    width: 44px;
-    height: 44px;
-    display: grid;
-    place-items: center;
-    border: 2px solid rgb(255 255 255 / 0.6);
-    border-radius: var(--radius-full);
-    transition: border-color var(--transition-normal);
+  /* Un solo bloque de texto continuo. Los saltos de línea son deliberados:
+     cada uno cierra una idea, siempre después de un elemento de marca. */
+  h1 {
+    font-size: clamp(1.5rem, 2.45vw, 2.875rem);
+    font-weight: var(--weight-regular);
+    line-height: 1.48;
+    letter-spacing: var(--tracking-tight);
+    text-wrap: pretty;
   }
 
-  .ig:hover {
-    border-color: var(--white);
-    opacity: 1;
+  h1 strong {
+    font-weight: var(--weight-bold);
   }
 
-  @media (max-width: 60rem) {
-    .grid { grid-template-columns: repeat(2, 1fr); }
+  .cta {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
   }
 
-  @media (max-width: 40rem) {
-    .grid { grid-template-columns: 1fr; gap: var(--spacing-07); }
-    .hero h1 { font-size: var(--text-body-lg); }
+  @media (max-width: 48rem) {
+    .manifiesto {
+      align-items: flex-start;
+      padding-block: var(--spacing-07) var(--spacing-10);
+    }
+
+    h1 {
+      line-height: 1.4;
+    }
+
+    /* En pantallas estrechas los saltos forzados rompen la lectura:
+       el texto fluye y las marcas quedan como separadores. */
+    h1 br {
+      display: none;
+    }
   }
 </style>

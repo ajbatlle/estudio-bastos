@@ -1,0 +1,31 @@
+---
+// Elemento de marca intercalado en el texto, a modo de signo de puntuación.
+// Se dimensiona en em para que acompañe al cuerpo de texto que lo rodea.
+interface Props {
+  /** Cuál de los cuatro elementos: rombos, asterisco, circulos o flor. */
+  forma?: 'rombos' | 'asterisco' | 'circulos' | 'flor';
+}
+
+const { forma = 'rombos' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+
+const archivo = {
+  rombos: 'element1-blanco.svg',
+  asterisco: 'element2-blanco.svg',
+  circulos: 'element3-blanco.svg',
+  flor: 'element4-blanco.svg',
+}[forma];
+---
+
+<img class="marca" src={`${base}brand/${archivo}`} alt="" aria-hidden="true" />
+
+<style>
+  .marca {
+    display: inline-block;
+    width: 0.62em;
+    height: 0.62em;
+    /* Alinea el elemento con la altura de la x en vez de con la línea base. */
+    vertical-align: 0.04em;
+    margin-inline: 0.14em;
+  }
+</style>

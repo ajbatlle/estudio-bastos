@@ -16,11 +16,22 @@ npm run dev
 
 ## Estructura
 
+Dos páginas, sin menú y sin pie: un único botón en la cabecera alterna entre
+ambas.
+
+| Ruta | Contenido |
+|---|---|
+| `/` | Manifiesto a pantalla completa y enlace de contacto |
+| `/proyectos` | Listado de proyectos, uno por fila |
+
 ```
 src/
-├── components/     Header, Footer
+├── components/     Header, MarcaInline
+├── content/
+│   └── proyectos/  Un .md por proyecto (todo en el frontmatter)
+├── content.config.ts   Esquema de la colección de proyectos
 ├── layouts/        Base.astro — head, meta, favicon, estructura de página
-├── pages/          Una ruta por archivo
+├── pages/          index.astro, proyectos.astro
 ├── styles/
 │   ├── global.css  Punto de entrada: reset, bases, utilidades
 │   └── tokens/     Tokens del sistema de diseño (color, tipo, espaciado…)
@@ -29,6 +40,25 @@ src/
 public/
 ├── brand/          Logotipos, isotipo, 4 elementos de marca, ola de footer
 └── elements/       100 elementos ornamentales + el-loco-tarot
+```
+
+### Añadir un proyecto
+
+Crear `src/content/proyectos/<slug>.md`. El esquema está en
+`src/content.config.ts`; `media` y `enlace` son opcionales y sin `media` se
+muestra el marcador blanco de los mockups.
+
+```yaml
+---
+titulo: Editor gráfico – Huella Local
+descripcion: Una idea, sin hipérbole.
+tipo: Herramienta interna / editor gráfico
+rol: Desarrollo del editor
+anio: 2026
+enlace: https://www.huellalocal.cl
+enlaceTexto: www.huellalocal.cl
+orden: 1
+---
 ```
 
 ## Sistema de diseño
@@ -49,6 +79,19 @@ Una diferencia deliberada con el paquete original: la tipografía se auto-hosped
 (`src/fonts/`, 59 KB en variable) en vez de cargarse desde Google Fonts. Se evita
 la petición a un tercero y el parpadeo de texto.
 
+### Dónde el sitio se aparta del sistema de diseño
+
+Los mockups de agosto de 2026 mandan sobre el paquete en dos puntos, y ambos
+están marcados con `⚠` en el código:
+
+| Elemento | Sistema de diseño | Mockups |
+|---|---|---|
+| Botones | Rectangulares, borde 2px | Píldora, borde 1.5px |
+| Contenedores de media | Sin redondeo | Radio de 24px |
+
+Conviene reflejar estos cambios en el paquete del sistema de diseño para que no
+queden dos fuentes de verdad en desacuerdo.
+
 ## Despliegue
 
 `.github/workflows/deploy.yml` construye y publica en cada push a `main`. En el
@@ -67,7 +110,9 @@ Conservar un respaldo de esa carpeta fuera del proyecto.
 
 ## Pendiente
 
-- Estructura definitiva de secciones y navegación.
-- Tratamiento del portafolio y pipeline de optimización de imágenes.
-- El home actual (`src/pages/index.astro`) es un port del mockup aprobado con
-  contenido marcador de posición.
+- **Dirección de contacto.** El home enlaza a `hola@estudiobastos.cl`, que es un
+  marcador de posición (constante `CORREO` en `src/pages/index.astro`).
+- **Contenido de los 9 proyectos restantes.** Solo está cargado Huella Local.
+- **Imágenes.** Ninguna fila tiene `media` todavía: todas muestran el marcador
+  blanco. Falta decidir qué se ve en cada una y derivar los archivos desde
+  `portfolio/`.
