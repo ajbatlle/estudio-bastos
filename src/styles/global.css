@@ -1,0 +1,140 @@
+/* Bastos — Hoja global
+ * Punto de entrada único. Importa los tokens del sistema de diseño y define
+ * el reset y las bases de página. Las reglas específicas de un componente
+ * viven en su .astro, no aquí.
+ */
+
+@import './tokens/fonts.css';
+@import './tokens/colors.css';
+@import './tokens/typography.css';
+@import './tokens/spacing.css';
+@import './tokens/elevation.css';
+
+/* ——— Reset ——— */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* ——— Bases de página ——— */
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background: var(--surface-page);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: opacity var(--transition-normal);
+}
+
+a:hover {
+  opacity: var(--opacity-hover);
+}
+
+/* Foco visible: el sistema es plano, pero la accesibilidad no se negocia. */
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+/* ——— Utilidades de superficie ———
+ * El sistema solo admite dos fondos: azul de marca y blanco.
+ * Nunca franjas alternadas dentro de una misma sección.
+ */
+
+.surface-brand {
+  background: var(--surface-brand);
+  color: var(--text-on-brand);
+}
+
+.surface-page {
+  background: var(--surface-page);
+  color: var(--text-primary);
+}
+
+/* ——— Contenedor ———
+ * Gutters generosos: 64–80px en escritorio, comprimidos en móvil.
+ */
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--spacing-06);
+}
+
+@media (min-width: 48rem) {
+  .container { padding-inline: var(--spacing-10); }
+}
+
+@media (min-width: 64rem) {
+  .container { padding-inline: var(--spacing-11); }
+}
+
+/* ——— Tipografía de marca ———
+ * Titulares en ALLCAPS con tracking negativo. Nav en minúscula.
+ */
+
+.display {
+  font-weight: var(--weight-extrabold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+
+.eyebrow {
+  font-size: var(--text-label);
+  font-weight: var(--weight-light);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+
+/* Solo para lectores de pantalla */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

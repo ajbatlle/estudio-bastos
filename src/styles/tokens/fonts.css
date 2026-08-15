@@ -1,0 +1,28 @@
+/* Bastos — Font Face Declarations
+ *
+ * Plus Jakarta Sans auto-hospedada (variable, pesos 200–800 en un solo archivo).
+ * Reemplaza la carga vía Google Fonts CDN del sistema de diseño original:
+ * evita la petición a un tercero, elimina el FOUT del CDN y pesa 59 KB.
+ *
+ * Los .woff2 viven en src/fonts/ y no en public/ a propósito: así Vite resuelve
+ * la URL en el build y los paths siguen siendo correctos aunque GitHub Pages
+ * sirva el sitio bajo un subdirectorio (`base`).
+ *
+ * TTF fuente en /Plus_Jakarta_Sans. Regenerar con: npm run fonts
+ */
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../../fonts/PlusJakartaSans-Variable.woff2') format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: italic;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../../fonts/PlusJakartaSans-Italic-Variable.woff2') format('woff2-variations');
+}

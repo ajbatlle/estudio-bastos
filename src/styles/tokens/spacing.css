@@ -1,0 +1,34 @@
+/* Bastos — Spacing Tokens
+ * Based on IBM Carbon Design System 4px base scale.
+ * Brand uses generous whitespace; never crowd elements.
+ */
+
+:root {
+  /* ——— Base spacing scale ——— */
+  --spacing-01:  0.125rem;   /*   2px */
+  --spacing-02:  0.25rem;    /*   4px */
+  --spacing-03:  0.5rem;     /*   8px */
+  --spacing-04:  0.75rem;    /*  12px */
+  --spacing-05:  1rem;       /*  16px */
+  --spacing-06:  1.5rem;     /*  24px */
+  --spacing-07:  2rem;       /*  32px */
+  --spacing-08:  2.5rem;     /*  40px */
+  --spacing-09:  3rem;       /*  48px */
+  --spacing-10:  4rem;       /*  64px */
+  --spacing-11:  5rem;       /*  80px */
+  --spacing-12:  6rem;       /*  96px */
+  --spacing-13: 10rem;       /* 160px */
+
+  /* ——— Semantic layout spacing ——— */
+  --layout-xs:    var(--spacing-05);    /* 16px  — tight component spacing */
+  --layout-sm:    var(--spacing-07);    /* 32px  — between elements */
+  --layout-md:    var(--spacing-09);    /* 48px  — section spacing */
+  --layout-lg:    var(--spacing-10);    /* 64px  — generous section / page gutter */
+  --layout-xl:    var(--spacing-11);    /* 80px  — hero sections */
+  --layout-2xl:   var(--spacing-13);    /* 160px — major section breaks */
+
+  /* ——— Container ——— */
+  --container-max:    80rem;            /* 1280px */
+  --container-sm:     40rem;            /* 640px  */
+  --page-gutter:      var(--spacing-10); /* 64px page-edge margin */
+}

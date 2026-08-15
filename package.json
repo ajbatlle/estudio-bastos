@@ -1,0 +1,20 @@
+{
+  "name": "estudio-bastos",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "fonts": "node scripts/fonts.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.14.1"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.4",
+    "wawoff2": "^2.0.1"
+  }
+}

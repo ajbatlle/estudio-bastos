@@ -1,0 +1,64 @@
+/* Bastos — Typography Tokens
+ *
+ * Única tipografía: Plus Jakarta Sans (Google Fonts)
+ *   Pesos disponibles: 300 · 400 · 500 · 600 · 700 · 800
+ *   Load via: https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap
+ *
+ * Nota: el logotipo "~bastos~" usa una tipografía propietaria (trazados en SVG).
+ *   Plus Jakarta Sans Bold 700 / ExtraBold 800 se usa para todos los titulares de display.
+ */
+
+:root {
+  /* ——— Font families ——— */
+  --font-sans:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'Courier New', monospace;
+
+  /* ——— Type scale (Carbon-aligned, 16px base) ——— */
+  --type-scale-01: 0.75rem;     /* 12px — caption, label, small */
+  --type-scale-02: 0.875rem;    /* 14px — body-compact */
+  --type-scale-03: 1rem;        /* 16px — body */
+  --type-scale-04: 1.125rem;    /* 18px — body-large */
+  --type-scale-05: 1.25rem;     /* 20px — heading-01 */
+  --type-scale-06: 1.5rem;      /* 24px — heading-02 */
+  --type-scale-07: 1.75rem;     /* 28px — heading-03 */
+  --type-scale-08: 2rem;        /* 32px — heading-04 */
+  --type-scale-09: 2.625rem;    /* 42px — heading-05 */
+  --type-scale-10: 3rem;        /* 48px — heading-06 */
+  --type-scale-11: 3.75rem;     /* 60px — display-01 */
+  --type-scale-12: 4.5rem;      /* 72px — display-02 */
+  --type-scale-13: 6rem;        /* 96px — display-03 */
+
+  /* ——— Semantic type roles ——— */
+  --text-display:      var(--type-scale-12);
+  --text-heading-xl:   var(--type-scale-11);
+  --text-heading-lg:   var(--type-scale-09);
+  --text-heading:      var(--type-scale-07);
+  --text-heading-sm:   var(--type-scale-05);
+  --text-body-lg:      var(--type-scale-04);
+  --text-body:         var(--type-scale-03);
+  --text-body-sm:      var(--type-scale-02);
+  --text-label:        var(--type-scale-01);
+  --text-caption:      var(--type-scale-01);
+
+  /* ——— Font weights ——— */
+  --weight-light:      300;
+  --weight-regular:    400;
+  --weight-medium:     500;
+  --weight-semibold:   600;
+  --weight-bold:       700;
+  --weight-extrabold:  800;
+
+  /* ——— Letter spacing ——— */
+  --tracking-tight:   -0.02em;
+  --tracking-normal:   0em;
+  --tracking-wide:     0.05em;
+  --tracking-wider:    0.1em;
+  --tracking-caps:     0.15em;   /* "DISEÑO Y COMUNICACIONES" style */
+  --tracking-ultra:    0.25em;
+
+  /* ——— Line heights ——— */
+  --leading-tight:    1.1;
+  --leading-snug:     1.25;
+  --leading-normal:   1.5;
+  --leading-relaxed:  1.7;
+}

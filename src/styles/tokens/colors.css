@@ -1,0 +1,65 @@
+/* Bastos — Color Tokens
+ * Structural reference: IBM Carbon Design System token naming
+ * Brand palette is intentionally minimal: electric blue + white only.
+ * ⚠ Exact hex for brand blue estimated from visual materials; confirm with brand.
+ */
+
+:root {
+  /* ——— Base palette ——— */
+
+  /* Brand Blue — Azul Real (Opción B)
+   * oklch(43% 0.21 262°) — medio-oscuro, chroma moderado.
+   * Hue 262° aleja del violeta puro; chroma 0.21 elimina
+   * la vibración óptica contra blanco sin perder vivacidad. */
+  --blue-100: oklch(43% 0.21 262deg);   /* Brand primary */
+  --blue-90:  oklch(37% 0.19 262deg);   /* Hover / pressed */
+  --blue-80:  oklch(32% 0.17 262deg);
+  --blue-70:  oklch(27% 0.15 262deg);
+  --blue-20:  oklch(84% 0.08 262deg);   /* Subtle */
+  --blue-10:  oklch(91% 0.04 262deg);   /* Tint */
+  --blue-5:   oklch(96% 0.02 262deg);   /* Background */
+
+  /* Neutral */
+  --white:    #ffffff;
+  --black:    #0a0a0a;
+  --gray-90:  #1a1a1a;
+  --gray-80:  #333333;
+  --gray-60:  #666666;
+  --gray-40:  #999999;
+  --gray-20:  #cccccc;
+  --gray-10:  #e8e8e8;
+  --gray-5:   #f2f2f2;   /* Off-white — light background surfaces (slides, etc.) */
+
+  /* ——— Semantic aliases (Carbon-style) ——— */
+
+  /* Brand */
+  --color-brand:         var(--blue-100);
+  --color-brand-hover:   var(--blue-90);
+  --color-brand-subtle:  var(--blue-5);
+
+  /* Text */
+  --text-primary:        var(--black);
+  --text-secondary:      var(--gray-60);
+  --text-placeholder:    var(--gray-40);
+  --text-disabled:       var(--gray-40);
+  --text-on-brand:       var(--white);
+  --text-inverse:        var(--white);
+
+  /* Surface */
+  --surface-page:        var(--white);
+  --surface-subtle:      var(--gray-5);
+  --surface-brand:       var(--blue-100);
+  --surface-inverse:     var(--black);
+  --surface-overlay:     oklch(43% 0.21 262deg / 0.08);
+
+  /* Border */
+  --border-subtle:       var(--gray-10);
+  --border-strong:       var(--gray-20);
+  --border-inverse:      rgba(255, 255, 255, 0.25);
+  --border-brand:        var(--blue-100);
+
+  /* Interactive */
+  --interactive:         var(--blue-100);
+  --interactive-hover:   var(--blue-90);
+  --focus:               var(--blue-100);
+}

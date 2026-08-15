@@ -1,0 +1,70 @@
+---
+// Pie de página. Los cuatro elementos de marca aparecen siempre como set
+// completo y en fila horizontal, en blanco sobre fondo azul (readme del DS).
+const base = import.meta.env.BASE_URL;
+
+const elementos = [
+  { src: `${base}brand/element1-blanco.svg`, nombre: 'Rombos' },
+  { src: `${base}brand/element2-blanco.svg`, nombre: 'Asterisco' },
+  { src: `${base}brand/element3-blanco.svg`, nombre: 'Círculos' },
+  { src: `${base}brand/element4-blanco.svg`, nombre: 'Flor' },
+];
+---
+
+<footer>
+  <div class="container inner">
+    <a href={base} aria-label="Bastos — Inicio">
+      <img class="logo" src={`${base}brand/Logo-blanco.svg`} alt="" width="160" height="40" />
+    </a>
+
+    <div class="marcas" aria-hidden="true">
+      {elementos.map((el) => <img src={el.src} alt="" width="36" height="36" />)}
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer {
+    padding-block: var(--spacing-09);
+  }
+
+  .inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-07);
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    height: 40px;
+    width: auto;
+  }
+
+  .marcas {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-04);
+  }
+
+  .marcas img {
+    height: 36px;
+    width: 36px;
+  }
+
+  @media (max-width: 40rem) {
+    .inner {
+      justify-content: center;
+      text-align: center;
+    }
+
+    .logo {
+      height: 32px;
+    }
+
+    .marcas img {
+      height: 28px;
+      width: 28px;
+    }
+  }
+</style>

@@ -1,0 +1,32 @@
+# Build
+dist/
+.astro/
+
+# Dependencias
+node_modules/
+
+# Entorno
+.env
+.env.production
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# ——— Material fuente (no se versiona) ———
+# Originales de imprenta, ~475 MB. Superan de largo el límite práctico de un
+# repositorio y el sitio nunca los sirve: el pipeline los deriva a WebP.
+# Conservar respaldo aparte de esta carpeta.
+portfolio/
+
+# Fuentes TTF originales — se versionan los .woff2 derivados en src/fonts/
+Plus_Jakarta_Sans/
+
+# Entrega original de logotipos y elementos. Las copias que usa el sitio viven
+# en public/brand y public/elements: esas son las que se versionan, para que
+# haya un solo lugar donde editarlas.
+assets/
+elements/
+
+# Paquete original del sistema de diseño (referencia, no dependencia del build)
+*.zip
