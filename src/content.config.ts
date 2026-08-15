@@ -6,7 +6,7 @@ import { glob } from 'astro/loaders';
 // libre por si más adelante hace falta texto largo por proyecto.
 const proyectos = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/proyectos' }),
-  schema: ({ image }) =>
+  schema: () =>
     z.object({
       /** Encabezado de la fila. Ej. "Editor gráfico – Huella Local". */
       titulo: z.string(),
@@ -21,8 +21,13 @@ const proyectos = defineCollection({
       enlace: z.string().url().optional(),
       /** Cómo se muestra el enlace. Ej. "www.huellalocal.cl". */
       enlaceTexto: z.string().optional(),
-      /** Imagen de la fila. Sin ella se muestra el marcador blanco. */
-      media: image().optional(),
+      /**
+       * Archivo dentro de public/media/, con extensión. Sin él se muestra el
+       * marcador blanco. Se sirve desde public/ y no por astro:assets porque
+       * el WebP animado perdería la animación al reprocesarse.
+       * Generar con: npm run media
+       */
+      media: z.string().optional(),
       mediaAlt: z.string().optional(),
       /** Posición en el listado, de menor a mayor. */
       orden: z.number().default(0),

@@ -1,7 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+
+const base = import.meta.env.BASE_URL;
 
 const proyectos = (await getCollection('proyectos')).sort(
   (a, b) => a.data.orden - b.data.orden,
@@ -18,23 +19,26 @@ const proyectos = (await getCollection('proyectos')).sort(
 
   <div class="container listado">
     {
-      proyectos.map((proyecto) => {
+      proyectos.map((proyecto, indice) => {
         const { titulo, descripcion, tipo, rol, anio, enlace, enlaceTexto, media, mediaAlt } =
           proyecto.data;
 
         return (
           <article class="fila">
+            {/* Los corchetes son parte de la composición, no una marca de hueco
+                por rellenar: van en la plantilla y no en el contenido, para que
+                los .md queden limpios. El título y el enlace van sin ellos. */}
             <div class="ficha">
               <h2>{titulo}</h2>
-              <p class="descripcion">{descripcion}</p>
+              <p class="descripcion">[{descripcion}]</p>
 
               <dl class="meta">
                 <dt class="visually-hidden">Tipo</dt>
-                <dd>{tipo}</dd>
+                <dd>[{tipo}]</dd>
                 <dt class="visually-hidden">Rol</dt>
-                <dd>{rol}</dd>
+                <dd>[{rol}]</dd>
                 <dt class="visually-hidden">Año</dt>
-                <dd>{anio}</dd>
+                <dd>[{anio}]</dd>
               </dl>
 
               {enlace && (
@@ -58,9 +62,21 @@ const proyectos = (await getCollection('proyectos')).sort(
               )}
             </div>
 
-            {/* Sin imagen se muestra el marcador blanco de los mockups. */}
+            {/* Sin imagen se muestra el marcador blanco de los mockups.
+                La pieza va contenida, no recortada: son grabaciones de pantalla
+                mucho más apaisadas que el recuadro, y recortarlas se comería la
+                interfaz por los costados. */}
             <div class="media">
-              {media && <Image src={media} alt={mediaAlt ?? ''} widths={[640, 1024, 1440]} />}
+              {media && (
+                <span class="pantalla">
+                  <img
+                    src={`${base}media/${media}`}
+                    alt={mediaAlt ?? ''}
+                    loading={indice === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
+                  />
+                </span>
+              )}
             </div>
           </article>
         );
@@ -71,7 +87,7 @@ const proyectos = (await getCollection('proyectos')).sort(
 
 <style>
   .listado {
-    padding-block: var(--spacing-10) var(--spacing-12);
+    padding-block: var(--spacing-07) var(--spacing-12);
     display: flex;
     flex-direction: column;
     gap: var(--spacing-12);
@@ -127,14 +143,40 @@ const proyectos = (await getCollection('proyectos')).sort(
   .media {
     aspect-ratio: 16 / 10;
     background: var(--white);
-    border-radius: 24px;
-    overflow: hidden;
+    border-radius: 8px;
+    /* La pieza no toca el borde: el recuadro blanco actúa de paspartú.
+       En porcentaje para que el aire crezca con el recuadro. */
+    padding: clamp(8px, 1.8%, 20px);
+    display: grid;
+    place-items: center;
   }
 
-  .media :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  /* La pantalla se ajusta al tamaño real de la pieza en vez de estirarse a la
+     caja. Es lo que permite que el bisel y la sombra abracen la imagen y no
+     las bandas vacías que deja una grabación más apaisada que el recuadro. */
+  .pantalla {
+    display: flex;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 5px;
+    overflow: hidden;
+    /* ⚠ Sombra: el sistema de diseño es plano y la prohíbe. Aquí levanta la
+       grabación del papel para que se lea como una pantalla. Va en capas —una
+       línea de contacto, un apoyo corto y una caída larga y difusa— porque una
+       sombra sola se ve artificial. */
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 6px 16px rgb(0 0 0 / 0.1),
+      0 20px 40px rgb(0 0 0 / 0.07);
+  }
+
+  .pantalla img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   @media (max-width: 60rem) {
@@ -149,7 +191,7 @@ const proyectos = (await getCollection('proyectos')).sort(
     }
 
     .media {
-      border-radius: 16px;
+      border-radius: 6px;
     }
   }
 </style>

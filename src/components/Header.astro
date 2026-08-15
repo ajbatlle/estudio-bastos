@@ -22,52 +22,45 @@ const base = import.meta.env.BASE_URL;
 </header>
 
 <style>
+  /* Cabecera y logotipo escalan con el ancho de pantalla, igual que los
+     márgenes. Con medidas fijas el logotipo crecía en proporción al reducirse
+     la pantalla y la cabecera se volvía pesada. */
   header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--spacing-06);
-    padding-block: var(--spacing-08);
+    /* Menos aire abajo que arriba: acerca el contenido a la cabecera. */
+    padding-block: clamp(1.5rem, 4.2vw, 5rem) clamp(1.1rem, 2.9vw, 3.4rem);
   }
 
-  /* El logotipo de cabecera va sin el subtítulo "DISEÑO Y COMUNICACIONES":
-     el SVG lo incluye, así que se recorta mostrando solo el logotipo. */
   .logo img {
-    height: 38px;
+    height: clamp(18px, 1.78vw, 36px);
     width: auto;
   }
 
   /* ⚠ Píldora: se aparta del sistema de diseño, que especifica botones
-     rectangulares con borde de 2px. Los mockups la piden así. */
+     rectangulares con borde de 2px. Los mockups la piden así.
+     El borde va fino a propósito: es un contorno, no un marco. */
   .pildora {
     flex: none;
-    padding: 0.6em 1.5em;
-    border: 1.5px solid var(--white);
+    padding: 0.5em 1.8em;
+    border: 1px solid rgb(255 255 255 / 0.85);
     border-radius: var(--radius-pill);
-    font-size: var(--text-body);
+    font-size: clamp(0.6875rem, 0.85vw, 1.0625rem);
     font-weight: var(--weight-regular);
     line-height: 1;
     white-space: nowrap;
-    transition: background var(--transition-normal), color var(--transition-normal);
+    transition:
+      background var(--transition-normal),
+      color var(--transition-normal),
+      border-color var(--transition-normal);
   }
 
   .pildora:hover {
     background: var(--white);
+    border-color: var(--white);
     color: var(--color-brand);
     opacity: 1;
-  }
-
-  @media (max-width: 40rem) {
-    header {
-      padding-block: var(--spacing-06);
-    }
-
-    .logo img {
-      height: 28px;
-    }
-
-    .pildora {
-      font-size: var(--text-body-sm);
-    }
   }
 </style>

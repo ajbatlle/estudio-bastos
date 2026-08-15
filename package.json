@@ -8,6 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "fonts": "node scripts/fonts.mjs",
+    "media": "node --max-old-space-size=6144 scripts/media.mjs",
     "astro": "astro"
   },
   "dependencies": {

@@ -1,6 +1,11 @@
 ---
 // Elemento de marca intercalado en el texto, a modo de signo de puntuación.
 // Se dimensiona en em para que acompañe al cuerpo de texto que lo rodea.
+//
+// Dos capas a propósito: el <img> gira sobre su eje y el <span> reacciona al
+// puntero. Si ambos usaran `transform` sobre el mismo nodo, el hover cortaría
+// la rotación en seco. Así el <span> puede convertirse en <button> más adelante
+// sin tocar la animación.
 interface Props {
   /** Cuál de los cuatro elementos: rombos, asterisco, circulos o flor. */
   forma?: 'rombos' | 'asterisco' | 'circulos' | 'flor';
@@ -17,7 +22,9 @@ const archivo = {
 }[forma];
 ---
 
-<img class="marca" src={`${base}brand/${archivo}`} alt="" aria-hidden="true" />
+<span class="marca" data-forma={forma} aria-hidden="true">
+  <img src={`${base}brand/${archivo}`} alt="" />
+</span>
 
 <style>
   .marca {
@@ -27,5 +34,34 @@ const archivo = {
     /* Alinea el elemento con la altura de la x en vez de con la línea base. */
     vertical-align: 0.04em;
     margin-inline: 0.14em;
+    transition: transform var(--transition-slow);
+  }
+
+  .marca img {
+    width: 100%;
+    height: 100%;
+    animation: giro var(--giro) linear infinite;
+  }
+
+  /* Cada forma lleva su propio ritmo y sentido: girando todas al unísono el
+     conjunto se lee como un mecanismo, y la idea es que respire. */
+  .marca[data-forma='rombos']    { --giro: 12s; }
+  .marca[data-forma='asterisco'] { --giro: 16s; }
+  .marca[data-forma='circulos']  { --giro: 14s; }
+  .marca[data-forma='flor']      { --giro: 18s; }
+
+  .marca[data-forma='asterisco'] img,
+  .marca[data-forma='flor'] img {
+    animation-direction: reverse;
+  }
+
+  /* Anticipo del estado interactivo: cuando pasen a ser botones o disparen un
+     hovertext, la reacción ya está y es suave. */
+  .marca:hover {
+    transform: scale(1.18);
+  }
+
+  @keyframes giro {
+    to { transform: rotate(1turn); }
   }
 </style>

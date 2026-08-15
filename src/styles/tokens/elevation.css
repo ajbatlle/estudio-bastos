@@ -22,10 +22,15 @@
   --radius-pill: 9999px;  /* Badge only */
   --radius-full: 50%;
 
-  /* ——— Transitions ——— */
-  --transition-fast:    0.1s ease;  /* @kind other */
-  --transition-normal:  0.2s ease;  /* @kind other */
-  --transition-slow:    0.3s ease;  /* @kind other */
+  /* ——— Transitions ———
+   * Curva de salida suave: arranca con decisión y frena largo, en vez del
+   * `ease` por defecto, que corta seco. Duraciones por encima de los 0,15–0,2s
+   * que fijaba el paquete original: a esa velocidad los cambios se sienten
+   * bruscos. */
+  --ease:               cubic-bezier(0.25, 0.8, 0.25, 1);  /* @kind other */
+  --transition-fast:    0.25s var(--ease);  /* @kind other */
+  --transition-normal:  0.45s var(--ease);  /* @kind other */
+  --transition-slow:    0.7s var(--ease);   /* @kind other */
 
   /* ——— Opacity states ——— */
   --opacity-hover:    0.75;  /* @kind other */

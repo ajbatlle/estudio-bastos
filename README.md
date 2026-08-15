@@ -13,6 +13,7 @@ npm run dev
 | `npm run build` | Genera el sitio estático en `dist/` |
 | `npm run preview` | Sirve `dist/` para revisar el build |
 | `npm run fonts` | Regenera los WOFF2 desde los TTF de `Plus_Jakarta_Sans/` |
+| `npm run media` | Deriva las piezas de `public/media/` desde `portfolio/` |
 
 ## Estructura
 
@@ -41,6 +42,21 @@ public/
 ├── brand/          Logotipos, isotipo, 4 elementos de marca, ola de footer
 └── elements/       100 elementos ornamentales + el-loco-tarot
 ```
+
+### Media de los proyectos
+
+Las piezas se derivan del material fuente con `npm run media`, que lee la lista
+de conversiones al principio de `scripts/media.mjs` y escribe en `public/media/`.
+El original nunca se sirve.
+
+Los GIF de grabación de pantalla se convierten a WebP animado, que comprime
+entre fotogramas y aprovecha que una grabación de pantalla es casi toda
+superficie estática: el editor de Huella Local pasó de 12,3 MB a 1,7 MB sin
+perder ninguno de sus 1002 fotogramas ni sus 89 segundos.
+
+`segundos` recorta la pieza a una ventana desde el inicio; con `null` va entera.
+Convertir los 1002 fotogramas a resolución original pide unos 6 GB de memoria,
+de ahí el `--max-old-space-size` del script.
 
 ### Añadir un proyecto
 
@@ -84,10 +100,12 @@ la petición a un tercero y el parpadeo de texto.
 Los mockups de agosto de 2026 mandan sobre el paquete en dos puntos, y ambos
 están marcados con `⚠` en el código:
 
-| Elemento | Sistema de diseño | Mockups |
+| Elemento | Sistema de diseño | Sitio |
 |---|---|---|
-| Botones | Rectangulares, borde 2px | Píldora, borde 1.5px |
-| Contenedores de media | Sin redondeo | Radio de 24px |
+| Botones | Rectangulares, borde 2px | Píldora, borde 1px |
+| Contenedores de media | Sin redondeo | Radio de 8px |
+| Sombras | Ninguna, estética plana | Sombra en capas bajo la pantalla |
+| Movimiento | Ninguno salvo fundidos | Elementos de marca en rotación continua |
 
 Conviene reflejar estos cambios en el paquete del sistema de diseño para que no
 queden dos fuentes de verdad en desacuerdo.
