@@ -1,0 +1,338 @@
+---
+// Panel de agenda. Va aparte del botón que lo abre porque el botón vive dentro
+// del <h1> del manifiesto, y un <dialog> ahí dentro sería HTML inválido.
+//
+// Se usa <dialog> nativo en vez de un div: trae gratis el atrapado del foco, el
+// cierre con Escape y el fondo oscurecido. Hacerlo a mano sale peor.
+//
+// ⚠ Sin servidor detrás. El formulario no envía nada por sí mismo: compone un
+// correo con los datos y abre el programa de correo del visitante. Si algún día
+// se quiere que los envíos lleguen solos, basta apuntar el <form> a un servicio
+// tipo Formspree y quitar el manejador.
+import { CORREO, HORAS } from '../datos/estudio';
+
+const hoy = new Date().toISOString().slice(0, 10);
+---
+
+<dialog class="agenda" data-agenda aria-labelledby="agenda-titulo">
+  <button class="cerrar" data-agenda-cerrar aria-label="Cerrar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  </button>
+
+  <h2 id="agenda-titulo">Agendemos una conversación</h2>
+  <p class="entrada">
+    Cuéntanos qué tienes en mente y propón un horario. Te confirmamos por correo.
+  </p>
+
+  <form data-agenda-form novalidate>
+    <label>
+      <span>Nombre</span>
+      <input type="text" name="nombre" required autocomplete="name" />
+    </label>
+
+    <label>
+      <span>Correo</span>
+      <input type="email" name="correo" required autocomplete="email" />
+    </label>
+
+    <div class="par">
+      <label>
+        <span>Día que prefieres</span>
+        <input type="date" name="dia" min={hoy} required />
+      </label>
+
+      <label>
+        <span>Hora</span>
+        <select name="hora" required>
+          {HORAS.map((h) => <option value={h}>{h}</option>)}
+        </select>
+      </label>
+    </div>
+
+    <label>
+      <span>Qué tienes en mente</span>
+      <textarea name="mensaje" rows="4" required></textarea>
+    </label>
+
+    <p class="error" data-agenda-error hidden></p>
+
+    <button type="submit">Enviar propuesta</button>
+  </form>
+
+  <p class="alterna">
+    O escríbenos directamente a <a href={`mailto:${CORREO}`}>{CORREO}</a>
+  </p>
+</dialog>
+
+<style>
+  .agenda {
+    width: min(92vw, 32rem);
+    max-height: 88vh;
+    overflow-y: auto;
+    margin: auto;
+    padding: 2.25rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--color-brand);
+    font-size: 0.9375rem;
+    line-height: var(--leading-normal);
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 8px 20px rgb(0 0 0 / 0.14),
+      0 32px 64px rgb(0 0 0 / 0.18);
+
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity var(--transition-normal),
+      transform var(--transition-normal),
+      overlay var(--transition-normal) allow-discrete,
+      display var(--transition-normal) allow-discrete;
+  }
+
+  .agenda[open] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Estado de partida de la animación de entrada. Sin esto el panel aparece
+     de golpe: un elemento que pasa de display:none no transiciona. */
+  @starting-style {
+    .agenda[open] {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  .agenda::backdrop {
+    background: rgb(0 8 40 / 0);
+    transition:
+      background var(--transition-normal),
+      overlay var(--transition-normal) allow-discrete,
+      display var(--transition-normal) allow-discrete;
+  }
+
+  .agenda[open]::backdrop {
+    background: rgb(0 8 40 / 0.55);
+  }
+
+  @starting-style {
+    .agenda[open]::backdrop {
+      background: rgb(0 8 40 / 0);
+    }
+  }
+
+  h2 {
+    font-size: 1.375rem;
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-snug);
+    padding-right: 2rem;
+  }
+
+  .entrada {
+    margin-top: 0.6rem;
+    color: rgb(0 0 0 / 0.6);
+    font-size: 0.875rem;
+  }
+
+  .cerrar {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--color-brand);
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity var(--transition-normal), background var(--transition-normal);
+  }
+
+  .cerrar:hover {
+    opacity: 1;
+    background: rgb(0 0 0 / 0.05);
+  }
+
+  .cerrar svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.75rem;
+  }
+
+  .par {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  label span {
+    font-size: 0.75rem;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: rgb(0 0 0 / 0.5);
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid rgb(0 0 0 / 0.16);
+    border-radius: 4px;
+    background: var(--white);
+    color: var(--color-brand);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    transition: border-color var(--transition-normal);
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--color-brand);
+  }
+
+  form button[type='submit'] {
+    margin-top: 0.5rem;
+    padding: 0.8em 1.6em;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: var(--color-brand);
+    color: var(--white);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    letter-spacing: var(--tracking-wide);
+    cursor: pointer;
+    transition: opacity var(--transition-normal);
+  }
+
+  form button[type='submit']:hover {
+    opacity: 0.85;
+  }
+
+  .error {
+    color: #b0132a;
+    font-size: 0.8125rem;
+  }
+
+  .error[hidden] {
+    display: none;
+  }
+
+  .alterna {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgb(0 0 0 / 0.1);
+    font-size: 0.8125rem;
+    color: rgb(0 0 0 / 0.6);
+  }
+
+  .alterna a {
+    color: var(--color-brand);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  @media (max-width: 30rem) {
+    .agenda {
+      padding: 1.75rem 1.25rem;
+    }
+
+    .par {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script define:vars={{ CORREO }}>
+  if (!window.__agendaMontada) {
+    window.__agendaMontada = true;
+
+    const enganchar = () => {
+      const panel = document.querySelector('[data-agenda]');
+      const form = document.querySelector('[data-agenda-form]');
+      if (!panel || !form) return;
+
+      const error = panel.querySelector('[data-agenda-error]');
+
+      document.querySelectorAll('[data-agenda-abrir]').forEach((boton) => {
+        boton.addEventListener('click', () => panel.showModal());
+      });
+
+      panel.querySelector('[data-agenda-cerrar]')?.addEventListener('click', () => panel.close());
+
+      // Clic en el fondo oscurecido: el <dialog> recibe el evento cuando el
+      // punto pulsado cae fuera de su caja.
+      panel.addEventListener('click', (evento) => {
+        const c = panel.getBoundingClientRect();
+        const fuera =
+          evento.clientX < c.left ||
+          evento.clientX > c.right ||
+          evento.clientY < c.top ||
+          evento.clientY > c.bottom;
+        if (fuera) panel.close();
+      });
+
+      const mostrarError = (texto) => {
+        error.textContent = texto;
+        error.hidden = false;
+      };
+
+      form.addEventListener('input', () => {
+        error.hidden = true;
+      });
+
+      form.addEventListener('submit', (evento) => {
+        evento.preventDefault();
+        const datos = Object.fromEntries(new FormData(form));
+
+        if (!datos.nombre?.trim()) return mostrarError('Falta tu nombre.');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.correo ?? ''))
+          return mostrarError('Revisa el correo: no parece una dirección válida.');
+        if (!datos.dia) return mostrarError('Elige un día.');
+        if (!datos.mensaje?.trim()) return mostrarError('Cuéntanos brevemente qué tienes en mente.');
+
+        const cuerpo = [
+          `Nombre: ${datos.nombre}`,
+          `Correo: ${datos.correo}`,
+          `Horario propuesto: ${datos.dia} a las ${datos.hora}`,
+          '',
+          datos.mensaje,
+        ].join('\n');
+
+        window.location.href =
+          `mailto:${CORREO}` +
+          `?subject=${encodeURIComponent(`Reunión — ${datos.nombre}`)}` +
+          `&body=${encodeURIComponent(cuerpo)}`;
+      });
+    };
+
+    document.addEventListener('astro:page-load', enganchar);
+  }
+</script>

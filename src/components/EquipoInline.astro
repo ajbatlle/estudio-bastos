@@ -1,0 +1,305 @@
+---
+// Frase del manifiesto que revela al equipo. Se dispara de tres formas —puntero,
+// toque y teclado— a propósito: dejarlo solo en hover dejaría fuera a todo el
+// público táctil, que es justo donde más se mira un sitio de estudio.
+const base = import.meta.env.BASE_URL;
+
+const equipo = [
+  {
+    nombre: 'Antonio Batlle',
+    cargo: 'Director Creativo',
+    foto: 'antonio-batlle.webp',
+    redes: [
+      { red: 'LinkedIn', url: 'https://www.linkedin.com/in/antonio-batlle-lathrop-35a8a2136/' },
+      { red: 'Instagram', url: 'https://www.instagram.com/antoniobatllel' },
+    ],
+  },
+  {
+    nombre: 'Nicolás Parra',
+    cargo: 'Director Comercial',
+    foto: 'nicolas-parra.webp',
+    redes: [
+      { red: 'LinkedIn', url: 'https://www.linkedin.com/in/nicol%C3%A1s-parra-carrasco-13523ba1/' },
+    ],
+  },
+];
+---
+
+<span class="equipo" data-equipo>
+  <button type="button" aria-expanded="false" aria-controls="panel-equipo">
+    <slot />
+  </button>
+
+  <span class="panel" id="panel-equipo" role="group" aria-label="Equipo de Bastos">
+    {
+      equipo.map((persona) => (
+        <span class="persona">
+          <img
+            src={`${base}media/${persona.foto}`}
+            alt={persona.nombre}
+            width="96"
+            height="96"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="datos">
+            <strong>{persona.nombre}</strong>
+            <span class="cargo">{persona.cargo}</span>
+
+            <span class="redes">
+              {
+                persona.redes.map((red) => (
+                  <a
+                    href={red.url}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={`${persona.nombre} en ${red.red}`}
+                  >
+                    {red.red === 'LinkedIn' ? (
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm7 0h3.8v1.7h.05c.53-.95 1.83-1.95 3.76-1.95C21.4 8.75 22 11.1 22 14.16V21h-4v-6.06c0-1.45-.03-3.3-2.02-3.3-2.02 0-2.33 1.57-2.33 3.2V21h-3.98V9Z" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path
+                          fill-rule="evenodd"
+                          clip-rule="evenodd"
+                          d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9a5.5 5.5 0 0 1-5.5 5.5h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2Zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9Zm4.5 3.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5ZM17.2 6a1.05 1.05 0 1 1 0 2.1 1.05 1.05 0 0 1 0-2.1Z"
+                        />
+                      </svg>
+                    )}
+                  </a>
+                ))
+              }
+            </span>
+          </span>
+        </span>
+      ))
+    }
+  </span>
+</span>
+
+<style>
+  .equipo {
+    position: relative;
+    display: inline;
+  }
+
+  /* El botón no debe leerse como botón, sino como la misma palabra del texto
+     con el subrayado que el sitio ya usa para decir "esto hace algo". */
+  .equipo button {
+    all: unset;
+    cursor: pointer;
+    font-weight: var(--weight-bold);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgb(255 255 255 / 0.55);
+    text-underline-offset: 0.22em;
+    transition:
+      text-decoration-color var(--transition-normal),
+      text-underline-offset var(--transition-normal);
+  }
+
+  .equipo button:hover,
+  .equipo[data-abierto] button {
+    text-decoration-color: var(--white);
+    text-underline-offset: 0.34em;
+  }
+
+  .equipo button:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 4px;
+  }
+
+  .panel {
+    position: absolute;
+    top: calc(100% + 0.6em);
+    left: 0;
+    z-index: 5;
+
+    display: flex;
+    /* Huecos algo mayores de lo que pide el reposo: son el margen que necesita
+       la foto para crecer sin comerse el texto de al lado. */
+    gap: 2rem;
+    padding: 1.75rem 2rem;
+
+    background: var(--white);
+    color: var(--color-brand);
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 6px 16px rgb(0 0 0 / 0.1),
+      0 20px 40px rgb(0 0 0 / 0.07);
+
+    /* El panel vive dentro del h1: hay que devolverle una escala de lectura. */
+    font-size: 0.875rem;
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-snug);
+    letter-spacing: normal;
+    text-align: left;
+    white-space: nowrap;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition:
+      opacity var(--transition-normal),
+      transform var(--transition-normal),
+      visibility var(--transition-normal);
+  }
+
+  .persona {
+    display: flex;
+    align-items: center;
+    gap: 1.15rem;
+  }
+
+  /* El recorte cuadrado viene del pipeline; el círculo lo pone el CSS. */
+  .persona img {
+    width: 62px;
+    height: 62px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    flex: none;
+    transition: transform var(--transition-normal);
+  }
+
+  /* La foto crece al pasar por encima de la persona entera, no solo de la
+     imagen: así el gesto responde también sobre el nombre y el cargo.
+     El z-index la deja por encima del texto vecino: al crecer un 40% invade
+     parte del hueco que la separa de él. */
+  .persona:hover img {
+    transform: scale(1.4);
+    z-index: 1;
+  }
+
+  .datos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
+  }
+
+  .cargo {
+    color: rgb(0 0 0 / 0.55);
+    font-size: 0.8125rem;
+  }
+
+  .redes {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.45rem;
+  }
+
+  .redes a {
+    display: flex;
+    color: var(--color-brand);
+    opacity: 0.55;
+    transition: opacity var(--transition-normal);
+  }
+
+  .redes a:hover,
+  .redes a:focus-visible {
+    opacity: 1;
+  }
+
+  .redes svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  /* En táctil el hover se queda pegado tras el toque, así que ahí manda el
+     atributo que pone el script. */
+  @media (hover: hover) {
+    .equipo:hover .panel,
+    .equipo:focus-within .panel {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+    }
+  }
+
+  .equipo[data-abierto] .panel {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  /* En pantallas estrechas el panel deja de colgar de la palabra y pasa a ser
+     una lámina anclada al borde inferior. Anclado al texto se salía por la
+     derecha: la frase arranca a media línea y no queda ancho suficiente para
+     desplegar nada a partir de ahí. */
+  @media (max-width: 48rem) {
+    .panel {
+      position: fixed;
+      inset: auto 1rem 1rem;
+      /* Sin tope, en tablet la lámina se estira a todo el ancho y deja a las
+         dos personas nadando en un costado. */
+      max-width: 30rem;
+      margin-inline: auto;
+      transform: translateY(10px);
+    }
+
+    .equipo[data-abierto] .panel {
+      transform: none;
+    }
+  }
+
+  /* Solo cuando ya no caben lado a lado. */
+  @media (max-width: 27rem) {
+    .panel {
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1.25rem;
+    }
+  }
+</style>
+
+<script>
+  // Un único par de escuchas para todo el documento: enganchar una por
+  // instancia las acumularía en cada navegación del router de Astro.
+  if (!(window as any).__equipoMontado) {
+    (window as any).__equipoMontado = true;
+
+    let abierto: HTMLElement | null = null;
+
+    const cerrar = () => {
+      if (!abierto) return;
+      abierto.removeAttribute('data-abierto');
+      abierto.querySelector('button')?.setAttribute('aria-expanded', 'false');
+      abierto = null;
+    };
+
+    document.addEventListener('click', (evento) => {
+      const destino = evento.target as HTMLElement;
+      const raiz = destino.closest<HTMLElement>('[data-equipo]');
+
+      // Clic fuera: se cierra lo que hubiera abierto.
+      if (!raiz) {
+        cerrar();
+        return;
+      }
+
+      // Clic dentro del panel: no debe cerrarlo.
+      if (!destino.closest('button')) return;
+
+      if (abierto === raiz) {
+        cerrar();
+        return;
+      }
+
+      cerrar();
+      raiz.setAttribute('data-abierto', '');
+      raiz.querySelector('button')?.setAttribute('aria-expanded', 'true');
+      abierto = raiz;
+    });
+
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape') cerrar();
+    });
+
+    document.addEventListener('astro:before-swap', () => {
+      abierto = null;
+    });
+  }
+</script>

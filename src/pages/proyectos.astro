@@ -142,13 +142,24 @@ const proyectos = (await getCollection('proyectos')).sort(
      redondeo. Los mockups lo piden así. */
   .media {
     aspect-ratio: 16 / 10;
-    background: var(--white);
+    /* Gris muy claro en vez de blanco puro. Además de bajar el contraste
+       contra el azul, es lo que deja sitio para la luz del canto inferior:
+       sobre blanco no se puede iluminar nada. */
+    background: var(--surface-subtle);
     border-radius: 8px;
-    /* La pieza no toca el borde: el recuadro blanco actúa de paspartú.
-       En porcentaje para que el aire crezca con el recuadro. */
+    /* La pieza no toca el borde: el recuadro actúa de paspartú. En porcentaje
+       para que el aire crezca con él. */
     padding: clamp(8px, 1.8%, 20px);
     display: grid;
     place-items: center;
+    /* Biselado hundido: sombra difusa arriba y luz abajo, al revés que un canto
+       realzado. Lee como un rebaje tallado en la página. Solo bordes internos,
+       sin sombra proyectada, para no sumar una segunda elevación a la que ya
+       tiene la pantalla dentro. */
+    box-shadow:
+      inset 0 3px 5px -2px rgb(0 0 0 / 0.22),
+      inset 0 -1px 0 rgb(255 255 255 / 0.9),
+      inset 0 0 0 1px rgb(0 0 0 / 0.06);
   }
 
   /* La pantalla se ajusta al tamaño real de la pieza en vez de estirarse a la

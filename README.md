@@ -58,6 +58,10 @@ perder ninguno de sus 1002 fotogramas ni sus 89 segundos.
 Convertir los 1002 fotogramas a resolución original pide unos 6 GB de memoria,
 de ahí el `--max-old-space-size` del script.
 
+Los retratos del equipo se recortan a cuadrado buscando la cara (`attention`) y
+salen a 480×480 WebP, de 2 MB a unos 30 KB. La máscara circular la aplica el
+CSS: guardarlos ya recortados en círculo exigiría transparencia y pesaría más.
+
 ### Añadir un proyecto
 
 Crear `src/content/proyectos/<slug>.md`. El esquema está en
@@ -112,12 +116,21 @@ queden dos fuentes de verdad en desacuerdo.
 
 ## Despliegue
 
-`.github/workflows/deploy.yml` construye y publica en cada push a `main`. En el
-repositorio hay que activar **Settings → Pages → Source: GitHub Actions**.
+El sitio vive en `estudiobastos.com`. `.github/workflows/deploy.yml` construye y
+publica en cada push a `main`.
 
-Antes del primer despliegue, ajustar `site` y `base` en `astro.config.mjs` según
-dónde viva el sitio. Todos los assets se referencian relativos al `base`, así que
-esos dos valores bastan.
+Para el primer despliegue, en el repositorio de GitHub:
+
+1. **Settings → Pages → Source: GitHub Actions**.
+2. **Settings → Pages → Custom domain**: `estudiobastos.com`.
+3. En el DNS del dominio, apuntar a GitHub Pages: un `CNAME` de `www` a
+   `<usuario>.github.io`, y registros `A` del dominio raíz a las IP de GitHub
+   (`185.199.108.153`, `.109.153`, `.110.153`, `.111.153`).
+4. Marcar **Enforce HTTPS** una vez que el certificado se emita.
+
+`public/CNAME` viaja en cada build para que GitHub no pierda el dominio al
+republicar. `site` en `astro.config.mjs` alimenta las URL canónicas y las de
+compartir en redes: si el dominio cambiara, hay que cambiarlo ahí también.
 
 ## Material fuente
 
@@ -128,8 +141,10 @@ Conservar un respaldo de esa carpeta fuera del proyecto.
 
 ## Pendiente
 
-- **Dirección de contacto.** El home enlaza a `hola@estudiobastos.cl`, que es un
-  marcador de posición (constante `CORREO` en `src/pages/index.astro`).
+- **Dominio del sitio.** `site` en `astro.config.mjs` apunta a `estudiobastos.cl`,
+  que fue una suposición. El correo del estudio es `.com`; hay que confirmar cuál
+  es el dominio real antes del primer despliegue, porque de ahí salen las URL
+  canónicas y las de compartir en redes.
 - **Contenido de los 9 proyectos restantes.** Solo está cargado Huella Local.
 - **Imágenes.** Ninguna fila tiene `media` todavía: todas muestran el marcador
   blanco. Falta decidir qué se ve en cada una y derivar los archivos desde

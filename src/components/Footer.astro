@@ -1,0 +1,99 @@
+---
+// Pie con la fecha y la hora de Chile.
+//
+// Todo se resuelve en el navegador: el sitio es estático, así que un valor
+// calculado en el build quedaría clavado en la fecha del despliegue. Se deja
+// vacío en el HTML y se rellena al cargar; si no hubiera JavaScript, el pie
+// aparece sin texto, que es preferible a mostrar una fecha falsa.
+---
+
+<footer class="container">
+  <p class="fecha" data-reloj-fecha></p>
+  <p class="hora">
+    <span data-reloj-hora></span>
+    <span class="zona">santiago de chile</span>
+  </p>
+</footer>
+
+<style>
+  footer {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-05);
+    flex-wrap: wrap;
+    padding-block: clamp(1.25rem, 2.4vw, 2.25rem);
+    font-size: clamp(0.6875rem, 0.75vw, 0.875rem);
+    color: rgb(255 255 255 / 0.55);
+  }
+
+  /* La altura mínima reserva el sitio del texto antes de que el script lo
+     escriba, para que el pie no dé un salto al cargar. */
+  .fecha,
+  .hora {
+    min-height: 1em;
+  }
+
+  .hora {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+  }
+
+  /* Cifras de ancho fijo: sin esto el reloj se mueve cada vez que cambia un
+     dígito, porque no todos ocupan lo mismo. */
+  [data-reloj-hora] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .zona {
+    color: rgb(255 255 255 / 0.38);
+  }
+</style>
+
+<script>
+  if (!(window as any).__relojMontado) {
+    (window as any).__relojMontado = true;
+
+    const zona = 'America/Santiago';
+
+    const formatoFecha = new Intl.DateTimeFormat('es-CL', {
+      timeZone: zona,
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    const formatoHora = new Intl.DateTimeFormat('es-CL', {
+      timeZone: zona,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+
+    let tic: number | undefined;
+
+    const arrancar = () => {
+      const fecha = document.querySelector('[data-reloj-fecha]');
+      const hora = document.querySelector('[data-reloj-hora]');
+      if (!fecha || !hora) return;
+
+      const pintar = () => {
+        const ahora = new Date();
+        fecha.textContent = formatoFecha.format(ahora);
+        hora.textContent = formatoHora.format(ahora);
+      };
+
+      pintar();
+      clearInterval(tic);
+      tic = setInterval(pintar, 1000);
+    };
+
+    // Al navegar entre páginas se descarta el pie viejo: hay que parar el
+    // intervalo y volver a engancharlo al nuevo.
+    document.addEventListener('astro:page-load', arrancar);
+    document.addEventListener('astro:before-swap', () => clearInterval(tic));
+  }
+</script>

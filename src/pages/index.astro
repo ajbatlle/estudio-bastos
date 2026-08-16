@@ -1,9 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import MarcaInline from '../components/MarcaInline.astro';
-
-// ⚠ PENDIENTE: dirección de contacto real del estudio.
-const CORREO = 'hola@estudiobastos.cl';
+import EquipoInline from '../components/EquipoInline.astro';
+import AgendaDialogo from '../components/AgendaDialogo.astro';
 ---
 
 <Base
@@ -13,7 +12,7 @@ const CORREO = 'hola@estudiobastos.cl';
 >
   <section class="container manifiesto">
     <h1>
-      Bastos es un <strong>estudio de diseño</strong>
+      Bastos es un <EquipoInline>estudio de diseño</EquipoInline>
       <MarcaInline forma="rombos" /> especializado en <strong
         >organizar y dar forma a información dispersa</strong
       > para convertirla en conocimiento claro, accesible y útil.
@@ -25,11 +24,14 @@ const CORREO = 'hola@estudiobastos.cl';
 
       Cada proyecto toma un mínimo de 6 semanas.<br />
 
-      <MarcaInline forma="flor" /><a class="cta" href={`mailto:${CORREO}`}
-        ><strong>Escríbenos y agendamos una conversación.</strong></a
+      <MarcaInline forma="flor" /><button class="cta" type="button" data-agenda-abrir
+        ><strong>Escríbenos y agendamos una conversación.</strong></button
       >
     </h1>
   </section>
+
+  {/* Fuera del <h1>: un <dialog> ahí dentro sería HTML inválido. */}
+  <AgendaDialogo />
 </Base>
 
 <style>
@@ -58,6 +60,8 @@ const CORREO = 'hola@estudiobastos.cl';
      separa del texto. Se animan las propias propiedades del subrayado en vez
      de la opacidad del enlace, para que la palabra no se apague. */
   .cta {
+    all: unset;
+    cursor: pointer;
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-decoration-color: rgb(255 255 255 / 0.9);

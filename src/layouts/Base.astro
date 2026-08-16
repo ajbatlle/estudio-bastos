@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 
 interface Props {
   /** Título de la pestaña. Se le añade el sufijo de marca. */
@@ -59,6 +60,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <main id="contenido">
       <slot />
     </main>
+    <Footer />
   </body>
 </html>
 

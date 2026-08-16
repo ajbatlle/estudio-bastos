@@ -1,18 +1,15 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
-// ⚠ Ajustar antes del primer deploy a GitHub Pages:
+// El sitio vive en su propio dominio, así que no lleva `base`. Si alguna vez
+// se sirviera desde un subdirectorio (usuario.github.io/estudio-bastos), habría
+// que añadir base: '/estudio-bastos'; todos los assets se referencian de forma
+// relativa al `base`, así que bastaría con eso.
 //
-//   · Dominio propio o página de usuario (bastos.github.io):
-//       site: 'https://estudiobastos.cl'   ·   base sin definir
-//
-//   · Repositorio de proyecto (usuario.github.io/estudio-bastos):
-//       site: 'https://usuario.github.io'  ·   base: '/estudio-bastos'
-//
-// Todos los assets se referencian de forma relativa al `base`, así que
-// cambiar estos dos valores es suficiente: no hay rutas absolutas que tocar.
+// `site` alimenta las URL canónicas y las de compartir en redes: debe coincidir
+// con el dominio real o el sitio se anuncia con una dirección que no existe.
 export default defineConfig({
-  site: 'https://estudiobastos.cl',
+  site: 'https://estudiobastos.com',
 
   build: {
     // GitHub Pages sirve /ruta/index.html — sin barra final da 404.
