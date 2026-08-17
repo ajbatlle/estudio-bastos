@@ -1,0 +1,115 @@
+---
+// Dirección de correo que se copia al portapapeles al pulsarla.
+//
+// Es la alternativa a `mailto:`, que exige un programa de correo configurado y
+// en muchos equipos abre un diálogo del sistema o directamente no hace nada.
+// Copiar funciona siempre y deja al visitante pegarla donde quiera.
+import { CORREO } from '../datos/estudio';
+---
+
+<button class="correo" type="button" data-copiar={CORREO}>
+  <svg class="icono-copiar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="9" y="9" width="12" height="12" rx="2.5" />
+    <path d="M15 5.5A2.5 2.5 0 0 0 12.5 3H5.5A2.5 2.5 0 0 0 3 5.5v7A2.5 2.5 0 0 0 5.5 15" />
+  </svg>
+
+  <svg class="icono-listo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M4.5 12.5 9.5 17.5 19.5 7" />
+  </svg>
+
+  <span class="texto">{CORREO}</span>
+
+  {/* Anuncia el resultado a los lectores de pantalla, que no ven el icono. */}
+  <span class="visually-hidden" role="status" data-copiar-aviso></span>
+</button>
+
+<style>
+  /* Rejilla de dos columnas en vez de flex: los dos iconos comparten la misma
+     celda, así el texto no se desplaza cuando uno releva al otro. */
+  .correo {
+    display: inline-grid;
+    grid-template-columns: 1em auto;
+    align-items: center;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition: opacity var(--transition-normal);
+  }
+
+  .correo:hover {
+    opacity: 0.7;
+  }
+
+  .correo svg {
+    width: 1em;
+    height: 1em;
+  }
+
+  .icono-copiar,
+  .icono-listo {
+    grid-area: 1 / 1;
+    transition: opacity var(--transition-fast);
+  }
+
+  .icono-listo {
+    opacity: 0;
+  }
+
+  .texto {
+    grid-area: 1 / 2;
+    margin-left: 0.4em;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .correo[data-copiado] .icono-copiar {
+    opacity: 0;
+  }
+
+  .correo[data-copiado] .icono-listo {
+    opacity: 1;
+  }
+</style>
+
+<script>
+  if (!(window as any).__copiarMontado) {
+    (window as any).__copiarMontado = true;
+
+    document.addEventListener('click', async (evento) => {
+      const boton = (evento.target as HTMLElement).closest<HTMLElement>('[data-copiar]');
+      if (!boton) return;
+
+      const valor = boton.dataset.copiar ?? '';
+      const aviso = boton.querySelector('[data-copiar-aviso]');
+
+      try {
+        await navigator.clipboard.writeText(valor);
+      } catch {
+        // Sin permiso de portapapeles —o fuera de contexto seguro— se
+        // selecciona el texto para que se pueda copiar a mano.
+        const rango = document.createRange();
+        const texto = boton.querySelector('.texto');
+        if (texto) {
+          rango.selectNodeContents(texto);
+          const seleccion = window.getSelection();
+          seleccion?.removeAllRanges();
+          seleccion?.addRange(rango);
+        }
+        if (aviso) aviso.textContent = 'Selecciona y copia la dirección.';
+        return;
+      }
+
+      boton.setAttribute('data-copiado', '');
+      if (aviso) aviso.textContent = 'Dirección copiada.';
+
+      clearTimeout((boton as any).__vuelta);
+      (boton as any).__vuelta = setTimeout(() => {
+        boton.removeAttribute('data-copiado');
+        if (aviso) aviso.textContent = '';
+      }, 2000);
+    });
+  }
+</script>

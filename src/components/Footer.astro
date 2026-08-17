@@ -5,6 +5,7 @@
 // calculado en el build quedaría clavado en la fecha del despliegue. Se deja
 // vacío en el HTML y se rellena al cargar; si no hubiera JavaScript, el pie
 // aparece sin texto, que es preferible a mostrar una fecha falsa.
+import { ZONA } from '../datos/estudio';
 ---
 
 <footer class="container">
@@ -51,11 +52,9 @@
   }
 </style>
 
-<script>
-  if (!(window as any).__relojMontado) {
-    (window as any).__relojMontado = true;
-
-    const zona = 'America/Santiago';
+<script define:vars={{ zona: ZONA }}>
+  if (!window.__relojMontado) {
+    window.__relojMontado = true;
 
     const formatoFecha = new Intl.DateTimeFormat('es-CL', {
       timeZone: zona,
@@ -73,7 +72,7 @@
       hour12: false,
     });
 
-    let tic: number | undefined;
+    let tic;
 
     const arrancar = () => {
       const fecha = document.querySelector('[data-reloj-fecha]');

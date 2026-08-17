@@ -5,13 +5,18 @@
 // Se usa <dialog> nativo en vez de un div: trae gratis el atrapado del foco, el
 // cierre con Escape y el fondo oscurecido. Hacerlo a mano sale peor.
 //
-// ⚠ Sin servidor detrás. El formulario no envía nada por sí mismo: compone un
-// correo con los datos y abre el programa de correo del visitante. Si algún día
-// se quiere que los envíos lleguen solos, basta apuntar el <form> a un servicio
-// tipo Formspree y quitar el manejador.
-import { CORREO, HORAS } from '../datos/estudio';
-
-const hoy = new Date().toISOString().slice(0, 10);
+// El envío lo hace Web3Forms: el sitio es estático y no tiene dónde procesar un
+// formulario. Sin CLAVE_FORMULARIO se recurre a `mailto:`, que depende de que el
+// visitante tenga programa de correo configurado y falla a menudo.
+import {
+  CORREO,
+  CLAVE_FORMULARIO,
+  HORAS,
+  DIAS_REUNION,
+  FECHAS_OFRECIDAS,
+  ZONA,
+} from '../datos/estudio';
+import CorreoCopiable from './CorreoCopiable.astro';
 ---
 
 <dialog class="agenda" data-agenda aria-labelledby="agenda-titulo">
@@ -37,10 +42,12 @@ const hoy = new Date().toISOString().slice(0, 10);
       <input type="email" name="correo" required autocomplete="email" />
     </label>
 
+    {/* Las fechas se rellenan en el navegador, no aquí: calculadas en el build
+        quedarían clavadas en el día del despliegue. */}
     <div class="par">
       <label>
-        <span>Día que prefieres</span>
-        <input type="date" name="dia" min={hoy} required />
+        <span>Día</span>
+        <select name="dia" data-agenda-dias required></select>
       </label>
 
       <label>
@@ -51,18 +58,30 @@ const hoy = new Date().toISOString().slice(0, 10);
       </label>
     </div>
 
+    <p class="nota">Atendemos lunes, miércoles y viernes de 15 a 18 h.</p>
+
     <label>
       <span>Qué tienes en mente</span>
       <textarea name="mensaje" rows="4" required></textarea>
     </label>
 
+    {/* Señuelo para robots: invisible y fuera del recorrido de teclado. Si
+        llega relleno, el envío se descarta. */}
+    <input type="checkbox" name="botcheck" class="senuelo" tabindex="-1" autocomplete="off" />
+
     <p class="error" data-agenda-error hidden></p>
 
-    <button type="submit">Enviar propuesta</button>
+    <button type="submit" data-agenda-enviar>Enviar propuesta</button>
   </form>
 
+  <div class="listo" data-agenda-listo hidden>
+    <p class="listo-titulo">Recibido.</p>
+    <p>Te respondemos a tu correo para confirmar el horario.</p>
+    <button type="button" data-agenda-cerrar>Cerrar</button>
+  </div>
+
   <p class="alterna">
-    O escríbenos directamente a <a href={`mailto:${CORREO}`}>{CORREO}</a>
+    O escríbenos directamente a <CorreoCopiable />
   </p>
 </dialog>
 
@@ -236,12 +255,58 @@ const hoy = new Date().toISOString().slice(0, 10);
     opacity: 0.85;
   }
 
+  form button[type='submit']:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .senuelo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .nota {
+    margin-top: -0.35rem;
+    font-size: 0.75rem;
+    color: rgb(0 0 0 / 0.45);
+  }
+
   .error {
     color: #b0132a;
     font-size: 0.8125rem;
   }
 
-  .error[hidden] {
+  .listo {
+    margin-top: 1.75rem;
+  }
+
+  .listo-titulo {
+    font-size: 1.125rem;
+    font-weight: var(--weight-bold);
+    margin-bottom: 0.35rem;
+  }
+
+  .listo button {
+    margin-top: 1.25rem;
+    padding: 0.7em 1.5em;
+    border: 1px solid rgb(0 0 0 / 0.2);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-brand);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background var(--transition-normal);
+  }
+
+  .listo button:hover {
+    background: rgb(0 0 0 / 0.05);
+  }
+
+  [hidden] {
     display: none;
   }
 
@@ -253,10 +318,8 @@ const hoy = new Date().toISOString().slice(0, 10);
     color: rgb(0 0 0 / 0.6);
   }
 
-  .alterna a {
+  .alterna :global(.correo) {
     color: var(--color-brand);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
   }
 
   @media (max-width: 30rem) {
@@ -270,9 +333,49 @@ const hoy = new Date().toISOString().slice(0, 10);
   }
 </style>
 
-<script define:vars={{ CORREO }}>
+<script
+  define:vars={{
+    CORREO,
+    CLAVE: CLAVE_FORMULARIO,
+    DIAS: DIAS_REUNION,
+    FECHAS: FECHAS_OFRECIDAS,
+    ZONA,
+  }}
+>
   if (!window.__agendaMontada) {
     window.__agendaMontada = true;
+
+    // Las próximas fechas en que el estudio atiende. Se calculan aquí y no en
+    // el build por lo mismo que el reloj: al desplegar quedarían congeladas.
+    const fechasValidas = () => {
+      // El día de hoy según el reloj de Chile, no el del visitante: la agenda
+      // es la del estudio, y en Tokio ya puede ser mañana.
+      const hoyCL = new Intl.DateTimeFormat('en-CA', { timeZone: ZONA }).format(new Date());
+      const [anio, mes, dia] = hoyCL.split('-').map(Number);
+
+      // Se avanza en UTC para que los cambios de horario de verano no muevan
+      // el día al sumar jornadas.
+      const cursor = new Date(Date.UTC(anio, mes - 1, dia));
+      const etiqueta = new Intl.DateTimeFormat('es-CL', {
+        timeZone: 'UTC',
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      });
+
+      const salida = [];
+      // Desde mañana: una reunión hoy a las 15 no sirve si ya son las 17.
+      while (salida.length < FECHAS) {
+        cursor.setUTCDate(cursor.getUTCDate() + 1);
+        if (DIAS.includes(cursor.getUTCDay())) {
+          salida.push({
+            valor: cursor.toISOString().slice(0, 10),
+            texto: etiqueta.format(cursor),
+          });
+        }
+      }
+      return salida;
+    };
 
     const enganchar = () => {
       const panel = document.querySelector('[data-agenda]');
@@ -281,11 +384,23 @@ const hoy = new Date().toISOString().slice(0, 10);
 
       const error = panel.querySelector('[data-agenda-error]');
 
+      const listaDias = panel.querySelector('[data-agenda-dias]');
+      if (listaDias && !listaDias.options.length) {
+        for (const f of fechasValidas()) {
+          const opcion = document.createElement('option');
+          opcion.value = f.valor;
+          opcion.textContent = f.texto;
+          listaDias.append(opcion);
+        }
+      }
+
       document.querySelectorAll('[data-agenda-abrir]').forEach((boton) => {
         boton.addEventListener('click', () => panel.showModal());
       });
 
-      panel.querySelector('[data-agenda-cerrar]')?.addEventListener('click', () => panel.close());
+      panel.querySelectorAll('[data-agenda-cerrar]').forEach((b) => {
+        b.addEventListener('click', () => panel.close());
+      });
 
       // Clic en el fondo oscurecido: el <dialog> recibe el evento cuando el
       // punto pulsado cae fuera de su caja.
@@ -308,9 +423,15 @@ const hoy = new Date().toISOString().slice(0, 10);
         error.hidden = true;
       });
 
-      form.addEventListener('submit', (evento) => {
+      const boton = form.querySelector('[data-agenda-enviar]');
+      const listo = panel.querySelector('[data-agenda-listo]');
+      const etiquetaBoton = boton.textContent;
+
+      form.addEventListener('submit', async (evento) => {
         evento.preventDefault();
         const datos = Object.fromEntries(new FormData(form));
+
+        if (datos.botcheck) return; // Señuelo relleno: es un robot.
 
         if (!datos.nombre?.trim()) return mostrarError('Falta tu nombre.');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.correo ?? ''))
@@ -326,10 +447,47 @@ const hoy = new Date().toISOString().slice(0, 10);
           datos.mensaje,
         ].join('\n');
 
-        window.location.href =
-          `mailto:${CORREO}` +
-          `?subject=${encodeURIComponent(`Reunión — ${datos.nombre}`)}` +
-          `&body=${encodeURIComponent(cuerpo)}`;
+        // Sin clave no hay quien envíe: se recurre al programa de correo del
+        // visitante, que es justo lo que la clave viene a resolver.
+        if (!CLAVE) {
+          window.location.href =
+            `mailto:${CORREO}` +
+            `?subject=${encodeURIComponent(`Reunión — ${datos.nombre}`)}` +
+            `&body=${encodeURIComponent(cuerpo)}`;
+          return;
+        }
+
+        boton.disabled = true;
+        boton.textContent = 'Enviando…';
+
+        try {
+          const respuesta = await fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({
+              access_key: CLAVE,
+              subject: `Reunión — ${datos.nombre}`,
+              from_name: 'Web de Bastos',
+              replyto: datos.correo,
+              nombre: datos.nombre,
+              correo: datos.correo,
+              horario: `${datos.dia} a las ${datos.hora}`,
+              mensaje: datos.mensaje,
+            }),
+          });
+
+          const resultado = await respuesta.json();
+          if (!resultado.success) throw new Error(resultado.message ?? 'Envío rechazado');
+
+          form.hidden = true;
+          listo.hidden = false;
+        } catch {
+          mostrarError(
+            `No pudimos enviarlo. Escríbenos a ${CORREO} y lo vemos.`,
+          );
+          boton.disabled = false;
+          boton.textContent = etiquetaBoton;
+        }
       });
     };
 
