@@ -1,0 +1,208 @@
+---
+// Frase del manifiesto que revela una tira de logos en marcha.
+//
+// Van a color sobre un recuadro blanco, que es el fondo para el que están
+// hechos: sobre el azul de marca varios se desvanecen.
+const base = import.meta.env.BASE_URL;
+
+const logos = [
+  'america-solidaria',
+  'techo',
+  'huella',
+  'genesal',
+  'meric',
+  'purever',
+  'tisvol',
+  'vivienda',
+  'wift',
+  'bastos',
+];
+
+// La pista lleva el juego dos veces: al desplazarla justo la mitad, el segundo
+// juego queda donde estaba el primero y el bucle no tiene costura.
+const pista = [...logos, ...logos];
+---
+
+<span class="marcas" data-marcas>
+  <button type="button" aria-expanded="false" aria-controls="tira-marcas">
+    <slot />
+  </button>
+
+  <span class="tira" id="tira-marcas" aria-hidden="true">
+    <span class="pista">
+      {
+        pista.map((nombre) => (
+          <img src={`${base}media/logos/${nombre}.webp`} alt="" loading="lazy" decoding="async" />
+        ))
+      }
+    </span>
+  </span>
+</span>
+
+<style>
+  .marcas {
+    position: relative;
+    display: inline;
+  }
+
+  .marcas button {
+    all: unset;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgb(255 255 255 / 0.55);
+    text-underline-offset: 0.22em;
+    transition:
+      text-decoration-color var(--transition-normal),
+      text-underline-offset var(--transition-normal);
+  }
+
+  .marcas button:hover,
+  .marcas[data-abierto] button {
+    text-decoration-color: var(--white);
+    text-underline-offset: 0.34em;
+  }
+
+  .marcas button:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 4px;
+  }
+
+  .tira {
+    position: absolute;
+    top: calc(100% + 0.7em);
+    left: 0;
+    z-index: 5;
+    display: block;
+    width: min(52vw, 620px);
+    overflow: hidden;
+
+    /* Mismo recuadro blanco que el panel del equipo: los logos están hechos
+       para fondo claro. */
+    padding-block: 1.1rem;
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 6px 16px rgb(0 0 0 / 0.1),
+      0 20px 40px rgb(0 0 0 / 0.07);
+
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--transition-normal),
+      visibility var(--transition-normal);
+  }
+
+  /* Los logos se desvanecen en los extremos en vez de cortarse a filo. La
+     máscara va en la pista y no en el recuadro, para no comerse también las
+     esquinas redondeadas ni la sombra. */
+  .pista {
+    display: flex;
+    align-items: center;
+    gap: 2.75rem;
+    width: max-content;
+    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+    /* En reposo la animación existe pero está detenida: no gasta nada mientras
+       la tira no se ve. */
+    animation: correr 26s linear infinite;
+    animation-play-state: paused;
+  }
+
+  .pista img {
+    height: 34px;
+    width: auto;
+    max-width: 118px;
+    object-fit: contain;
+    flex: none;
+  }
+
+  @keyframes correr {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (hover: hover) {
+    .marcas:hover .tira,
+    .marcas:focus-within .tira {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .marcas:hover .pista,
+    .marcas:focus-within .pista {
+      animation-play-state: running;
+    }
+  }
+
+  .marcas[data-abierto] .tira {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .marcas[data-abierto] .pista {
+    animation-play-state: running;
+  }
+
+  /* En pantallas estrechas la tira deja de colgar de la palabra y cruza de
+     lado a lado: anclada al texto no queda ancho para que se lea el recorrido. */
+  @media (max-width: 48rem) {
+    .tira {
+      position: fixed;
+      inset: auto 1rem 1.25rem;
+      width: auto;
+      padding-block: 0.9rem;
+    }
+
+    .pista img {
+      height: 26px;
+      max-width: 92px;
+    }
+  }
+</style>
+
+<script>
+  if (!(window as any).__marcasMontado) {
+    (window as any).__marcasMontado = true;
+
+    let abierto: HTMLElement | null = null;
+
+    const cerrar = () => {
+      if (!abierto) return;
+      abierto.removeAttribute('data-abierto');
+      abierto.querySelector('button')?.setAttribute('aria-expanded', 'false');
+      abierto = null;
+    };
+
+    document.addEventListener('click', (evento) => {
+      const destino = evento.target as HTMLElement;
+      const raiz = destino.closest<HTMLElement>('[data-marcas]');
+
+      if (!raiz) {
+        cerrar();
+        return;
+      }
+      if (!destino.closest('button')) return;
+
+      if (abierto === raiz) {
+        cerrar();
+        return;
+      }
+
+      cerrar();
+      raiz.setAttribute('data-abierto', '');
+      raiz.querySelector('button')?.setAttribute('aria-expanded', 'true');
+      abierto = raiz;
+    });
+
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape') cerrar();
+    });
+
+    document.addEventListener('astro:before-swap', () => {
+      abierto = null;
+    });
+  }
+</script>

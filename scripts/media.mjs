@@ -7,7 +7,7 @@
 // a WebP animado, que comprime mucho mejor que el GIF. Un vídeo real (MP4/WebM)
 // sería bastante más liviano todavía, pero exige ffmpeg instalado.
 
-import { mkdirSync, statSync } from 'node:fs';
+import { mkdirSync, statSync, readdirSync } from 'node:fs';
 import sharp from 'sharp';
 
 const PIEZAS = [
@@ -38,6 +38,12 @@ const RETRATOS = [
 ];
 
 const LADO_RETRATO = 480;
+
+// Los logos van a color y sobre fondo transparente, tal como llegan: se
+// muestran sobre un recuadro blanco, que es su fondo natural.
+const LOGOS_ORIGEN = 'portfolio/logos';
+const LOGOS_DESTINO = 'public/media/logos';
+const ALTO_LOGO = 120; // 2× del tamaño de pantalla, para pantallas densas.
 
 const mb = (n) => (n / 1048576).toFixed(1) + ' MB';
 
@@ -98,4 +104,24 @@ for (const { origen, destino } of RETRATOS) {
     `${destino}\n` +
       `  ${meta.width}×${meta.height} → ${LADO_RETRATO}×${LADO_RETRATO} · ${mb(antes)} → ${mb(despues)}`,
   );
+}
+
+mkdirSync(LOGOS_DESTINO, { recursive: true });
+
+const logos = readdirSync(LOGOS_ORIGEN).filter((n) => /\.(png|jpe?g|webp)$/i.test(n));
+
+for (const archivo of logos) {
+  const origen = `${LOGOS_ORIGEN}/${archivo}`;
+  const nombre = archivo.replace(/^logo[_-]/, '').replace(/\.\w+$/, '');
+  const destino = `${LOGOS_DESTINO}/${nombre}.webp`;
+
+  await sharp(origen)
+    .resize({ height: ALTO_LOGO })
+    // `alphaQuality` alto: los logos tienen bordes recortados y una alfa
+    // comprimida de más los deja sucios contra el blanco.
+    .webp({ quality: 90, alphaQuality: 100 })
+    .toFile(destino);
+
+  const { width, height } = await sharp(destino).metadata();
+  console.log(`${destino}  ${width}×${height} · ${(statSync(destino).size / 1024).toFixed(1)} KB`);
 }
