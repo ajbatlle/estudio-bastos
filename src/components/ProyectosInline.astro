@@ -1,0 +1,181 @@
+---
+// La enumeración de lo que hacemos lleva al portafolio. Es el mismo destino que
+// la píldora de la cabecera, y al pasar por encima lo dice con la misma píldora
+// blanca que usan las etiquetas de las marcas: el sitio ya tiene ese gesto.
+const base = import.meta.env.BASE_URL;
+---
+
+<span class="proyectos" data-pista-raiz>
+  <a href={`${base}proyectos`}>
+    <strong><slot /></strong>
+  </a>
+
+  {/* En minúscula como las etiquetas de las marcas: en el manifiesto, lo que
+      aparece al pasar por encima se nombra siempre así.
+      Decorativo: el enlace ya se anuncia solo, y repetirlo lo diría dos veces. */}
+  <span class="pista" data-pista aria-hidden="true">ver proyectos</span>
+</span>
+
+<style>
+  .proyectos {
+    display: inline;
+  }
+
+  /* El subrayado es el mismo que el de la frase del equipo: en el manifiesto,
+     una palabra subrayada significa que hace algo. */
+  /* La fusión va en el enlace y no en el <span> que lo envuelve: así la
+     etiqueta que sigue al cursor —hermana del enlace— se queda blanca, que es
+     como son todas las del sitio. Como el resto del texto en `difference`, el
+     color no está pintado: lo produce el fondo, y cambia con la perilla de luz. */
+  .proyectos a {
+    mix-blend-mode: difference;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgb(255 255 255 / 0.55);
+    text-underline-offset: 0.22em;
+    transition:
+      text-decoration-color var(--transition-normal),
+      text-underline-offset var(--transition-normal);
+  }
+
+  .proyectos a:hover {
+    text-decoration-color: var(--white);
+    text-underline-offset: 0.34em;
+    opacity: 1;
+  }
+
+  .proyectos a:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 4px;
+  }
+
+  /* El <strong> viene del componente, así que la regla del manifiesto no lo
+     alcanza: el peso se pone aquí. */
+  .proyectos strong {
+    font-weight: var(--weight-bold);
+  }
+
+  /* Sigue al cursor en vez de colgar de la frase: son tres líneas de texto y
+     una etiqueta anclada a un extremo queda lejos de donde se está mirando.
+     Va fija en la ventana y el guion la mueve con `transform`, que no rehace
+     el diseño en cada movimiento del ratón. */
+  .pista {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 6;
+    pointer-events: none;
+
+    padding: 0.45em 0.85em;
+    background: var(--white);
+    color: var(--color-brand);
+    border-radius: var(--radius-pill);
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 6px 16px rgb(0 0 0 / 0.12);
+
+    /* Vive dentro del <h1>: hay que devolverle una escala de lectura.
+       13px y no los 11 de `.etiqueta`: aquella solo se ve con la marca en
+       hover, y ahí la marca entera va en `scale(1.18)`, así que sus 11px se
+       ven como 13. Al no colgar de nada que escale, aquí el número tiene que
+       venir ya multiplicado. El relleno y el interletrado van en em, así que
+       acompañan solos. */
+    font-size: 0.8125rem;
+    font-weight: var(--weight-semibold);
+    line-height: 1;
+    letter-spacing: var(--tracking-wide);
+    white-space: nowrap;
+
+    opacity: 0;
+    visibility: hidden;
+    /* Solo se funde la aparición: la posición no lleva transición, o la
+       etiqueta iría siempre un paso por detrás del cursor. */
+    transition:
+      opacity var(--transition-normal),
+      visibility var(--transition-normal);
+  }
+
+  /* La muestra el guion, que es quien sabe dónde está el cursor. En táctil no
+     llega a marcarse: ahí el toque ya navega. Con teclado entra por el foco, y
+     entonces se coloca bajo el arranque del enlace. */
+  .proyectos[data-pista-visible] .pista,
+  .proyectos:focus-within .pista {
+    opacity: 1;
+    visibility: visible;
+  }
+</style>
+
+<script>
+  // Una sola pareja de escuchas para todo el documento: engancharlas por
+  // instancia las acumularía en cada navegación del router de Astro.
+  if (!(window as any).__pistaProyectosMontada) {
+    (window as any).__pistaProyectosMontada = true;
+
+    const SEPARACION = 20; // Cuánto cuelga por debajo del cursor.
+    const MARGEN = 12; // Aire mínimo contra el borde de la ventana.
+
+    let raiz: HTMLElement | null = null;
+    let pista: HTMLElement | null = null;
+    let medio = 0;
+
+    const colocar = (x: number, y: number) => {
+      if (!pista) return;
+      // Pegada al borde no se sale: se frena antes de asomar por fuera.
+      const tope = medio + MARGEN;
+      const cx = Math.min(Math.max(x, tope), window.innerWidth - tope);
+
+      // El centrado se calcula aquí y se redondea, en vez de dejarlo en un
+      // `translate(-50%)`: con un ancho impar la etiqueta caía en medio píxel y
+      // el texto de 11px se rasterizaba borroso —se leía más fino y más chico
+      // que el de las marcas—. En píxel entero las dos se ven iguales.
+      pista.style.transform = `translate(${Math.round(cx - medio)}px, ${Math.round(y + SEPARACION)}px)`;
+    };
+
+    const soltar = () => {
+      raiz?.removeAttribute('data-pista-visible');
+      raiz = null;
+      pista = null;
+    };
+
+    const tomar = (nueva: HTMLElement) => {
+      if (nueva === raiz) return;
+      soltar();
+      raiz = nueva;
+      pista = nueva.querySelector<HTMLElement>('[data-pista]');
+      // Se mide antes de mostrarla: oculta por `visibility` sigue teniendo caja.
+      medio = (pista?.offsetWidth ?? 0) / 2;
+      nueva.setAttribute('data-pista-visible', '');
+    };
+
+    document.addEventListener('pointermove', (evento) => {
+      const enlace = (evento.target as HTMLElement).closest?.('[data-pista-raiz] a');
+      if (!enlace) return soltar();
+      // En táctil el dedo ya navega: la etiqueta no aporta y estorbaría.
+      if (evento.pointerType !== 'mouse') return;
+
+      tomar(enlace.closest('[data-pista-raiz]') as HTMLElement);
+      colocar(evento.clientX, evento.clientY);
+    });
+
+    // Si el puntero se va de la ventana no hay más movimientos que la apaguen.
+    document.addEventListener('pointerleave', soltar);
+    window.addEventListener('blur', soltar);
+    document.addEventListener('astro:before-swap', soltar);
+
+    // Con teclado no hay cursor al que seguir: se coloca bajo el arranque del
+    // enlace, que es donde está mirando quien tabula.
+    document.addEventListener('focusin', (evento) => {
+      const enlace = (evento.target as HTMLElement).closest?.('[data-pista-raiz] a');
+      if (!enlace) return;
+
+      tomar(enlace.closest('[data-pista-raiz]') as HTMLElement);
+      const primera = enlace.getClientRects()[0];
+      if (primera) colocar(primera.left + medio, primera.bottom - SEPARACION + 8);
+    });
+
+    document.addEventListener('focusout', (evento) => {
+      if ((evento.target as HTMLElement).closest?.('[data-pista-raiz] a')) soltar();
+    });
+  }
+</script>

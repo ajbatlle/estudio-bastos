@@ -3,6 +3,8 @@ import Base from '../layouts/Base.astro';
 import MarcaInline from '../components/MarcaInline.astro';
 import EquipoInline from '../components/EquipoInline.astro';
 import MarcasInline from '../components/MarcasInline.astro';
+import ProyectosInline from '../components/ProyectosInline.astro';
+import MetodologiaInline from '../components/MetodologiaInline.astro';
 import AgendaDialogo from '../components/AgendaDialogo.astro';
 ---
 
@@ -12,24 +14,42 @@ import AgendaDialogo from '../components/AgendaDialogo.astro';
   accionHref={`${import.meta.env.BASE_URL}proyectos`}
 >
   <section class="container manifiesto">
+    {/* Las marcas se alternan: abren el primer y el tercer párrafo, cierran el
+        segundo y el cuarto. El orden del set se mantiene. */}
+    {/* Cada párrafo es un <span> en bloque y no un <br>: así puede llevar su
+        propia separación, distinta del interlineado. Un <p> aquí dentro sería
+        HTML inválido, porque un <h1> solo admite contenido de frase. */}
+    {/* El punto final va siempre dentro de la frase que cierra —fusión,
+        subrayado y todo—: fuera queda como un resto suelto de otro color. */}
     <h1>
-      Bastos es un <EquipoInline>estudio de diseño</EquipoInline>
-      <MarcaInline forma="rombos" /> especializado en <strong
-        >organizar y dar forma a información dispersa</strong
-      > para convertirla en conocimiento claro, accesible y útil.
-      <MarcaInline forma="asterisco" /><br />
+      <span class="parrafo">
+        <MarcaInline forma="rombos" etiqueta="sonido" posicion="abre" control="sonido" />
+        Bastos es un <EquipoInline>estudio de diseño</EquipoInline> especializado en <strong
+          >organizar y dar forma a información dispersa</strong
+        > para volverla <strong class="fusion">clara, accesible y útil.</strong>
+      </span>
 
-      Trabajamos con la <strong>identidad</strong> de <MarcasInline
-        >marcas y organizaciones</MarcasInline
-      >, y desarrollamos
-      <strong>publicaciones editoriales, plataformas digitales y otros productos de comunicación.</strong>
-      <MarcaInline forma="circulos" /><br />
+      <span class="parrafo">
+        Trabajamos con la <strong>identidad</strong> de <MarcasInline
+          >marcas y organizaciones</MarcasInline
+        >, y desarrollamos
+        <ProyectosInline
+          >publicaciones editoriales, plataformas digitales y otros productos de comunicación.</ProyectosInline
+        >
+        <MarcaInline forma="asterisco" etiqueta="luz" posicion="cierra" control="luz" />
+      </span>
 
-      Cada proyecto toma un mínimo de 6 semanas.<br />
+      <span class="parrafo">
+        <MarcaInline forma="circulos" etiqueta="textura" posicion="abre" control="textura" />
+        Cada proyecto toma un mínimo de <MetodologiaInline>4 semanas.</MetodologiaInline>
+      </span>
 
-      <MarcaInline forma="flor" /><button class="cta" type="button" data-agenda-abrir
-        ><strong>Escríbenos y agendamos una conversación.</strong></button
-      >
+      <span class="parrafo">
+        <button class="cta" type="button" data-agenda-abrir
+          ><strong>Escríbenos y agendamos una conversación.</strong></button
+        >
+        <MarcaInline forma="flor" etiqueta="juego" posicion="cierra" control="juego" />
+      </span>
     </h1>
   </section>
 
@@ -48,7 +68,7 @@ import AgendaDialogo from '../components/AgendaDialogo.astro';
   /* Un solo bloque de texto continuo. Los saltos de línea son deliberados:
      cada uno cierra una idea, siempre después de un elemento de marca. */
   h1 {
-    font-size: clamp(1.375rem, 2.15vw, 2.5rem);
+    font-size: clamp(1.125rem, 1.8vw, 2.125rem);
     font-weight: var(--weight-regular);
     line-height: 1.48;
     letter-spacing: var(--tracking-tight);
@@ -59,12 +79,29 @@ import AgendaDialogo from '../components/AgendaDialogo.astro';
     font-weight: var(--weight-bold);
   }
 
+  /* El mismo recurso que las marcas: blanco en `difference` sobre el mesh del
+     fondo. No lleva color pintado —lo produce lo que tiene debajo—, así que
+     vira a lo largo de la línea y cambia con la perilla de luz. */
+  h1 .fusion {
+    mix-blend-mode: difference;
+  }
+
+  /* Separación entre párrafos, aparte del interlineado: el salto de idea se
+     lee, pero sin abrir tanto como una línea entera en blanco. */
+  .parrafo {
+    display: block;
+  }
+
+  .parrafo + .parrafo {
+    margin-top: 0.5em;
+  }
+
   /* El subrayado es el estado en reposo; al pasar el puntero se aclara y se
      separa del texto. Se animan las propias propiedades del subrayado en vez
      de la opacidad del enlace, para que la palabra no se apague. */
   .cta {
     all: unset;
-    cursor: pointer;
+    cursor: var(--cursor);
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-decoration-color: rgb(255 255 255 / 0.9);
@@ -90,10 +127,10 @@ import AgendaDialogo from '../components/AgendaDialogo.astro';
       line-height: 1.4;
     }
 
-    /* En pantallas estrechas los saltos forzados rompen la lectura:
-       el texto fluye y las marcas quedan como separadores. */
-    h1 br {
-      display: none;
+    /* La separación entre párrafos se recorta en pantallas estrechas: ahí el
+       texto ya ocupa más líneas y el aire sobra. */
+    .parrafo + .parrafo {
+      margin-top: 0.35em;
     }
   }
 </style>

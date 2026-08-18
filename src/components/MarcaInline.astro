@@ -9,9 +9,26 @@
 interface Props {
   /** Cuál de los cuatro elementos: rombos, asterisco, circulos o flor. */
   forma?: 'rombos' | 'asterisco' | 'circulos' | 'flor';
+  /** Nombre que aparece al pasar por encima. Sin él, la marca es decorativa. */
+  etiqueta?: string;
+  /**
+   * Si abre o cierra el párrafo. Decide de qué lado va la separación y hacia
+   * dónde se despliega la etiqueta, para que ni la marca quede indentada ni la
+   * etiqueta se salga de la caja.
+   */
+  posicion?: 'abre' | 'cierra';
+  /**
+   * Convierte la marca en mando. `luz` y `textura` son perillas de ambiente y
+   * las maneja este componente; `sonido` y `juego` los recogen sus propios
+   * componentes, montados en el layout. La etiqueta visible siempre dice el
+   * nombre del canal —el estado se oye o se ve—, y va en el `aria-label`.
+   */
+  control?: 'sonido' | 'luz' | 'textura' | 'juego';
 }
 
-const { forma = 'rombos' } = Astro.props;
+const { forma = 'rombos', etiqueta, posicion = 'abre', control } = Astro.props;
+
+const Etiqueta = control ? 'button' : 'span';
 const base = import.meta.env.BASE_URL;
 
 const archivo = {
@@ -22,18 +39,50 @@ const archivo = {
 }[forma];
 ---
 
-<span class="marca" data-forma={forma} aria-hidden="true">
-  <img src={`${base}brand/${archivo}`} alt="" />
-</span>
+<Etiqueta
+  class="marca"
+  data-forma={forma}
+  data-posicion={posicion}
+  data-control={control}
+  type={control ? 'button' : undefined}
+  aria-hidden={etiqueta || control ? undefined : 'true'}
+>
+  <img src={`${base}brand/${archivo}`} alt={control ? '' : (etiqueta ?? '')} />
+  {etiqueta && <span class="etiqueta">{etiqueta}</span>}
+</Etiqueta>
 
 <style>
+  /* El tamaño va en vw y no en em a propósito: así la marca no encoge cuando
+     se reduce la tipografía del manifiesto. La separación y la alineación sí
+     siguen en em, para que acompañen al texto que la rodea. */
+  /* Cuando es botón hay que devolverle las medidas que el navegador le quita.
+     El área táctil se amplía con un pseudo-elemento y no con relleno: la marca
+     mide 25px y el dedo pide 44, pero agrandarla movería el texto. */
+  .marca[data-control] {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: var(--cursor);
+  }
+
+  .marca[data-control]::after {
+    content: '';
+    position: absolute;
+    inset: 50% 50%;
+    width: 44px;
+    height: 44px;
+    translate: -50% -50%;
+  }
+
   .marca {
+    position: relative;
     display: inline-block;
-    width: 0.62em;
-    height: 0.62em;
+    width: clamp(15px, 1.3vw, 25px);
+    height: clamp(15px, 1.3vw, 25px);
     /* Alinea el elemento con la altura de la x en vez de con la línea base. */
-    vertical-align: 0.04em;
-    margin-inline: 0.14em;
+    vertical-align: -0.06em;
     transition: transform var(--transition-slow);
   }
 
@@ -41,14 +90,23 @@ const archivo = {
     width: 100%;
     height: 100%;
     animation: giro var(--giro) linear infinite;
+    /* El SVG es blanco; en `difference` sobre el azul de marca sale el inverso
+       —un ámbar—, y sigue el mesh: sobre las zonas oscuras aclara, sobre las
+       claras se apaga. El color no está pintado, lo produce el fondo. */
+    mix-blend-mode: difference;
   }
 
   /* Cada forma lleva su propio ritmo y sentido: girando todas al unísono el
      conjunto se lee como un mecanismo, y la idea es que respire. */
-  .marca[data-forma='rombos']    { --giro: 12s; }
-  .marca[data-forma='asterisco'] { --giro: 16s; }
-  .marca[data-forma='circulos']  { --giro: 14s; }
-  .marca[data-forma='flor']      { --giro: 18s; }
+  /* La separación va del lado del texto. La que abre no lleva margen izquierdo
+     para quedar a plomo con las líneas que envuelven debajo. */
+  .marca[data-posicion='abre']   { margin-right: 0.42em; }
+  .marca[data-posicion='cierra'] { margin-left: 0.42em; }
+
+  .marca[data-forma='rombos']    { --giro: 6s; }
+  .marca[data-forma='asterisco'] { --giro: 8s; }
+  .marca[data-forma='circulos']  { --giro: 7s; }
+  .marca[data-forma='flor']      { --giro: 9s; }
 
   .marca[data-forma='asterisco'] img,
   .marca[data-forma='flor'] img {
@@ -61,7 +119,180 @@ const archivo = {
     transform: scale(1.18);
   }
 
+  /* La etiqueta cuelga de la marca pero no gira con ella: es hermana del <img>,
+     no hija. Y recupera su propia escala, porque hereda la del manifiesto. */
+  .etiqueta {
+    position: absolute;
+    top: calc(100% + 0.5em);
+    z-index: 6;
+
+    padding: 0.45em 0.85em;
+    background: var(--white);
+    color: var(--color-brand);
+    border-radius: var(--radius-pill);
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 6px 16px rgb(0 0 0 / 0.12);
+
+    font-size: 0.6875rem;
+    font-weight: var(--weight-semibold);
+    line-height: 1;
+    letter-spacing: var(--tracking-wide);
+    white-space: nowrap;
+
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--transition-normal),
+      visibility var(--transition-normal);
+  }
+
+  /* La etiqueta se despliega hacia dentro de la caja de texto: la que abre
+     hacia la derecha, la que cierra hacia la izquierda. Centrada bajo la marca
+     se saldría del contenedor en los extremos. */
+  .marca[data-posicion='abre'] .etiqueta   { left: 0; }
+  .marca[data-posicion='cierra'] .etiqueta { right: 0; }
+
+  @media (hover: hover) {
+    .marca:hover .etiqueta {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  /* Tras pulsar la perilla la etiqueta se queda un momento a la vista: sin eso
+     el cambio de estado no se lee, sobre todo en táctil, donde no hay hover
+     que lo muestre. */
+  .marca[data-recien-cambiado] .etiqueta,
+  .marca:focus-visible .etiqueta {
+    opacity: 1;
+    visibility: visible;
+  }
+
   @keyframes giro {
     to { transform: rotate(1turn); }
   }
 </style>
+
+<script>
+  // Perillas de ambiente: luz y textura. Cada una guarda su nivel para que
+  // sobreviva a la navegación y a la siguiente visita: un control que se olvida
+  // se siente falso. Añadir una perilla es añadir una entrada.
+  //
+  // Sonido y juego no pasan por aquí: no tienen niveles que recordar y cada uno
+  // vive en su propio componente, montado en el layout.
+  if (!(window as any).__perillasMontadas) {
+    (window as any).__perillasMontadas = true;
+
+    const hora = () =>
+      Number(
+        new Intl.DateTimeFormat('en-GB', {
+          timeZone: 'America/Santiago',
+          hour: '2-digit',
+          hour12: false,
+        }).format(new Date()),
+      );
+
+    const PERILLAS: Record<string, any> = {
+      luz: {
+        porDefecto: 'auto',
+        niveles: [
+          { valor: 'auto', texto: 'automática' },
+          { valor: 'dia', texto: 'de día' },
+          { valor: 'noche', texto: 'de noche' },
+        ],
+        nombre: 'Luz',
+        // «auto» sigue el reloj del estudio, no el del visitante.
+        resolver: (valor: string) =>
+          valor === 'auto' ? (hora() >= 20 || hora() < 7 ? 'noche' : 'dia') : valor,
+      },
+      textura: {
+        porDefecto: 'medio',
+        niveles: [
+          { valor: 'medio', texto: 'grano medio' },
+          { valor: 'alto', texto: 'grano alto' },
+          { valor: 'limpio', texto: 'sin grano' },
+        ],
+        nombre: 'Textura',
+      },
+    };
+
+    const leerGuardado = (clave: string) => {
+      try {
+        return localStorage.getItem(`bastos:${clave}`);
+      } catch {
+        return null; // Navegación privada o almacenamiento bloqueado.
+      }
+    };
+
+    const aplicar = (clave: string, valor: string, avisar = false) => {
+      const perilla = PERILLAS[clave];
+      const porDefecto =
+        typeof perilla.porDefecto === 'function' ? perilla.porDefecto() : perilla.porDefecto;
+      const nivel =
+        perilla.niveles.find((n: any) => n.valor === valor) ??
+        perilla.niveles.find((n: any) => n.valor === porDefecto);
+
+      document.documentElement.dataset[clave] = nivel.valor;
+      if (perilla.resolver) {
+        document.documentElement.dataset[`${clave}Efectiva`] = perilla.resolver(nivel.valor);
+      }
+
+      try {
+        localStorage.setItem(`bastos:${clave}`, nivel.valor);
+      } catch {
+        /* Sin almacenamiento el control funciona igual, solo no recuerda. */
+      }
+
+      // La etiqueta visible no se toca: dice el nombre del canal y nada más.
+      // El estado va solo en el `aria-label`, que es donde hace falta nombrarlo.
+      document.querySelectorAll<HTMLElement>(`[data-control="${clave}"]`).forEach((mando) => {
+        mando.setAttribute('aria-label', `${perilla.nombre}: ${nivel.texto}. Pulsa para cambiar.`);
+
+        if (!avisar) return;
+        mando.setAttribute('data-recien-cambiado', '');
+        clearTimeout((mando as any).__aviso);
+        (mando as any).__aviso = setTimeout(
+          () => mando.removeAttribute('data-recien-cambiado'),
+          1400,
+        );
+      });
+    };
+
+    document.addEventListener('click', (evento) => {
+      const mando = (evento.target as HTMLElement).closest<HTMLElement>('[data-control]');
+      const clave = mando?.dataset.control;
+      if (!clave || !PERILLAS[clave]) return;
+
+      const { niveles, resolver } = PERILLAS[clave];
+      const actual = document.documentElement.dataset[clave];
+      const indice = niveles.findIndex((n: any) => n.valor === actual);
+      const efecto = (valor: string) => (resolver ? resolver(valor) : valor);
+      const ahora = efecto(actual ?? '');
+
+      // Se salta los niveles que se ven igual que el actual. En luz «auto» de
+      // día, el siguiente nivel es «de día»: pulsar no cambiaría nada y la
+      // perilla parecería rota. Así el primer clic siempre se nota.
+      let siguiente = niveles[(indice + 1) % niveles.length];
+      for (let salto = 1; salto <= niveles.length; salto++) {
+        const candidato = niveles[(indice + salto) % niveles.length];
+        if (efecto(candidato.valor) !== ahora) {
+          siguiente = candidato;
+          break;
+        }
+      }
+
+      aplicar(clave, siguiente.valor, true);
+    });
+
+    document.addEventListener('astro:page-load', () => {
+      for (const clave of Object.keys(PERILLAS)) {
+        const perilla = PERILLAS[clave];
+        const porDefecto =
+          typeof perilla.porDefecto === 'function' ? perilla.porDefecto() : perilla.porDefecto;
+        aplicar(clave, leerGuardado(clave) ?? porDefecto);
+      }
+    });
+  }
+</script>

@@ -39,11 +39,11 @@ const base = import.meta.env.BASE_URL;
     width: auto;
   }
 
-  /* ⚠ Píldora: se aparta del sistema de diseño, que especifica botones
-     rectangulares con borde de 2px. Los mockups la piden así.
-     El borde va fino a propósito: es un contorno, no un marco. */
+  /* El borde va fino a propósito: es un contorno, no un marco. */
   .pildora {
     flex: none;
+    display: inline-flex;
+    align-items: center;
     padding: 0.5em 1.8em;
     border: 1px solid rgb(255 255 255 / 0.85);
     border-radius: var(--radius-pill);
@@ -62,5 +62,14 @@ const base = import.meta.env.BASE_URL;
     border-color: var(--white);
     color: var(--color-brand);
     opacity: 1;
+  }
+
+  /* En pantallas táctiles la píldora se quedaba en 24px de alto: se pulsa con
+     el dedo, no con un puntero. 44px es el mínimo cómodo. */
+  @media (max-width: 48rem) {
+    .pildora {
+      min-height: 44px;
+      font-size: 0.75rem;
+    }
   }
 </style>

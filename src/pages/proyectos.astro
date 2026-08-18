@@ -1,5 +1,7 @@
 ---
+import { readdirSync } from 'node:fs';
 import { getCollection } from 'astro:content';
+import sharp from 'sharp';
 import Base from '../layouts/Base.astro';
 
 const base = import.meta.env.BASE_URL;
@@ -7,6 +9,41 @@ const base = import.meta.env.BASE_URL;
 const proyectos = (await getCollection('proyectos')).sort(
   (a, b) => a.data.orden - b.data.orden,
 );
+
+// Las láminas de cada serie se buscan en el disco: un documento puede tener
+// cien páginas y enumerarlas en el .md no lo leería nadie. Solo cuentan las
+// numeradas con tres cifras, que son las que escribe el pipeline; así, si queda
+// un archivo viejo de otra numeración, no se cuela en el pase.
+const laminasDeLaSerie = (prefijo: string) =>
+  readdirSync('public/media')
+    .filter((archivo) => new RegExp(`^${prefijo}-\\d{3}\\.webp$`).test(archivo))
+    .sort();
+
+// Cada lámina lleva su propia proporción, leída del archivo en el build. Es lo
+// que permite que dentro de un mismo pase una página horizontal se vea grande y
+// una vertical se vea alta: si el marco lo fijara la primera, todas las demás
+// tendrían que encogerse hasta caber en el hueco de aquella.
+const piezas = new Map<string, { archivo: string; proporcion: number }[]>();
+
+for (const proyecto of proyectos) {
+  const { media, serie } = proyecto.data;
+  const archivos = serie
+    ? laminasDeLaSerie(serie)
+    : media
+      ? Array.isArray(media)
+        ? media
+        : [media]
+      : [];
+
+  const medidas = await Promise.all(
+    archivos.map(async (archivo) => {
+      const { width, height } = await sharp(`public/media/${archivo}`).metadata();
+      return { archivo, proporcion: width && height ? width / height : 1.6 };
+    }),
+  );
+
+  if (medidas.length) piezas.set(proyecto.id, medidas);
+}
 ---
 
 <Base
@@ -17,14 +54,25 @@ const proyectos = (await getCollection('proyectos')).sort(
 >
   <h1 class="visually-hidden">Proyectos</h1>
 
-  <div class="container listado">
+  {/* Una baraja, no un listado: los proyectos están apilados y solo se ve el de
+      arriba, con el siguiente asomando por detrás. Cada capa ocupa el escenario
+      entero y lleva su ficha y su lámina juntas, así que las dos se relevan a la
+      vez. El estado de cada capa lo pone el guion en `data-estado`. */}
+  <div class="escenario" data-baraja aria-roledescription="carrusel">
     {
       proyectos.map((proyecto, indice) => {
-        const { titulo, descripcion, tipo, rol, anio, enlace, enlaceTexto, media, mediaAlt } =
+        const { titulo, descripcion, tipo, rol, anio, enlace, enlaceTexto, mediaAlt, logo } =
           proyecto.data;
 
+        const laminas = piezas.get(proyecto.id) ?? [];
+
         return (
-          <article class="fila">
+          <article
+            class="proyecto container"
+            data-proyecto
+            data-estado={indice === 0 ? 'activo' : indice === 1 ? 'siguiente' : indice === 2 ? 'fondo' : 'oculto'}
+            aria-label={`${indice + 1} de ${proyectos.length}: ${titulo}`}
+          >
             {/* Los corchetes son parte de la composición, no una marca de hueco
                 por rellenar: van en la plantilla y no en el contenido, para que
                 los .md queden limpios. El título y el enlace van sin ellos. */}
@@ -40,6 +88,14 @@ const proyectos = (await getCollection('proyectos')).sort(
                 <dt class="visually-hidden">Año</dt>
                 <dd>[{anio}]</dd>
               </dl>
+
+              {/* La pieza se amplía pulsándola, pero con teclado no hay dónde
+                  pulsar: la lámina no puede ser un botón sin perder el
+                  arrastre, que arranca justo ahí. Este botón es esa puerta, y
+                  solo aparece al tabular. */}
+              <button type="button" class="visually-hidden" data-ampliar>
+                Ver la pieza ampliada
+              </button>
 
               {enlace && (
                 <a class="enlace" href={enlace} target="_blank" rel="noopener">
@@ -66,15 +122,40 @@ const proyectos = (await getCollection('proyectos')).sort(
                 La pieza va contenida, no recortada: son grabaciones de pantalla
                 mucho más apaisadas que el recuadro, y recortarlas se comería la
                 interfaz por los costados. */}
+            {/* El recuadro es una ventana y las páginas van cayendo por ella,
+                cada una en su tamaño. La tira lleva el juego dos veces: al
+                desplazarla justo la mitad, el segundo juego queda donde estaba
+                el primero y el bucle no tiene costura —el mismo recurso que la
+                tira de logos del manifiesto—. */}
             <div class="media">
-              {media && (
+              {laminas.length > 0 && (
                 <span class="pantalla">
-                  <img
-                    src={`${base}media/${media}`}
-                    alt={mediaAlt ?? ''}
-                    loading={indice === 0 ? 'eager' : 'lazy'}
-                    decoding="async"
-                  />
+                  <span
+                    class="tira"
+                    data-tira={laminas.length > 1 ? '' : undefined}
+                    style={`--paginas: ${laminas.length}`}
+                  >
+                    {/* Solo la primera lámina trae `src`: es la que se ve al
+                        llegar. Las demás esperan en `data-src` hasta que el
+                        proyecto sube a la baraja. Sin esto se descargarían las
+                        283 de golpe: la carga diferida no sirve aquí, porque
+                        todas las capas están dentro del viewport aunque estén
+                        apagadas. Las copias comparten URL, así que no pesan. */}
+                    {[...laminas, ...(laminas.length > 1 ? laminas : [])].map(
+                      ({ archivo, proporcion }, turno) => (
+                        <img
+                          src={turno === 0 ? `${base}media/${archivo}` : undefined}
+                          data-src={turno === 0 ? undefined : `${base}media/${archivo}`}
+                          alt={turno === 0 ? (mediaAlt ?? '') : ''}
+                          style={`--proporcion: ${proporcion.toFixed(4)}`}
+                          data-lamina={turno % laminas.length}
+                          data-copia={turno >= laminas.length ? '' : undefined}
+                          loading={indice < 3 ? 'eager' : 'lazy'}
+                          decoding="async"
+                        />
+                      ),
+                    )}
+                  </span>
                 </span>
               )}
             </div>
@@ -82,54 +163,277 @@ const proyectos = (await getCollection('proyectos')).sort(
         );
       })
     }
+
+    {/* La pestaña del cliente es fija: ni se mueve ni se releva con la baraja.
+        Lo que cambia es lo que hay dentro. Va en una capa con la misma retícula
+        que las cartas —y un hueco de la misma proporción que la lámina— para
+        quedar clavada en el borde superior del recuadro, columna de texto. */}
+    <div class="capa-pestana container" aria-hidden="true">
+      <span class="pestana" data-pestana>
+        {proyectos.map((proyecto, indice) =>
+          proyecto.data.logo ? (
+            <img
+              src={`${base}media/logos/${proyecto.data.logo}.webp`}
+              alt=""
+              data-logo={indice}
+              data-sitio={indice === 0 ? 'centro' : 'arriba'}
+            />
+          ) : null,
+        )}
+      </span>
+      <span class="hueco"></span>
+    </div>
+
+    <p class="indice container">
+      <span data-indice>1</span> / {proyectos.length}
+    </p>
+
+    {/* La seña: dice que se avanza bajando, que es lo único que la baraja no
+        cuenta por sí sola. El isotipo hace de rueda porque en este sitio el
+        isotipo ya es el cursor. Se retira sola en cuanto se avanza una vez. */}
+    <div class="sena" data-sena aria-hidden="true">
+      <span class="raton">
+        <img src={`${base}brand/cursor-blanco.svg`} alt="" width="32" height="32" />
+      </span>
+    </div>
+
+    {/* Con rueda, teclado y dedo se avanza sin botones, pero un lector de
+        pantalla necesita algo que pulsar. Están ahí y solo se ven al tabular. */}
+    <div class="mandos container">
+      <button type="button" class="visually-hidden" data-anterior>Proyecto anterior</button>
+      <button type="button" class="visually-hidden" data-siguiente>Proyecto siguiente</button>
+    </div>
   </div>
+
+  {/* El visor. Va fuera del escenario porque no es una capa más de la baraja:
+      se pone delante de todo. Es un <dialog>, así que el navegador ya trae el
+      cierre con Esc, el foco atrapado dentro y el resto de la página inerte. */}
+  <dialog class="visor" data-visor aria-label="Pieza ampliada">
+    <button type="button" class="cerrar" data-visor-cerrar aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+
+    <img data-visor-img alt="" />
+
+    <p class="paginas">
+      <span data-visor-indice>1</span> / <span data-visor-total>1</span>
+    </p>
+  </dialog>
 </Base>
 
 <style>
-  .listado {
-    padding-block: var(--spacing-07) var(--spacing-12);
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-12);
+  /* La página deja de tener scroll: es una sola pantalla, como el juego. Estas
+     reglas solo viajan con esta página, así que no tocan el resto del sitio. */
+  :global(html:has(.escenario)),
+  :global(html:has(.escenario) body) {
+    overflow: hidden;
   }
 
-  /* Ficha de texto estrecha a la izquierda, media ancha a la derecha.
-     Proporción tomada de los mockups: ~27% / ~66%, con un canal entre medio. */
-  .fila {
+  .escenario {
+    position: relative;
+    flex: 1;
+    /* Sitio para el índice, que va anclado abajo. */
+    padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  }
+
+  /* Cada proyecto es una capa que ocupa el escenario entero. Apiladas en el
+     mismo sitio, lo que las distingue es el estado. */
+  .proyecto {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    /* Proporción tomada de los mockups: ~27% / ~66%, con un canal entre medio. */
+    grid-template-columns: minmax(0, 27fr) minmax(0, 66fr);
+    gap: 7%;
+    align-content: center;
+    align-items: center;
+
+    transition:
+      translate var(--baraja-paso) var(--ease),
+      scale var(--baraja-paso) var(--ease),
+      opacity var(--baraja-paso) var(--ease);
+  }
+
+  /* ——— Los cuatro estados de la baraja ———
+     Arriba, asomando, al fondo, y fuera. Tocar el gesto es tocar estos cuatro
+     bloques y nada más. */
+  /* El desplazamiento del arrastre se suma al de cada estado: la baraja entera
+     acompaña al cursor mientras se tira de ella. */
+  /* Quieta, la carta de arriba no lleva ni `translate` ni `scale`. No es un
+     detalle: cualquier valor distinto de `none` crea contexto de apilamiento, y
+     ahí el título en `difference` dejaría de ver el fondo de la página. El
+     desplazamiento del arrastre se le pone solo mientras se arrastra. */
+  .proyecto[data-estado='activo'] {
+    z-index: 3;
+    translate: none;
+    scale: none;
+    opacity: 1;
+  }
+
+  .escenario[data-arrastrando] .proyecto[data-estado='activo'] {
+    translate: 0 var(--arrastre, 0px);
+  }
+
+  .proyecto[data-estado='siguiente'] {
+    z-index: 2;
+    translate: 0 calc(4.5% + var(--arrastre, 0px) * 0.6);
+    scale: 0.94;
+    opacity: 0.45;
+  }
+
+  .proyecto[data-estado='fondo'] {
+    z-index: 1;
+    translate: 0 calc(8.5% + var(--arrastre, 0px) * 0.3);
+    scale: 0.88;
+    opacity: 0.2;
+  }
+
+  .proyecto[data-estado='oculto'] {
+    z-index: 0;
+    translate: 0 11%;
+    scale: 0.84;
+    opacity: 0;
+  }
+
+  /* Los ya vistos salen por arriba, no por donde entraron: así se lee que la
+     baraja avanza en un sentido. */
+  .proyecto[data-estado='pasado'] {
+    z-index: 0;
+    translate: 0 -9%;
+    scale: 1.03;
+    opacity: 0;
+  }
+
+  /* Mientras se arrastra no hay transición: la capa tiene que ir pegada al
+     cursor, no persiguiéndolo con medio segundo de retraso. */
+  .escenario[data-arrastrando] .proyecto {
+    transition: none;
+  }
+
+  /* Solo se lee la ficha de arriba. Las de detrás dejarían un texto fantasma
+     bajo el que se está leyendo. */
+  .proyecto:not([data-estado='activo']) {
+    pointer-events: none;
+  }
+
+  .proyecto:not([data-estado='activo']) .ficha {
+    opacity: 0;
+  }
+
+  .ficha {
+    opacity: 1;
+    /* Entra un poco después que la lámina: primero se ve la pieza, después se
+       lee de qué va. */
+    transition: opacity var(--baraja-paso) var(--ease) 0.12s;
+  }
+
+  /* ——— La pestaña del cliente ———
+     Capa aparte, con la misma retícula que las cartas. El hueco de la derecha
+     no se ve: está para que la fila mida lo que mide la lámina y la pestaña
+     quede a la altura de su borde superior. */
+  .capa-pestana {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
     display: grid;
     grid-template-columns: minmax(0, 27fr) minmax(0, 66fr);
     gap: 7%;
+    align-content: center;
     align-items: start;
+    pointer-events: none;
   }
 
+  .hueco {
+    aspect-ratio: 16 / 10;
+  }
+
+  /* Tamaño fijo: es lo único que no cambia al pasar de proyecto, así que no
+     puede encogerse ni crecer con el logo que le toque. Mismo recuadro blanco
+     que la tira de logos del manifiesto, porque los logos están hechos para
+     fondo claro: sobre el azul varios se desvanecen. */
+  .pestana {
+    position: relative;
+    width: 150px;
+    height: 46px;
+    overflow: hidden;
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 6px 16px rgb(0 0 0 / 0.1);
+  }
+
+  /* Los logos van apilados en el mismo sitio y solo cambia dónde está cada uno:
+     el que se va baja, el que llega cae desde arriba. `inset` con `margin: auto`
+     los centra sin tocar su tamaño, y los topes por los dos lados evitan que se
+     deforme ninguno —el de Tisvol mide ocho veces más de ancho que de alto—. */
+  .pestana img {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 118px;
+    max-height: 20px;
+    object-fit: contain;
+    transition:
+      translate var(--pestana-paso) var(--ease),
+      opacity var(--pestana-paso) var(--ease);
+  }
+
+  .pestana img[data-sitio='arriba'] {
+    translate: 0 -160%;
+    opacity: 0;
+  }
+
+  .pestana img[data-sitio='centro'] {
+    translate: 0 0;
+    opacity: 1;
+  }
+
+  .pestana img[data-sitio='abajo'] {
+    translate: 0 160%;
+    opacity: 0;
+  }
+
+  /* El título toma su color del fondo, como el manifiesto: blanco en
+     `difference` sobre el mesh. Solo funciona con la carta quieta —durante el
+     relevo la capa lleva opacidad y eso corta la fusión—, así que el título
+     entra blanco y toma el ámbar al asentarse. */
   h2 {
-    font-size: var(--text-body-lg);
+    mix-blend-mode: difference;
+    font-size: var(--text-body);
     font-weight: var(--weight-bold);
     line-height: var(--leading-snug);
     letter-spacing: var(--tracking-tight);
   }
 
   .descripcion {
-    margin-top: 1.8em;
+    margin-top: 1.4em;
   }
 
   .meta {
-    margin-top: 1.8em;
+    margin-top: 1.4em;
   }
 
   .descripcion,
   .meta {
-    font-size: var(--text-body);
-    line-height: 1.95;
+    font-size: var(--text-body-sm);
+    line-height: 1.65;
   }
 
   .enlace {
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
-    margin-top: 0.2em;
+    margin-top: 1.4em;
+    font-size: var(--text-body-sm);
     font-weight: var(--weight-bold);
-    line-height: 1.95;
+    line-height: 1.65;
   }
 
   .flecha {
@@ -138,10 +442,13 @@ const proyectos = (await getCollection('proyectos')).sort(
     flex: none;
   }
 
-  /* ⚠ Radio grande: se aparta del sistema de diseño, que pide cards sin
-     redondeo. Los mockups lo piden así. */
   .media {
     aspect-ratio: 16 / 10;
+    /* El recuadro se declara contenedor de consulta para que el marco de la
+       pieza pueda medirse contra él —`cqw` y `cqh` son su caja interior, ya
+       descontado el paspartú— y calcular por sí mismo cuánto tiene que
+       encoger para caber entero. */
+    container-type: size;
     /* Gris muy claro en vez de blanco puro. Además de bajar el contraste
        contra el azul, es lo que deja sitio para la luz del canto inferior:
        sobre blanco no se puede iluminar nada. */
@@ -165,16 +472,57 @@ const proyectos = (await getCollection('proyectos')).sort(
   /* La pantalla se ajusta al tamaño real de la pieza en vez de estirarse a la
      caja. Es lo que permite que el bisel y la sombra abracen la imagen y no
      las bandas vacías que deja una grabación más apaisada que el recuadro. */
+  /* La ventana: ocupa el recuadro entero y recorta lo que sobresale. */
   .pantalla {
-    display: flex;
-    max-width: 100%;
-    max-height: 100%;
-    border-radius: 5px;
+    position: relative;
+    width: 100cqw;
+    height: 100cqh;
     overflow: hidden;
-    /* ⚠ Sombra: el sistema de diseño es plano y la prohíbe. Aquí levanta la
-       grabación del papel para que se lea como una pantalla. Va en capas —una
-       línea de contacto, un apoyo corto y una caída larga y difusa— porque una
-       sombra sola se ve artificial. */
+  }
+
+  /* La tira cae de arriba abajo, sin fin. La duración va por página para que
+     todos los proyectos se muevan al mismo ritmo: uno de 11 páginas y otro de
+     106 pasan igual de rápido, solo que el segundo tarda más en dar la vuelta. */
+  /* Sin `bottom`: así la tira mide lo que mide su contenido y no lo que mide
+     la ventana. De eso depende el bucle, porque el desplazamiento de media
+     tira tiene que caer justo en el arranque del juego duplicado. */
+  .tira {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tira[data-tira] {
+    animation: caer calc(var(--paginas) * var(--tira-ritmo)) linear infinite;
+  }
+
+  @keyframes caer {
+    from {
+      transform: translateY(-50%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* El aire entre páginas va en el margen y no en `gap`: con `gap` el juego
+     duplicado no mide exactamente el doble y la costura del bucle se vería. */
+  .tira img {
+    flex: none;
+    display: block;
+    width: min(100cqw, calc(100cqh * var(--proporcion, 1.6)));
+    height: min(100cqh, calc(100cqw / var(--proporcion, 1.6)));
+    margin-bottom: var(--tira-aire);
+    /* Por si alguna lámina llegara con otra proporción que la declarada. */
+    object-fit: contain;
+    border-radius: 5px;
+    /* La sombra levanta la pieza del papel. Va en capas —una línea de contacto,
+       un apoyo corto y una caída larga y difusa— porque una sombra sola se ve
+       artificial. Al ir en la lámina, abraza a cada una con su tamaño. */
     box-shadow:
       0 0 0 1px rgb(0 0 0 / 0.07),
       0 1px 2px rgb(0 0 0 / 0.06),
@@ -182,27 +530,572 @@ const proyectos = (await getCollection('proyectos')).sort(
       0 20px 40px rgb(0 0 0 / 0.07);
   }
 
-  .pantalla img {
+  /* Con el visor abierto la tira se para: lo que está tapado no se anima. */
+  :global(html[data-visor-abierto]) .tira {
+    animation-play-state: paused;
+  }
+
+  /* Una sola pieza —las grabaciones— no cae: se queda centrada. */
+  .tira:not([data-tira]) {
+    justify-content: center;
+  }
+
+  .tira:not([data-tira]) img {
+    margin-bottom: 0;
+  }
+
+  /* Con movimiento reducido la tira se detiene arriba del todo. */
+  @media (prefers-reduced-motion: reduce) {
+    .tira[data-tira] {
+      animation: none;
+      transform: translateY(-50%);
+    }
+  }
+
+  /* El índice es lo único que dice cuántos hay y por dónde vas. Sin él, y sin
+     botones, la baraja no se anuncia. */
+  .indice {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: 4;
+    font-size: var(--text-body-sm);
+    letter-spacing: var(--tracking-wider);
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+  }
+
+  .indice span {
+    font-weight: var(--weight-bold);
+    opacity: 1;
+  }
+
+  .mandos {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: 5;
+  }
+
+  /* ——— El visor ———
+     La pieza a pantalla casi completa sobre un fondo oscuro. Nada de recuadro
+     ni bisel aquí: eso era el paspartú del listado, y ampliar es justo quitarlo
+     de en medio. */
+  .visor {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    padding: clamp(1.5rem, 5vw, 4rem);
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+    transition:
+      opacity var(--transition-normal),
+      overlay var(--transition-normal) allow-discrete,
+      display var(--transition-normal) allow-discrete;
+  }
+
+  .visor[open] {
+    opacity: 1;
+  }
+
+  /* Estado de partida del fundido: sin esto el visor aparece de golpe. */
+  @starting-style {
+    .visor[open] {
+      opacity: 0;
+    }
+  }
+
+  .visor::backdrop {
+    background: rgb(0 8 40 / 0);
+    transition:
+      background var(--transition-normal),
+      overlay var(--transition-normal) allow-discrete,
+      display var(--transition-normal) allow-discrete;
+  }
+
+  .visor[open]::backdrop {
+    background: rgb(0 8 40 / 0.88);
+  }
+
+  @starting-style {
+    .visor[open]::backdrop {
+      background: rgb(0 8 40 / 0);
+    }
+  }
+
+  .visor img {
     display: block;
-    width: auto;
-    height: auto;
     max-width: 100%;
     max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.45);
+  }
+
+  .cerrar {
+    position: absolute;
+    top: clamp(1rem, 2.5vw, 2rem);
+    right: clamp(1rem, 2.5vw, 2rem);
+    display: flex;
+    padding: 0.6rem;
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--white);
+    cursor: var(--cursor);
+    opacity: 0.7;
+    transition: opacity var(--transition-normal);
+  }
+
+  .cerrar:hover {
+    opacity: 1;
+  }
+
+  .cerrar svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .paginas {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(1rem, 2.5vw, 2rem);
+    translate: -50% 0;
+    font-size: var(--text-body-sm);
+    letter-spacing: var(--tracking-wider);
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+  }
+
+  .paginas span {
+    font-weight: var(--weight-bold);
+  }
+
+  /* Con una sola lámina no hay nada que numerar. */
+  .visor[data-unica] .paginas {
+    display: none;
+  }
+
+  /* ——— La seña ——— */
+  /* Vive en el margen derecho, centrada con la lámina: fuera de la caja de
+     texto, en el canal que queda libre. El cuarto del ancho sobrante es
+     justo el centro de ese canal. */
+  .sena {
+    position: absolute;
+    top: 50%;
+    right: calc((100% - min(64%, 1280px)) / 4);
+    z-index: 4;
+    translate: 50% -50%;
+  }
+
+  /* Un ratón dibujado con una sola línea. Las medidas son las de un ratón de
+     verdad en pequeño: alto el doble que ancho, esquinas muy redondeadas. */
+  .raton {
+    display: flex;
+    justify-content: center;
+    width: 22px;
+    height: 34px;
+    padding-top: 6px;
+    border: 1px solid rgb(255 255 255 / 0.5);
+    border-radius: 11px;
+  }
+
+  .raton img {
+    width: 9px;
+    height: 9px;
+    animation: baja 1.9s var(--ease) infinite;
+  }
+
+  /* Baja, se desvanece y vuelve a empezar: el gesto que hay que hacer. */
+  @keyframes baja {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    22% {
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(11px);
+      opacity: 0;
+    }
+  }
+
+  /* Con movimiento reducido la rueda se queda quieta y a la vista. La regla
+     global acorta las animaciones a 0,01ms y aquí la dejaría invisible. */
+  @media (prefers-reduced-motion: reduce) {
+    .raton img {
+      animation: none;
+      opacity: 1;
+    }
   }
 
   @media (max-width: 60rem) {
-    .fila {
+    .proyecto {
       grid-template-columns: 1fr;
-      gap: var(--spacing-07);
+      gap: var(--spacing-05);
+      align-content: center;
     }
 
-    .listado {
-      gap: var(--spacing-10);
-      padding-block: var(--spacing-08) var(--spacing-10);
+    /* En vertical la lámina manda y la ficha se apoya debajo: al revés, el texto
+       empuja la pieza fuera de la pantalla. */
+    .ficha {
+      order: 2;
     }
 
     .media {
-      border-radius: 6px;
+      order: 1;
+    }
+
+    .proyecto[data-estado='siguiente'] {
+      translate: 0 3.5%;
+    }
+
+    .proyecto[data-estado='fondo'] {
+      translate: 0 6.5%;
     }
   }
 </style>
+
+<script>
+  // La baraja: una sola pila, un solo índice. El guion no anima nada —de eso se
+  // encargan las transiciones del CSS—, solo dice qué capa está en cada estado.
+  if (!(window as any).__barajaMontada) {
+    (window as any).__barajaMontada = true;
+
+    const PASO = 620; // ms que dura el relevo; debe casar con --baraja-paso.
+    const UMBRAL_RUEDA = 28; // Cuánto hay que girar para que cuente como un paso.
+    const UMBRAL_DEDO = 40;
+
+    let activo = 0;
+    let bloqueado = false;
+    let acumulado = 0;
+    let ultimoGiro = 0;
+
+    const capas = () => [...document.querySelectorAll<HTMLElement>('[data-proyecto]')];
+
+    const pintar = () => {
+      const lista = capas();
+      lista.forEach((capa, indice) => {
+        const distancia = indice - activo;
+        const estado =
+          distancia < 0
+            ? 'pasado'
+            : distancia === 0
+              ? 'activo'
+              : distancia === 1
+                ? 'siguiente'
+                : distancia === 2
+                  ? 'fondo'
+                  : 'oculto';
+        capa.dataset.estado = estado;
+        // Lo que no se ve tampoco se lee ni se tabula.
+        capa.toggleAttribute('inert', estado !== 'activo');
+
+        // El proyecto que llega arriba pide sus láminas. Las de los demás
+        // esperan: un documento de cien páginas no se descarga por si acaso.
+        //
+        // Y las pide en firme. La carga diferida no vale aquí: la tira mide
+        // decenas de miles de píxeles, así que casi ninguna lámina llega nunca
+        // a acercarse al viewport y el navegador no las pediría jamás —pasaban
+        // por delante en blanco—. El orden importa: primero se levanta el
+        // diferido, después se pone la dirección.
+        if (estado === 'activo') {
+          capa.querySelectorAll<HTMLImageElement>('.tira img').forEach((img) => {
+            img.loading = 'eager';
+            if (img.dataset.src) {
+              img.src = img.dataset.src;
+              img.removeAttribute('data-src');
+            }
+          });
+        }
+      });
+
+      const marcador = document.querySelector('[data-indice]');
+      if (marcador) marcador.textContent = String(activo + 1);
+    };
+
+    // El logo del cliente. La pestaña no se mueve; lo que se releva es lo de
+    // dentro: el que estaba se va por abajo y el nuevo cae desde arriba.
+    //
+    // El que llega puede venir de haber salido por abajo en otra vuelta, así
+    // que primero se le devuelve arriba sin transición —de un salto, que nadie
+    // ve— y solo entonces se le deja caer. Sin ese paso subiría desde abajo.
+    const relevarLogo = (indice: number) => {
+      const logos = [...document.querySelectorAll<HTMLElement>('[data-pestana] [data-logo]')];
+
+      logos.forEach((logo, i) => {
+        if (i === indice) {
+          if (logo.dataset.sitio !== 'arriba') {
+            logo.style.transition = 'none';
+            logo.dataset.sitio = 'arriba';
+            void logo.offsetWidth; // Fuerza el salto antes de volver a animar.
+            logo.style.transition = '';
+          }
+          logo.dataset.sitio = 'centro';
+        } else if (logo.dataset.sitio === 'centro') {
+          logo.dataset.sitio = 'abajo';
+        }
+      });
+    };
+
+    const ir = (destino: number) => {
+      const total = capas().length;
+      // Sin bucle: la baraja tiene principio y final, como un mazo en la mano.
+      const siguiente = Math.min(Math.max(destino, 0), total - 1);
+      if (siguiente === activo || bloqueado) return;
+
+      activo = siguiente;
+      pintar();
+      relevarLogo(activo);
+
+      // Un gesto, un paso: sin este cerrojo un golpe de trackpad se lleva media
+      // baraja por delante.
+      bloqueado = true;
+      setTimeout(() => {
+        bloqueado = false;
+      }, PASO * 0.72);
+    };
+
+    const hayBaraja = () => !!document.querySelector('[data-baraja]');
+
+    // ——— El visor ———
+    // Mientras está abierto, la baraja no se mueve: ni rueda, ni teclas, ni
+    // arrastre. Se está mirando una pieza, no recorriendo el portafolio.
+    const visor = () => document.querySelector<HTMLDialogElement>('[data-visor]');
+    const visorAbierto = () => !!visor()?.open;
+
+    let laminasDelVisor: string[] = [];
+    let laminaDelVisor = 0;
+
+    const pintarVisor = () => {
+      const caja = visor();
+      const img = caja?.querySelector<HTMLImageElement>('[data-visor-img]');
+      if (!caja || !img) return;
+
+      img.src = laminasDelVisor[laminaDelVisor];
+      caja.querySelector('[data-visor-indice]')!.textContent = String(laminaDelVisor + 1);
+      caja.querySelector('[data-visor-total]')!.textContent = String(laminasDelVisor.length);
+      caja.toggleAttribute('data-unica', laminasDelVisor.length < 2);
+    };
+
+    // `desde` es la lámina que se pulsó. La tira está en marcha, así que abrir
+    // siempre por la primera sería abrir otra distinta de la que se señaló.
+    const abrirVisor = (desde?: HTMLImageElement | null) => {
+      const caja = visor();
+      const carta = document.querySelector('[data-proyecto][data-estado="activo"]');
+      // Solo el juego original: el duplicado de la tira es el mismo material.
+      const laminas = [
+        ...(carta?.querySelectorAll<HTMLImageElement>('[data-lamina]:not([data-copia])') ?? []),
+      ];
+      if (!caja || !laminas.length) return;
+
+      laminasDelVisor = laminas.map((l) => l.src || l.dataset.src || '');
+      laminaDelVisor = Math.max(0, Number(desde?.dataset.lamina ?? 0));
+
+      const img = caja.querySelector<HTMLImageElement>('[data-visor-img]');
+      if (img) img.alt = laminas[0].alt || carta?.querySelector('h2')?.textContent || '';
+
+      pintarVisor();
+      caja.showModal();
+      // La tira se detiene detrás: no hay por qué animar lo que está tapado.
+      document.documentElement.dataset.visorAbierto = 'si';
+    };
+
+    const pasarEnElVisor = (paso: number) => {
+      if (laminasDelVisor.length < 2) return;
+      laminaDelVisor =
+        (laminaDelVisor + paso + laminasDelVisor.length) % laminasDelVisor.length;
+      pintarVisor();
+    };
+
+    document.addEventListener(
+      'wheel',
+      (evento) => {
+        if (!hayBaraja() || visorAbierto()) return;
+        evento.preventDefault(); // La página no tiene scroll: la rueda es para esto.
+
+        // El trackpad manda decenas de eventos por gesto y con inercia. Se suman
+        // hasta pasar el umbral y se reinicia la cuenta si el dedo se levanta.
+        const ahora = performance.now();
+        if (ahora - ultimoGiro > 180) acumulado = 0;
+        ultimoGiro = ahora;
+
+        if (bloqueado) return;
+        acumulado += evento.deltaY;
+
+        if (Math.abs(acumulado) < UMBRAL_RUEDA) return;
+        ir(activo + Math.sign(acumulado));
+        acumulado = 0;
+      },
+      { passive: false },
+    );
+
+    document.addEventListener('keydown', (evento) => {
+      if (!hayBaraja()) return;
+
+      // Con el visor abierto las flechas pasan páginas de la pieza, no
+      // proyectos.
+      if (visorAbierto()) {
+        if (evento.key === 'Escape') {
+          evento.preventDefault();
+          cerrarVisor();
+        } else if (evento.key === 'ArrowRight' || evento.key === 'ArrowDown') {
+          evento.preventDefault();
+          pasarEnElVisor(1);
+        } else if (evento.key === 'ArrowLeft' || evento.key === 'ArrowUp') {
+          evento.preventDefault();
+          pasarEnElVisor(-1);
+        }
+        return;
+      }
+
+      const avanza = ['ArrowDown', 'ArrowRight', 'PageDown', ' '];
+      const retrocede = ['ArrowUp', 'ArrowLeft', 'PageUp'];
+
+      if (avanza.includes(evento.key)) {
+        evento.preventDefault();
+        ir(activo + 1);
+      } else if (retrocede.includes(evento.key)) {
+        evento.preventDefault();
+        ir(activo - 1);
+      } else if (evento.key === 'Home') {
+        evento.preventDefault();
+        ir(0);
+      } else if (evento.key === 'End') {
+        evento.preventDefault();
+        ir(capas().length - 1);
+      }
+    });
+
+    document.addEventListener('click', (evento) => {
+      const objetivo = evento.target as HTMLElement;
+      const caja = visor();
+
+      if (objetivo.closest('[data-visor-cerrar]')) return cerrarVisor();
+      // Clic en el fondo del visor —fuera de la pieza— también cierra.
+      if (caja?.open && objetivo === caja) return cerrarVisor();
+
+      if (objetivo.closest('[data-ampliar]')) return abrirVisor(null);
+      if (objetivo.closest('[data-siguiente]')) ir(activo + 1);
+      if (objetivo.closest('[data-anterior]')) ir(activo - 1);
+    });
+
+    // El `close` del <dialog> no burbujea y tampoco se deja capturar desde
+    // `document`: hay que engancharlo al propio elemento, y volver a hacerlo
+    // cada vez que Astro reemplaza el <body>.
+    // Todo cierre pasa por aquí. El evento `close` del <dialog> se despacha en
+    // una tarea aparte y hay entornos donde no llega; colgar de él la limpieza
+    // dejaba la tira detenida para siempre. Se mantiene enganchado igualmente,
+    // por si el cierre viene del navegador y no de nosotros, y como la función
+    // tiene nombre, engancharla dos veces no la ejecuta dos veces.
+    const alCerrarVisor = () => {
+      delete document.documentElement.dataset.visorAbierto;
+    };
+
+    const cerrarVisor = () => {
+      visor()?.close();
+      alCerrarVisor();
+    };
+
+    const escucharElCierre = () => {
+      visor()?.addEventListener('close', alCerrarVisor);
+    };
+
+    // ——— Arrastre ———
+    // Un solo camino para el ratón, el dedo y el lápiz. La baraja acompaña al
+    // puntero con resistencia —se mueve bastante menos de lo que se tira— y al
+    // soltar decide: si se pasó del umbral, avanza; si no, vuelve a su sitio.
+    const RESISTENCIA = 0.32;
+    const TOPE_ARRASTRE = 90; // px que puede correrse la baraja como mucho.
+
+    let partida: number | null = null;
+    let recorrido = 0;
+    let origen: HTMLElement | null = null;
+
+    const escenario = () => document.querySelector<HTMLElement>('[data-baraja]');
+
+    document.addEventListener('pointerdown', (evento) => {
+      const caja = escenario();
+      if (!caja || visorAbierto()) return;
+      if (!(evento.target as HTMLElement).closest('[data-baraja]')) return;
+      // Los enlaces y los botones se pulsan, no se arrastran.
+      if ((evento.target as HTMLElement).closest('a, button')) return;
+
+      partida = evento.clientY;
+      recorrido = 0;
+      origen = evento.target as HTMLElement;
+      caja.setAttribute('data-arrastrando', '');
+      caja.setPointerCapture?.(evento.pointerId);
+      // Sin esto, tirar del texto lo selecciona en vez de mover la baraja.
+      evento.preventDefault();
+    });
+
+    document.addEventListener('pointermove', (evento) => {
+      const caja = escenario();
+      if (partida === null || !caja) return;
+
+      recorrido = evento.clientY - partida;
+      const corrido = Math.max(
+        -TOPE_ARRASTRE,
+        Math.min(recorrido * RESISTENCIA, TOPE_ARRASTRE),
+      );
+      caja.style.setProperty('--arrastre', `${corrido}px`);
+    });
+
+    const soltar = () => {
+      const caja = escenario();
+      if (partida === null || !caja) return;
+
+      partida = null;
+      caja.removeAttribute('data-arrastrando');
+      caja.style.setProperty('--arrastre', '0px');
+
+      // Un toque sin recorrido sobre la lámina no es un arrastre: es un clic, y
+      // amplía la pieza. Se resuelve aquí y no en el evento `click` porque el
+      // `preventDefault` del arrastre se lo come.
+      if (Math.abs(recorrido) < 5 && origen?.closest('.pantalla')) {
+        const pulsada = origen.closest('img') as HTMLImageElement | null;
+        origen = null;
+        recorrido = 0;
+        return abrirVisor(pulsada);
+      }
+
+      // Se tira hacia arriba para avanzar, como al empujar una carta fuera.
+      if (Math.abs(recorrido) >= UMBRAL_DEDO) ir(activo - Math.sign(recorrido));
+      recorrido = 0;
+      origen = null;
+    };
+
+    document.addEventListener('pointerup', soltar);
+    document.addEventListener('pointercancel', soltar);
+
+    // Al entrar en la página —o al volver a ella sin recarga— la baraja empieza
+    // de nuevo desde arriba: el <body> es otro y las capas también.
+    const arrancar = () => {
+      activo = 0;
+      acumulado = 0;
+      bloqueado = false;
+      if (!hayBaraja()) return;
+      pintar();
+      relevarLogo(0);
+      escucharElCierre();
+    };
+
+    document.addEventListener('astro:page-load', arrancar);
+
+    // Y también ahora mismo: en la primera carga, el router de Astro puede
+    // haber lanzado ya su evento antes de que este módulo llegara a existir.
+    arrancar();
+  }
+</script>

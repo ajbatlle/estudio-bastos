@@ -1,0 +1,312 @@
+---
+// Las cuatro semanas del manifiesto abren la metodología: cuatro fases unidas,
+// cada una de una semana como mínimo. Ahí está el porqué del plazo —no es una
+// cifra puesta a ojo, es la suma de las fases—, así que el dato se explica solo
+// en vez de pedir que se crea.
+//
+// Mismo recuadro blanco y mismo gesto que la tira de logos y el panel del
+// equipo: puntero, toque y teclado.
+
+// Cuatro verbos en infinitivo, todos del mismo registro: la fase es lo que se
+// hace, no una etapa numerada. Ordenar y Diseñar son los dos verbos del propio
+// manifiesto; Escuchar dice de dónde sale la información dispersa y Entregar
+// dónde termina.
+//
+// `hito` marca las fases que además entregan algo. Ordenar cierra con una
+// entrega intermedia: es donde el cliente ve el trabajo antes de que tome forma
+// definitiva, y decirlo aquí explica que el plazo no es una caja negra.
+const fases = [
+  { nombre: 'Escuchar' },
+  { nombre: 'Ordenar', hito: 'Entrega intermedia' },
+  { nombre: 'Diseñar' },
+  { nombre: 'Entregar' },
+];
+---
+
+<span class="metodo" data-metodo>
+  <button type="button" aria-expanded="false" aria-controls="panel-metodologia">
+    <slot />
+  </button>
+
+  <span
+    class="panel"
+    id="panel-metodologia"
+    data-panel
+    role="group"
+    aria-label="Metodología de trabajo"
+  >
+    <span class="ruta">
+      {/* La línea va detrás de los puntos y se dibuja de izquierda a derecha. */}
+      <span class="linea" aria-hidden="true"></span>
+
+      {
+        fases.map((fase, indice) => (
+          <span class="fase" style={`--indice: ${indice}`}>
+            <span class="punto" aria-hidden="true" />
+            <strong>{fase.nombre}</strong>
+            <span class="duracion">mínimo 1 semana</span>
+            {fase.hito && <span class="hito">{fase.hito}</span>}
+          </span>
+        ))
+      }
+    </span>
+  </span>
+</span>
+
+<style>
+  .metodo {
+    position: relative;
+    display: inline;
+  }
+
+  .metodo button {
+    all: unset;
+    cursor: var(--cursor);
+    font-weight: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgb(255 255 255 / 0.55);
+    text-underline-offset: 0.22em;
+    transition:
+      text-decoration-color var(--transition-normal),
+      text-underline-offset var(--transition-normal);
+  }
+
+  .metodo button:hover,
+  .metodo[data-abierto] button {
+    text-decoration-color: var(--white);
+    text-underline-offset: 0.34em;
+  }
+
+  .metodo button:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 4px;
+  }
+
+  .panel {
+    position: absolute;
+    top: calc(100% + 0.7em);
+    left: 0;
+    z-index: 5;
+    display: block;
+    width: min(52vw, 620px);
+    /* La palabra de la que cuelga está a la derecha de su línea, así que el
+       recuadro se saldría de la ventana en anchos intermedios. El guion mide
+       cuánto sobra y lo corre hacia dentro. */
+    translate: var(--desplazamiento, 0px) 0;
+
+    padding: 1.5rem 1.75rem 1.35rem;
+    background: var(--white);
+    color: var(--color-brand);
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 6px 16px rgb(0 0 0 / 0.1),
+      0 20px 40px rgb(0 0 0 / 0.07);
+
+    /* El panel vive dentro del <h1>: hay que devolverle una escala de lectura. */
+    font-size: 0.875rem;
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-snug);
+    letter-spacing: normal;
+    text-align: left;
+
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--transition-normal),
+      visibility var(--transition-normal);
+  }
+
+  /* Cuatro columnas iguales: los puntos quedan en el centro de cada una y la
+     línea puede ir de un centro a otro con porcentajes. */
+  .ruta {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .linea {
+    position: absolute;
+    top: 5px;
+    left: 12.5%;
+    right: 12.5%;
+    height: 1px;
+    background: rgb(0 0 0 / 0.18);
+
+    /* Se dibuja al abrir. Va en `scale` y no en `width` para no rehacer el
+       diseño en cada fotograma. */
+    scale: 0 1;
+    transform-origin: left center;
+    transition: scale var(--transition-slow);
+  }
+
+  .fase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    text-align: center;
+
+    /* Cada fase entra detrás de la anterior: el orden de lectura se ve. */
+    opacity: 0;
+    translate: 0 6px;
+    transition:
+      opacity var(--transition-normal),
+      translate var(--transition-normal);
+    transition-delay: calc(var(--indice) * 0.09s + 0.12s);
+  }
+
+  .punto {
+    width: 11px;
+    height: 11px;
+    border-radius: var(--radius-full);
+    background: var(--color-brand);
+    /* El aro blanco tapa la línea justo detrás del punto. */
+    box-shadow: 0 0 0 4px var(--white);
+  }
+
+  .fase strong {
+    font-weight: var(--weight-semibold);
+  }
+
+  .duracion {
+    color: rgb(0 0 0 / 0.55);
+    font-size: 0.75rem;
+  }
+
+  /* El hito no es más metadato: es algo que se entrega. Por eso va en el azul
+     de marca y no en el gris, y se pega a la duración en vez de flotar suelto
+     a la distancia del resto. */
+  .hito {
+    margin-top: -0.3rem;
+    color: var(--color-brand);
+    font-size: 0.75rem;
+    font-weight: var(--weight-semibold);
+  }
+
+  /* ——— Abierto con puntero o teclado ———
+     En táctil el hover se queda pegado tras el toque, así que ahí manda el
+     atributo que pone el guion. */
+  @media (hover: hover) {
+    .metodo:hover .panel,
+    .metodo:focus-within .panel {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .metodo:hover .linea,
+    .metodo:focus-within .linea {
+      scale: 1 1;
+    }
+
+    .metodo:hover .fase,
+    .metodo:focus-within .fase {
+      opacity: 1;
+      translate: none;
+    }
+  }
+
+  /* ——— Abierto con el dedo ——— */
+  .metodo[data-abierto] .panel {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .metodo[data-abierto] .linea {
+    scale: 1 1;
+  }
+
+  .metodo[data-abierto] .fase {
+    opacity: 1;
+    translate: none;
+  }
+
+  /* En pantallas estrechas el panel deja de colgar de la palabra y pasa a ser
+     una lámina anclada abajo: la frase termina a media línea y no queda ancho
+     para desplegar cuatro fases a partir de ahí. */
+  @media (max-width: 48rem) {
+    .panel {
+      position: fixed;
+      inset: auto 1rem 1.25rem;
+      width: auto;
+      padding: 1.25rem 1rem 1.1rem;
+      /* Aquí ya no cuelga de la palabra: no hay nada que corregir. */
+      translate: none;
+    }
+
+    .fase {
+      gap: 0.45rem;
+    }
+
+    .fase strong {
+      font-size: 0.8125rem;
+    }
+
+    .duracion {
+      font-size: 0.6875rem;
+    }
+  }
+</style>
+
+<script>
+  // Un único par de escuchas para todo el documento: engancharlas por instancia
+  // las acumularía en cada navegación del router de Astro.
+  if (!(window as any).__metodoMontado) {
+    (window as any).__metodoMontado = true;
+
+    const MARGEN = 16; // Aire mínimo contra el borde de la ventana.
+
+    let abierto: HTMLElement | null = null;
+
+    // Cuánto hay que correr el recuadro depende solo del sitio donde cae la
+    // palabra, no del puntero: se calcula al cargar y al cambiar el ancho, y no
+    // en cada apertura. Así vale también cuando abre por hover, sin guion.
+    const acomodar = () => {
+      document.querySelectorAll<HTMLElement>('[data-metodo] [data-panel]').forEach((panel) => {
+        // Se mide sin corrección previa, o cada pasada arrastraría la anterior.
+        panel.style.setProperty('--desplazamiento', '0px');
+        if (getComputedStyle(panel).position !== 'absolute') return; // Móvil: va anclado abajo.
+
+        const sobra = panel.getBoundingClientRect().right - (window.innerWidth - MARGEN);
+        if (sobra > 0) panel.style.setProperty('--desplazamiento', `${-Math.round(sobra)}px`);
+      });
+    };
+
+    window.addEventListener('resize', acomodar);
+    document.addEventListener('astro:page-load', acomodar);
+
+    const cerrar = () => {
+      if (!abierto) return;
+      abierto.removeAttribute('data-abierto');
+      abierto.querySelector('button')?.setAttribute('aria-expanded', 'false');
+      abierto = null;
+    };
+
+    document.addEventListener('click', (evento) => {
+      const destino = evento.target as HTMLElement;
+      const raiz = destino.closest<HTMLElement>('[data-metodo]');
+
+      // Clic fuera: se cierra lo que hubiera abierto.
+      if (!raiz) return cerrar();
+      // Clic dentro del panel: no debe cerrarlo.
+      if (!destino.closest('button')) return;
+
+      if (abierto === raiz) return cerrar();
+
+      cerrar();
+      raiz.setAttribute('data-abierto', '');
+      raiz.querySelector('button')?.setAttribute('aria-expanded', 'true');
+      abierto = raiz;
+    });
+
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape') cerrar();
+    });
+
+    document.addEventListener('astro:before-swap', () => {
+      abierto = null;
+    });
+  }
+</script>

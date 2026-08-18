@@ -1,0 +1,581 @@
+---
+// Snake. La marca que se pulsa —la flor, `control="juego"`— aparta el sitio y
+// se queda con la página: no se dibuja ningún tablero, el campo es el propio
+// fondo de marca, de borde a borde y hasta abajo. Lo único que sobrevive es la
+// cabecera, que es la salida.
+//
+// La serpiente está hecha del mismo elemento que se pulsó, y come ese mismo
+// elemento. Se dibuja en blanco sobre un lienzo en `difference`, igual que las
+// marcas del manifiesto: el ámbar no está pintado, lo produce el fondo.
+---
+
+<section class="juego" data-juego-panel tabindex="-1" aria-label="Snake">
+  <canvas data-lienzo></canvas>
+
+  <div class="container datos">
+    <p class="marcador">Puntos <strong data-puntos>0</strong></p>
+  </div>
+
+  {/* La cuenta atrás da tiempo a mirar el campo antes de que la serpiente
+      arranque. Cada número entra y se va con su propio pulso. */}
+  <p class="cuenta" data-cuenta hidden>
+    <strong data-cuenta-numero>4</strong>
+    <span data-cuenta-texto>segundos para jugar snake</span>
+  </p>
+
+  <p class="aviso" data-aviso hidden></p>
+</section>
+
+<style>
+  /* Cuelga bajo la cabecera y ocupa todo lo demás. La altura de la cabecera la
+     mide el guion: depende del ancho de pantalla, así que no hay número fijo
+     que valga. */
+  /* Absoluto y no fijo: un elemento fijo se promueve a su propia capa de
+     composición y el `difference` del lienzo dejaría de ver el fondo de la
+     página —la misma razón por la que el mesh vive en el fondo del <body>—.
+     Mientras se juega no hay scroll, así que se comporta igual que uno fijo. */
+  .juego {
+    position: absolute;
+    inset: var(--juego-arriba, 0px) 0 0 0;
+    visibility: hidden;
+    /* La visibilidad espera a que termine el fundido para no cortarlo. */
+    transition: visibility 0s linear var(--juego-fundido);
+  }
+
+  :global(html[data-juego]) .juego {
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .juego:focus-visible {
+    outline: none;
+  }
+
+  /* El fundido va en el lienzo y en los textos, nunca en la sección: opacidad
+     por debajo de 1 crea contexto de apilamiento, y ahí el `difference` dejaría
+     de ver el fondo de la página —que es justo con lo que tiene que fundirse—. */
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    mix-blend-mode: difference;
+  }
+
+  canvas,
+  .datos,
+  .cuenta,
+  .aviso {
+    opacity: 0;
+    transition: opacity var(--juego-fundido) var(--ease);
+  }
+
+  /* Entra después de que el manifiesto se haya ido: primero se vacía la
+     pantalla, después aparece el juego. */
+  :global(html[data-juego]) canvas,
+  :global(html[data-juego]) .datos,
+  :global(html[data-juego]) .cuenta,
+  :global(html[data-juego]) .aviso {
+    opacity: 1;
+    transition-delay: 0.22s;
+  }
+
+  .datos {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-05);
+    padding-bottom: clamp(1.1rem, 2.9vw, 3.4rem);
+    font-size: var(--text-body-sm);
+  }
+
+  .marcador {
+    letter-spacing: var(--tracking-wider);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .marcador strong {
+    font-weight: var(--weight-bold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* La cuenta y el fin de partida son texto sobre el fondo, sin caja: meter un
+     panel aquí sería construir justo lo que el juego no tiene. */
+  .cuenta,
+  .aviso {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    font-size: clamp(1.05rem, 1.8vw, 2.125rem);
+    line-height: 1.4;
+    letter-spacing: var(--tracking-tight);
+    text-align: center;
+  }
+
+  /* El `display: flex` de arriba es del autor y el `[hidden]` del navegador es
+     de la hoja de usuario: sin esta regla, ocultarlas no las oculta. */
+  .cuenta[hidden],
+  .aviso[hidden] {
+    display: none;
+  }
+
+  .cuenta span,
+  .aviso span {
+    font-size: var(--text-body-sm);
+    letter-spacing: var(--tracking-wider);
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  /* El número manda en la pantalla mientras dura la espera. */
+  .cuenta strong {
+    font-size: clamp(5rem, 16vw, 15rem);
+    font-weight: var(--weight-bold);
+    line-height: 0.9;
+    letter-spacing: var(--tracking-tight);
+    font-variant-numeric: tabular-nums;
+    animation: pulso-cuenta 1s var(--ease) both;
+  }
+
+  /* Crece al entrar y se encoge al irse: un latido por segundo. */
+  @keyframes pulso-cuenta {
+    0% {
+      transform: scale(0.62);
+      opacity: 0;
+    }
+    28% {
+      transform: scale(1.1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(0.72);
+      opacity: 0;
+    }
+  }
+
+  /* Con movimiento reducido el número se queda quieto y entero. La regla global
+     acorta las animaciones a 0,01ms, y con esta el número acabaría invisible. */
+  @media (prefers-reduced-motion: reduce) {
+    .cuenta strong {
+      animation: none;
+      transform: none;
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  if (!(window as any).__juegoMontado) {
+    (window as any).__juegoMontado = true;
+
+    const RUMBOS: Record<string, { x: number; y: number }> = {
+      ArrowUp: { x: 0, y: -1 },
+      ArrowDown: { x: 0, y: 1 },
+      ArrowLeft: { x: -1, y: 0 },
+      ArrowRight: { x: 1, y: 0 },
+      w: { x: 0, y: -1 },
+      s: { x: 0, y: 1 },
+      a: { x: -1, y: 0 },
+      d: { x: 1, y: 0 },
+    };
+
+    type Punto = { x: number; y: number };
+
+    let panel: HTMLElement | null = null;
+    let lienzo: HTMLCanvasElement | null = null;
+    let pincel: CanvasRenderingContext2D | null = null;
+    let figura: HTMLImageElement | null = null;
+
+    let columnas = 20;
+    let filas = 12;
+    let anchoCelda = 0;
+    let altoCelda = 0;
+
+    let serpiente: Punto[] = [];
+    let rumbo: Punto = { x: 1, y: 0 };
+    let giros: Punto[] = [];
+    let comida: Punto = { x: 0, y: 0 };
+    let puntos = 0;
+    let vivo = false;
+    let contando = false;
+    let cronometro = 0;
+    let cuadro = 0;
+    let reloj = 0;
+    let acumulado = 0;
+    let tiempo = 0;
+
+    const ESPERA = 4; // Segundos de cuenta atrás antes de cada partida.
+
+    const quieto = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const abierto = () => !!document.documentElement.dataset.juego;
+
+    // Acelera con los puntos, pero con suelo: pasado cierto ritmo el juego deja
+    // de ser difícil y pasa a ser injusto.
+    const paso = () => Math.max(70, 135 - puntos * 3);
+
+    // El SVG de marca no trae `width` ni `height`, solo `viewBox`. Sin tamaño
+    // intrínseco hay navegadores que no lo saben rasterizar, así que se le
+    // inyecta antes de cargarlo. Si algo falla, se usa el archivo tal cual.
+    const cargarFigura = (src: string) => {
+      if (figura?.dataset.origen === src) return;
+
+      const imagen = new Image();
+      imagen.dataset.origen = src;
+      figura = imagen;
+
+      fetch(src)
+        .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+        .then((svg) => {
+          const conTamano = /<svg[^>]*\swidth=/.test(svg)
+            ? svg
+            : svg.replace('<svg', '<svg width="256" height="256"');
+          imagen.src = URL.createObjectURL(new Blob([conTamano], { type: 'image/svg+xml' }));
+        })
+        .catch(() => {
+          imagen.src = src;
+        });
+    };
+
+    const marcar = () => {
+      panel?.querySelector('[data-puntos]')?.replaceChildren(String(puntos));
+    };
+
+    const sembrar = () => {
+      const libres: Punto[] = [];
+      for (let y = 0; y < filas; y++) {
+        for (let x = 0; x < columnas; x++) {
+          if (!serpiente.some((c) => c.x === x && c.y === y)) libres.push({ x, y });
+        }
+      }
+      if (!libres.length) return morir('No queda tablero.');
+      comida = libres[Math.floor(Math.random() * libres.length)];
+    };
+
+    // La rejilla se calcula una vez por partida y las celdas se estiran con la
+    // ventana: recalcularla al vuelo dejaría a la serpiente fuera del campo.
+    const repartir = () => {
+      if (!lienzo) return;
+      const zona = lienzo.getBoundingClientRect();
+      if (!zona.width || !zona.height) return;
+
+      // Celda grande a propósito: el elemento tiene que leerse como elemento y
+      // no como un punto. La medida sale del lado menor —en vertical manda el
+      // ancho—, o en móvil quedaría un campo de seis columnas.
+      const objetivo = Math.min(72, Math.max(30, Math.round(Math.min(zona.width, zona.height) / 11)));
+      columnas = Math.max(10, Math.round(zona.width / objetivo));
+      filas = Math.max(8, Math.round(zona.height / objetivo));
+    };
+
+    const medir = () => {
+      if (!lienzo) return;
+      const zona = lienzo.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      lienzo.width = Math.max(1, Math.round(zona.width * dpr));
+      lienzo.height = Math.max(1, Math.round(zona.height * dpr));
+      anchoCelda = lienzo.width / columnas;
+      altoCelda = lienzo.height / filas;
+
+      // La cabecera crece con el ancho de pantalla, así que su alto se mide
+      // cada vez en vez de fijarlo en una constante.
+      const cabecera = document.querySelector('header');
+      if (cabecera) {
+        document.documentElement.style.setProperty(
+          '--juego-arriba',
+          `${Math.round(cabecera.getBoundingClientRect().bottom)}px`,
+        );
+      }
+    };
+
+    const sello = (celda: Punto, escala: number, vuelta: number) => {
+      if (!pincel || !figura?.complete || !figura.naturalWidth) return;
+
+      const lado = Math.min(anchoCelda, altoCelda) * escala;
+      const cx = (celda.x + 0.5) * anchoCelda;
+      const cy = (celda.y + 0.5) * altoCelda;
+
+      pincel.save();
+      pincel.translate(cx, cy);
+      if (vuelta) pincel.rotate(vuelta);
+      pincel.drawImage(figura, -lado / 2, -lado / 2, lado, lado);
+      pincel.restore();
+    };
+
+    const dibujar = () => {
+      if (!pincel || !lienzo) return;
+      pincel.clearRect(0, 0, lienzo.width, lienzo.height);
+
+      const giro = quieto() ? 0 : (tiempo / 9000) * Math.PI * 2;
+
+      // La comida gira al revés y respira: es el mismo elemento que el cuerpo,
+      // así que lo que la distingue es el movimiento, no la forma.
+      const latido = quieto() ? 1 : 1 + Math.sin(tiempo / 420) * 0.06;
+      sello(comida, 0.92 * latido, -giro);
+
+      // De la cabeza a la cola el elemento encoge: da sentido de marcha sin
+      // añadir ninguna forma que no sea la marca.
+      serpiente.forEach((celda, indice) => {
+        const merma = Math.max(0.52, 0.86 - indice * 0.012);
+        sello(celda, merma, giro + indice * 0.42);
+      });
+    };
+
+    const morir = (motivo = 'Chocaste.') => {
+      vivo = false;
+      cancelAnimationFrame(cuadro);
+      cuadro = 0;
+
+      const aviso = panel?.querySelector<HTMLElement>('[data-aviso]');
+      if (!aviso) return;
+      aviso.replaceChildren(
+        Object.assign(document.createElement('strong'), {
+          textContent: `${motivo} ${puntos} ${puntos === 1 ? 'punto' : 'puntos'}.`,
+        }),
+        Object.assign(document.createElement('span'), {
+          textContent: 'Enter o un toque para volver a jugar',
+        }),
+      );
+      aviso.hidden = false;
+    };
+
+    const avanzar = () => {
+      const giro = giros.shift();
+      if (giro) rumbo = giro;
+
+      const cabeza = { x: serpiente[0].x + rumbo.x, y: serpiente[0].y + rumbo.y };
+
+      if (cabeza.x < 0 || cabeza.y < 0 || cabeza.x >= columnas || cabeza.y >= filas) {
+        return morir('Te fuiste del campo.');
+      }
+      // La última celda se libera en este mismo paso, así que pisarla es legal.
+      if (
+        serpiente.some((c, i) => i < serpiente.length - 1 && c.x === cabeza.x && c.y === cabeza.y)
+      ) {
+        return morir('Te mordiste.');
+      }
+
+      serpiente.unshift(cabeza);
+      if (cabeza.x === comida.x && cabeza.y === comida.y) {
+        puntos++;
+        marcar();
+        sembrar();
+      } else {
+        serpiente.pop();
+      }
+    };
+
+    // Se dibuja en cada fotograma aunque la serpiente solo avance cada tantos
+    // milisegundos: los elementos giran de continuo, como en el manifiesto.
+    const bucle = (marca: number) => {
+      cuadro = requestAnimationFrame(bucle);
+      if (!reloj) reloj = marca;
+      const salto = marca - reloj;
+      reloj = marca;
+      tiempo += salto;
+      acumulado += salto;
+
+      // Durante la cuenta atrás el bucle ya gira: el campo está montado y los
+      // elementos se mueven, solo que la serpiente todavía no avanza.
+      if (vivo && acumulado >= paso()) {
+        acumulado = 0;
+        avanzar();
+      }
+      dibujar();
+    };
+
+    const arrancar = () => {
+      contando = false;
+      vivo = true;
+      acumulado = 0;
+    };
+
+    const contar = () => {
+      clearInterval(cronometro);
+
+      const caja = panel?.querySelector<HTMLElement>('[data-cuenta]');
+      const numero = caja?.querySelector<HTMLElement>('[data-cuenta-numero]');
+      const texto = caja?.querySelector<HTMLElement>('[data-cuenta-texto]');
+      if (!caja || !numero) return arrancar();
+
+      contando = true;
+      vivo = false;
+      let quedan = ESPERA;
+
+      const pintar = () => {
+        numero.textContent = String(quedan);
+        if (texto) {
+          texto.textContent = `${quedan === 1 ? 'segundo' : 'segundos'} para jugar snake`;
+        }
+        // Sin este corte la animación no vuelve a empezar: es el mismo nodo y
+        // el navegador no ve motivo para relanzarla.
+        numero.style.animation = 'none';
+        void numero.offsetWidth;
+        numero.style.animation = '';
+      };
+
+      caja.hidden = false;
+      pintar();
+
+      cronometro = window.setInterval(() => {
+        quedan--;
+        if (quedan > 0) return pintar();
+
+        clearInterval(cronometro);
+        cronometro = 0;
+        caja.hidden = true;
+        arrancar();
+      }, 1000);
+    };
+
+    const reiniciar = () => {
+      repartir();
+      medir();
+
+      const centro = { x: Math.floor(columnas / 2), y: Math.floor(filas / 2) };
+      serpiente = [
+        { x: centro.x, y: centro.y },
+        { x: centro.x - 1, y: centro.y },
+        { x: centro.x - 2, y: centro.y },
+      ];
+      rumbo = { x: 1, y: 0 };
+      giros = [];
+      puntos = 0;
+      reloj = 0;
+      acumulado = 0;
+
+      marcar();
+      sembrar();
+
+      const aviso = panel?.querySelector<HTMLElement>('[data-aviso]');
+      if (aviso) aviso.hidden = true;
+
+      dibujar();
+      cancelAnimationFrame(cuadro);
+      cuadro = requestAnimationFrame(bucle);
+      contar();
+    };
+
+    const alRedimensionar = () => {
+      medir();
+      dibujar();
+    };
+
+    const abrir = (mando: HTMLElement) => {
+      panel = document.querySelector<HTMLElement>('[data-juego-panel]');
+      if (!panel) return;
+
+      lienzo = panel.querySelector<HTMLCanvasElement>('[data-lienzo]');
+      pincel = lienzo?.getContext('2d') ?? null;
+      if (!pincel) return;
+
+      // El elemento del juego es el que se pulsó: se toma su propio archivo.
+      const marca = mando.querySelector('img');
+      if (marca) cargarFigura(marca.src);
+
+      document.documentElement.dataset.juego = 'on';
+      // Sin foco en el panel las flechas seguirían hablándole a la página.
+      panel.focus({ preventScroll: true });
+      window.addEventListener('resize', alRedimensionar);
+      reiniciar();
+
+      // El SVG puede llegar después del primer fotograma.
+      figura?.decode?.().then(dibujar).catch(() => {});
+    };
+
+    const cerrar = () => {
+      vivo = false;
+      contando = false;
+      clearInterval(cronometro);
+      cronometro = 0;
+      cancelAnimationFrame(cuadro);
+      cuadro = 0;
+
+      const caja = panel?.querySelector<HTMLElement>('[data-cuenta]');
+      if (caja) caja.hidden = true;
+      window.removeEventListener('resize', alRedimensionar);
+      delete document.documentElement.dataset.juego;
+    };
+
+    const girar = (nuevo: Punto) => {
+      // Se encola en vez de aplicarse: entre dos pasos caben dos teclas, y sin
+      // cola la segunda se come a la primera y el giro se pierde.
+      const previo = giros.length ? giros[giros.length - 1] : rumbo;
+      if (previo.x === -nuevo.x && previo.y === -nuevo.y) return; // Media vuelta.
+      if (previo.x === nuevo.x && previo.y === nuevo.y) return;
+      if (giros.length < 2) giros.push(nuevo);
+    };
+
+    document.addEventListener('click', (evento) => {
+      const objetivo = evento.target as HTMLElement;
+
+      const mando = objetivo.closest<HTMLElement>('[data-control="juego"]');
+      if (mando) return abrir(mando);
+
+      // La cabecera es la salida: el logo y la píldora cierran el juego y
+      // siguen navegando como siempre.
+      if (abierto() && objetivo.closest('header a')) cerrar();
+    });
+
+    document.addEventListener('keydown', (evento) => {
+      if (!abierto()) return;
+
+      if (evento.key === 'Escape') return cerrar();
+
+      if (!vivo && !contando && (evento.key === 'Enter' || evento.key === ' ')) {
+        evento.preventDefault();
+        return reiniciar();
+      }
+
+      const nuevo = RUMBOS[evento.key] ?? RUMBOS[evento.key.toLowerCase()];
+      if (!nuevo) return;
+      evento.preventDefault(); // Las flechas, si no, mueven la página.
+      if (vivo) girar(nuevo);
+    });
+
+    // Táctil: un deslizamiento marca el rumbo por su eje dominante, y un toque
+    // con la partida terminada vuelve a empezar.
+    let partida: { x: number; y: number } | null = null;
+
+    document.addEventListener(
+      'touchstart',
+      (evento) => {
+        if (!abierto() || !(evento.target as HTMLElement).closest('[data-juego-panel]')) return;
+        const dedo = evento.changedTouches[0];
+        partida = { x: dedo.clientX, y: dedo.clientY };
+      },
+      { passive: true },
+    );
+
+    document.addEventListener('touchend', (evento) => {
+      if (!abierto() || !partida) return;
+      const dedo = evento.changedTouches[0];
+      const dx = dedo.clientX - partida.x;
+      const dy = dedo.clientY - partida.y;
+      partida = null;
+
+      if (contando) return; // Mientras corre la cuenta no se juega ni se reinicia.
+      if (!vivo) return reiniciar();
+      if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
+
+      girar(
+        Math.abs(dx) > Math.abs(dy) ? { x: Math.sign(dx), y: 0 } : { x: 0, y: Math.sign(dy) },
+      );
+    });
+
+    // Al navegar —o al volver con el botón del navegador— el juego no sigue en
+    // pie: el <body> es otro y el panel viejo ya no existe.
+    document.addEventListener('astro:page-load', () => {
+      cerrar();
+      panel = null;
+      lienzo = null;
+      pincel = null;
+    });
+  }
+</script>

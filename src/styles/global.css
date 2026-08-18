@@ -61,8 +61,54 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* ——— Cursor ———
+ * El puntero es el isotipo. Va en SVG por delante, que se ve nítido en
+ * cualquier pantalla, y en PNG detrás: Safari no admite cursores SVG y sin el
+ * segundo se quedaría con la flecha del sistema. El punto activo va al centro
+ * de la marca, que es redonda; en 32px, ese centro es 16,16.
+ *
+ * Como el sitio entero va sobre azul, el cursor es blanco; sobre las
+ * superficies blancas —paneles, tira de logos, diálogo, la píldora al pasar por
+ * encima— se invierte, o desaparecería. */
+:root {
+  --cursor-blanco: url('/brand/cursor-blanco.svg') 16 16, url('/brand/cursor-blanco.png') 16 16, auto;
+  --cursor-azul: url('/brand/cursor-azul.svg') 16 16, url('/brand/cursor-azul.png') 16 16, auto;
+
+  /* Todo el sitio pide el cursor por esta variable, nunca por el archivo. */
+  --cursor: var(--cursor-blanco);
+}
+
+body {
+  cursor: var(--cursor);
+}
+
+/* Al invertirlo en la variable —y no solo en la propiedad— lo heredan también
+   los botones de dentro: el del diálogo, los del panel del equipo. Si no, cada
+   uno pediría el blanco y desaparecería sobre el recuadro. */
+dialog,
+.panel,
+.tira,
+.media,
+.skip,
+.pildora:hover {
+  --cursor: var(--cursor-azul);
+  cursor: var(--cursor);
+}
+
+/* En los campos manda el cursor del sistema: la barra de texto dice dónde va a
+   caer lo que se escriba, y eso ningún dibujo lo sustituye. */
+input,
+textarea,
+select {
+  cursor: auto;
+}
+
+/* Los enlaces traen `cursor: pointer` de la hoja del navegador y se saltarían
+   la herencia: hay que decírselo. Lo que distingue a lo pulsable en este sitio
+   no es la manita, son los subrayados, las píldoras y las marcas que crecen. */
 a {
   color: inherit;
+  cursor: var(--cursor);
   text-decoration: none;
   transition: opacity var(--transition-normal);
 }
@@ -77,14 +123,128 @@ a:hover {
   outline-offset: 3px;
 }
 
-/* ——— Utilidades de superficie ———
- * El sistema solo admite dos fondos: azul de marca y blanco.
- * Nunca franjas alternadas dentro de una misma sección.
+/* ——— Fondo de marca ———
+ * Mesh de azul y negro con una capa de grano encima.
+ *
+ * Dos capas fijas al viewport, no al documento: `background-attachment: fixed`
+ * da tirones y fallos conocidos en Safari de iOS, y aquí el fondo tiene que
+ * quedarse quieto mientras la página se desplaza.
+ *
+ * El mesh se construye con gradientes radiales en vez de una imagen: pesa cero,
+ * escala a cualquier pantalla y se adapta solo a una vertical de móvil, porque
+ * sus posiciones y radios van en porcentaje.
  */
 
+/* Mesh y grano van como capas del fondo del propio body, no como elementos
+   aparte. Es lo que permite que las marcas en `difference` produzcan color: un
+   elemento fijo se promueve a su propia capa de composición y la fusión deja de
+   alcanzarlo. Como fondo del elemento, la marca siempre lo tiene debajo.
+   `background-blend-mode` mezcla el grano con el mesh dentro del mismo fondo,
+   que es lo que antes hacía `mix-blend-mode` sobre una capa suelta.
+   El negro entra por abajo y a la derecha, donde no hay texto largo, y ningún
+   punto sube de 48% de claridad para no comerse el contraste del texto. */
+:root {
+  --mesh:
+    radial-gradient(75% 55% at 12% 8%, oklch(48% 0.2 262 / 0.55), transparent 62%),
+    radial-gradient(65% 60% at 88% 18%, oklch(40% 0.2 262 / 0.5), transparent 60%),
+    radial-gradient(85% 75% at 78% 100%, oklch(17% 0.07 262 / 0.72), transparent 66%),
+    radial-gradient(70% 65% at 2% 96%, oklch(21% 0.09 262 / 0.6), transparent 62%);
+
+  /* La intensidad del grano vive en la opacidad del azulejo, y esa va dentro
+     del propio SVG: no se puede sacar a una variable. De ahí que haya un
+     azulejo por nivel en vez de un número regulable. */
+  --grano-medio: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncG type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncB type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncA type='linear' slope='0' intercept='0.22'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grano-alto: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncG type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncB type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncA type='linear' slope='0' intercept='0.45'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  --grano: var(--grano-medio);
+}
+
+/* Los ajustes se marcan en <html> y no en <body>: al navegar sin recarga, Astro
+   reemplaza el body y se perderían. */
+/* La perilla se llama «textura» de cara al visitante; el grano es cómo está
+   hecha. De ahí que el atributo y las variables no se llamen igual. */
+html[data-textura='limpio']  { --grano: none; }
+html[data-textura='medio']   { --grano: var(--grano-medio); }
+html[data-textura='alto']    { --grano: var(--grano-alto); }
+
+/* ——— Luz ———
+ * De noche el fondo se hunde: el azul baja de claridad y el negro del mesh
+ * gana terreno. El texto blanco no sufre —gana contraste—, y las tarjetas
+ * blancas destacan más sobre el fondo oscuro. */
+html[data-luz-efectiva='noche'] {
+  --surface-brand: oklch(26% 0.13 262deg);
+  --mesh:
+    radial-gradient(75% 55% at 12% 8%, oklch(33% 0.16 262 / 0.5), transparent 62%),
+    radial-gradient(65% 60% at 88% 18%, oklch(24% 0.13 262 / 0.5), transparent 60%),
+    radial-gradient(85% 75% at 78% 100%, oklch(11% 0.05 262 / 0.8), transparent 66%),
+    radial-gradient(70% 65% at 2% 96%, oklch(14% 0.06 262 / 0.7), transparent 62%);
+}
+
+/* ——— Baraja de proyectos ———
+ * La duración del relevo vive aquí porque la comparten el CSS y el guion: el
+ * cerrojo que impide que un golpe de trackpad se lleve media baraja se mide
+ * contra ella. */
+:root {
+  --baraja-paso: 0.62s;
+  /* Los dos mandos de la tira de páginas: cuánto tarda en pasar cada página y
+     cuánto aire queda entre una y la siguiente. El tiempo va por página, no por
+     documento, para que todos los proyectos caigan al mismo ritmo. */
+  --tira-ritmo: 1.5s;
+  --tira-aire: 8cqh;
+
+  /* Lo que tarda un logo en caer dentro de la pestaña y el anterior en salir
+     por abajo. Un pelo más corto que el relevo de la baraja: el logo dice de
+     quién es antes de que llegue la ficha. */
+  --pestana-paso: 0.5s;
+}
+
+/* ——— Juego ———
+ * Mientras se juega el sitio se aparta: queda la cabecera, que es la salida.
+ * Se marca en <html> como los demás estados, aunque este no se guarda.
+ *
+ * Va aquí y no en el layout porque el pie es un componente aparte: una regla
+ * con ámbito no lo alcanzaría. */
+html[data-juego],
+html[data-juego] body {
+  overflow: hidden;
+}
+
+/* El contenido no desaparece de golpe: se apaga y sube un poco. La visibilidad
+   espera al final del fundido —si no, lo cortaría— y de paso lo saca del orden
+   de tabulación mientras se juega. */
+/* La duración va suelta y no en `--transition-slow`: esa lleva la curva dentro,
+   y aquí hace falta el número a solas para retrasar la visibilidad. */
+:root {
+  --juego-fundido: 0.55s;
+}
+
+main,
+footer {
+  transition:
+    opacity var(--juego-fundido) var(--ease),
+    translate var(--juego-fundido) var(--ease),
+    visibility 0s;
+}
+
+html[data-juego] main,
+html[data-juego] footer {
+  opacity: 0;
+  translate: 0 -0.75rem;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--juego-fundido) var(--ease),
+    translate var(--juego-fundido) var(--ease),
+    visibility 0s linear var(--juego-fundido);
+}
+
 .surface-brand {
-  background: var(--surface-brand);
   color: var(--text-on-brand);
+  background-color: var(--surface-brand);
+  background-image: var(--grano), var(--mesh);
+  background-size: 160px 160px, auto, auto, auto, auto;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-blend-mode: overlay, normal, normal, normal, normal;
 }
 
 .surface-page {

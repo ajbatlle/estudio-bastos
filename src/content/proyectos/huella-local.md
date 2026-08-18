@@ -13,5 +13,6 @@ media: huella-local-editor.webp
 mediaAlt: >-
   Grabación del editor en uso: se elige una plantilla, se ajustan los recursos
   gráficos y se exporta la pieza.
+logo: huella
 orden: 1
 ---

@@ -99,20 +99,22 @@ Una diferencia deliberada con el paquete original: la tipografía se auto-hosped
 (`src/fonts/`, 59 KB en variable) en vez de cargarse desde Google Fonts. Se evita
 la petición a un tercero y el parpadeo de texto.
 
-### Dónde el sitio se aparta del sistema de diseño
+### Decisiones que reemplazan al paquete original
 
-Los mockups de agosto de 2026 mandan sobre el paquete en dos puntos, y ambos
-están marcados con `⚠` en el código:
+El paquete describe el punto de partida. Sobre él se fueron tomando decisiones
+que ya son las vigentes: **cuando algo del sitio contradice al paquete, manda el
+sitio.** Está pendiente rehacer el paquete a partir de esto.
 
-| Elemento | Sistema de diseño | Sitio |
+| Elemento | Paquete original | Vigente |
 |---|---|---|
+| Fondo | Azul plano | Mesh de azul y negro con grano encima |
 | Botones | Rectangulares, borde 2px | Píldora, borde 1px |
-| Contenedores de media | Sin redondeo | Radio de 8px |
+| Contenedores de media | Sin redondeo | Radio de 8px, gris claro, bisel hundido |
 | Sombras | Ninguna, estética plana | Sombra en capas bajo la pantalla |
 | Movimiento | Ninguno salvo fundidos | Elementos de marca en rotación continua |
 
-Conviene reflejar estos cambios en el paquete del sistema de diseño para que no
-queden dos fuentes de verdad en desacuerdo.
+Lo que sigue vigente del paquete: una sola tipografía, el azul `#003ec0` como
+color de marca, titulares sin caja alta forzada, sin emoji y sin hipérbole.
 
 ## Despliegue
 
@@ -139,13 +141,68 @@ propósito — ver `.gitignore`. Las imágenes del portafolio son exportaciones
 página a página a resolución de imprenta; el sitio nunca las sirve tal cual.
 Conservar un respaldo de esa carpeta fuera del proyecto.
 
+La excepción es `public/media/start-of-the-journey.mp3`, la pista del mando de
+sonido: sí se versiona —6,3 MB— porque el sitio la sirve tal cual y no hay
+pipeline que la derive. Solo se descarga si alguien pulsa la marca de rombos.
+
+## Las marcas del manifiesto como mandos
+
+Las cuatro marcas no llevan a ninguna parte: **manejan la experiencia**. Cada
+una dice una sola palabra al pasar el puntero, y esa palabra es el canal que
+abre. El estado no se escribe: se oye, se ve o se juega.
+
+| Marca | Canal | Qué hace |
+|---|---|---|
+| Rombos | sonido | Enciende y apaga la pista del estudio |
+| Asterisco | luz | Automática (reloj de Chile) · de día · de noche |
+| Círculos | textura | Grano medio · alto · sin grano |
+| Flor | juego | Vacía la pantalla y monta un snake |
+
+Las dos del medio son perillas de ambiente y comparten mecanismo en
+`MarcaInline.astro`: la marca pasa de `<span>` a `<button>`, el nivel se guarda
+en `localStorage` y se marca en `<html>` —no en `<body>`, que Astro reemplaza al
+navegar sin recarga—, el estado va en el `aria-label`, y el área táctil se
+amplía a 44px con un pseudo-elemento, para no mover el texto agrandando la
+marca.
+
+Las otras dos no tienen niveles que recordar y viven en su propio componente,
+montado en el layout: `Sonido.astro` y `Juego.astro`.
+
+- **Sonido.** El `<audio>` se crea en JavaScript y cuelga de `window`, no del
+  DOM: al navegar sin recarga Astro reemplaza el `<body>` y la música se
+  cortaría. Se instancia al primer clic, así que los 6 MB de la pista no se
+  descargan a quien no la pidió, y suena en bucle.
+- **Juego.** Snake en `<canvas>`, sin tablero dibujado: el campo es el propio
+  fondo de marca, de borde a borde y desde la cabecera hasta abajo. La serpiente
+  y la comida son el mismo elemento que se pulsó —se toma del `<img>` de la
+  marca—, en blanco y con el lienzo en `difference`, así que toman color del
+  fondo igual que las marcas del manifiesto. La rejilla se calcula por el lado
+  menor de la ventana, con celdas de unos 34–72px.
+
+  Cada partida abre con una cuenta atrás de cuatro segundos —un número por
+  segundo, que crece y se encoge, con «segundos para jugar snake» debajo— para
+  que no arranque de golpe. Mientras corre, el bucle ya gira pero la serpiente
+  no avanza.
+
+  Mientras se juega, `html[data-juego]` funde el `<main>` y el pie —no los
+  esconde de golpe— y bloquea el scroll; queda la cabecera, que es la salida: el
+  logo y la píldora cierran el juego y siguen navegando. También sale con Esc.
+  Se mueve con flechas o WASD y, en táctil, deslizando: no hay ninguna línea de
+  ayuda en pantalla que lo explique, por decisión de diseño.
+
+  El panel va en `position: absolute` y no `fixed` a propósito: un elemento fijo
+  se promueve a su propia capa de composición y el `difference` dejaría de ver
+  el fondo de la página. Por lo mismo, la opacidad del fundido se anima en el
+  lienzo y los textos, nunca en la sección que los contiene.
+
 ## Pendiente
 
 - **Dominio del sitio.** `site` en `astro.config.mjs` apunta a `estudiobastos.cl`,
   que fue una suposición. El correo del estudio es `.com`; hay que confirmar cuál
   es el dominio real antes del primer despliegue, porque de ahí salen las URL
   canónicas y las de compartir en redes.
-- **Contenido de los 9 proyectos restantes.** Solo está cargado Huella Local.
-- **Imágenes.** Ninguna fila tiene `media` todavía: todas muestran el marcador
-  blanco. Falta decidir qué se ve en cada una y derivar los archivos desde
-  `portfolio/`.
+- **Datos por confirmar en las fichas de proyecto.** Los diez proyectos están
+  cargados y con imagen, pero cuatro llevan el año supuesto —Genesal, Tisvol,
+  Purever y wift, cuyo material no lo indica en ninguna página—, ningún proyecto
+  nuevo tiene `enlace`, y el `rol` está redactado desde lo que muestra la pieza,
+  no desde lo que se acordó con cada cliente. Cada `.md` lo deja anotado al pie.

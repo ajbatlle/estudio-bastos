@@ -26,9 +26,24 @@ const proyectos = defineCollection({
        * marcador blanco. Se sirve desde public/ y no por astro:assets porque
        * el WebP animado perdería la animación al reprocesarse.
        * Generar con: npm run media
+       *
+       * Para una pieza suelta: una grabación de pantalla, un archivo animado.
        */
-      media: z.string().optional(),
+      media: z.union([z.string(), z.array(z.string())]).optional(),
+      /**
+       * Prefijo de una serie de láminas en public/media/ —`serie-001.webp`,
+       * `serie-002.webp`…—. El sitio las busca solo, en orden, y las pasa una
+       * tras otra. No hay que enumerarlas: un documento puede tener cien.
+       * Generar con: npm run media
+       */
+      serie: z.string().optional(),
       mediaAlt: z.string().optional(),
+      /**
+       * Logo del cliente: nombre del archivo en public/media/logos/, sin
+       * extensión. Se muestra en una pestaña blanca sobre la ficha, que es el
+       * fondo para el que están hechos —sobre el azul varios se desvanecen—.
+       */
+      logo: z.string().optional(),
       /** Posición en el listado, de menor a mayor. */
       orden: z.number().default(0),
     }),

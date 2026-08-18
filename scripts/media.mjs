@@ -7,7 +7,7 @@
 // a WebP animado, que comprime mucho mejor que el GIF. Un vídeo real (MP4/WebM)
 // sería bastante más liviano todavía, pero exige ffmpeg instalado.
 
-import { mkdirSync, statSync, readdirSync } from 'node:fs';
+import { mkdirSync, statSync, readdirSync, rmSync, existsSync } from 'node:fs';
 import sharp from 'sharp';
 
 const PIEZAS = [
@@ -20,7 +20,38 @@ const PIEZAS = [
     ancho: 1400,
     calidad: 55,
   },
+  {
+    tipo: 'animacion',
+    origen: 'portfolio/bastos/afiches.gif',
+    destino: 'public/media/bastos-afiches.webp',
+    segundos: null,
+    ancho: 1400,
+    calidad: 55,
+  },
 ];
+
+// Cada proyecto impreso se muestra como un pase: la lámina cambia cada tantos
+// milisegundos sin moverse. Se derivan TODAS las páginas de cada documento, en
+// el orden en que están, sin descartar ninguna.
+//
+// El peso se resuelve por el tamaño, no por la cantidad: las páginas se sirven
+// a 900px y con una compresión más apretada que la de una imagen suelta. En el
+// listado se ven a 270-500px, así que 900 cubre de sobra las pantallas densas,
+// y en el visor aguantan la ampliación. A 1400px las 281 páginas pesarían
+// 34 MB; así pesan unos 15.
+const SERIES = [
+  { carpeta: 'portfolio/techo', prefijo: 'techo-catastro' },
+  { carpeta: 'portfolio/fundacion-vivienda', prefijo: 'fundacion-vivienda-reporte' },
+  { carpeta: 'portfolio/meric', prefijo: 'meric-reporte' },
+  { carpeta: 'portfolio/america-solidaria', prefijo: 'america-solidaria-concausa' },
+  { carpeta: 'portfolio/genesal', prefijo: 'genesal-catalogo' },
+  { carpeta: 'portfolio/tisvol', prefijo: 'tisvol-catalogo' },
+  { carpeta: 'portfolio/purever', prefijo: 'purever-catalogo' },
+  { carpeta: 'portfolio/wift', prefijo: 'wift-manual' },
+];
+
+const ANCHO_PAGINA = 900;
+const CALIDAD_PAGINA = 58;
 
 // Los retratos llegan con encuadres distintos —uno vertical, otro casi
 // cuadrado—, así que se recortan todos a cuadrado. La máscara circular la pone
@@ -52,6 +83,14 @@ mkdirSync('public/media', { recursive: true });
 for (const pieza of PIEZAS) {
   const { origen, destino, segundos, ancho, calidad } = pieza;
 
+  // Estas dos son caras —minuto y medio cada una— y casi nunca cambian: si la
+  // derivada ya es más nueva que el original, no hay nada que hacer. De paso
+  // se esquiva el bloqueo de Windows cuando el servidor la está sirviendo.
+  if (existsSync(destino) && statSync(destino).mtimeMs >= statSync(origen).mtimeMs) {
+    console.log(`${destino}\n  al día, sin tocar`);
+    continue;
+  }
+
   // El primer fotograma basta para leer los retardos de todos los demás.
   const meta = await sharp(origen).metadata();
   const retardos = meta.delay ?? [];
@@ -78,6 +117,67 @@ for (const pieza of PIEZAS) {
     `${destino}\n` +
       `  ${cuadros}/${meta.pages} fotogramas · ${(acumulado / 1000).toFixed(1)}s de ${((retardos.reduce((a, b) => a + b, 0)) / 1000).toFixed(0)}s\n` +
       `  ${meta.width}px → ${ancho}px · ${mb(antes)} → ${mb(despues)}`,
+  );
+}
+
+// Las series viejas se barren antes de escribir: si un documento pierde
+// páginas, las sobrantes se quedarían ahí sirviéndose para siempre.
+//
+// Un fallo aquí no detiene nada. En Windows, un servidor de desarrollo que esté
+// sirviendo una imagen la deja bloqueada y el borrado da EPERM; como el sitio
+// solo reconoce las láminas numeradas con tres cifras —`serie-007.webp`—, lo
+// que quede sin borrar no llega a mostrarse.
+const bloqueadas = [];
+
+for (const { prefijo } of SERIES) {
+  for (const archivo of readdirSync('public/media')) {
+    if (!archivo.startsWith(`${prefijo}-`) || !archivo.endsWith('.webp')) continue;
+    try {
+      rmSync(`public/media/${archivo}`, { force: true, maxRetries: 5, retryDelay: 150 });
+    } catch {
+      bloqueadas.push(archivo);
+    }
+  }
+}
+
+if (bloqueadas.length) {
+  console.log(
+    `Aviso: ${bloqueadas.length} archivo(s) viejo(s) no se pudieron borrar —otro proceso ` +
+      `los tiene abiertos—. No estorban, pero conviene limpiarlos:\n  ${bloqueadas.join(', ')}`,
+  );
+}
+
+for (const { carpeta, prefijo } of SERIES) {
+  // Orden natural: «techo (9)» va antes que «techo (10)», que es como las
+  // ordena una persona y no como las ordena una máquina.
+  const archivos = readdirSync(carpeta)
+    .filter((n) => /\.(png|jpe?g)$/i.test(n))
+    .sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+
+  let peso = 0;
+
+  for (let i = 0; i < archivos.length; i++) {
+    const origen = `${carpeta}/${archivos[i]}`;
+    // Numeradas con ceros delante: así el orden alfabético del disco ya es el
+    // orden de lectura, y la página quedó libre de tener que reordenarlas.
+    const destino = `public/media/${prefijo}-${String(i + 1).padStart(3, '0')}.webp`;
+
+    // `limitInputPixels: false`: son exportaciones de imprenta de hasta 5000px
+    // de lado, por encima del tope que sharp trae de fábrica.
+    await sharp(origen, { limitInputPixels: false })
+      .resize({ width: ANCHO_PAGINA, withoutEnlargement: true })
+      // Sin alfa: son páginas, no recortes. Aplanar contra blanco evita que un
+      // PNG con transparencia salga con el fondo en negro.
+      .flatten({ background: '#ffffff' })
+      .webp({ quality: CALIDAD_PAGINA, effort: 5 })
+      .toFile(destino);
+
+    peso += statSync(destino).size;
+  }
+
+  console.log(
+    `${prefijo}: ${archivos.length} páginas · ${mb(peso)} ` +
+      `(${(peso / archivos.length / 1024).toFixed(0)} KB de media)`,
   );
 }
 

@@ -171,7 +171,7 @@ import CorreoCopiable from './CorreoCopiable.astro';
     border-radius: var(--radius-full);
     background: transparent;
     color: var(--color-brand);
-    cursor: pointer;
+    cursor: var(--cursor);
     opacity: 0.5;
     transition: opacity var(--transition-normal), background var(--transition-normal);
   }
@@ -247,7 +247,7 @@ import CorreoCopiable from './CorreoCopiable.astro';
     font-family: var(--font-sans);
     font-size: 0.875rem;
     letter-spacing: var(--tracking-wide);
-    cursor: pointer;
+    cursor: var(--cursor);
     transition: opacity var(--transition-normal);
   }
 
@@ -298,7 +298,7 @@ import CorreoCopiable from './CorreoCopiable.astro';
     color: var(--color-brand);
     font-family: var(--font-sans);
     font-size: 0.875rem;
-    cursor: pointer;
+    cursor: var(--cursor);
     transition: background var(--transition-normal);
   }
 
@@ -329,6 +329,17 @@ import CorreoCopiable from './CorreoCopiable.astro';
 
     .par {
       grid-template-columns: 1fr;
+    }
+  }
+
+  /* La equis de cerrar es el control más pequeño del panel y en táctil hay que
+     acertarle con el dedo, en una esquina. */
+  @media (max-width: 48rem) {
+    .cerrar {
+      width: 44px;
+      height: 44px;
+      top: 0.9rem;
+      right: 0.9rem;
     }
   }
 </style>
