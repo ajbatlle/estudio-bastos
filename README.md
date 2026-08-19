@@ -141,8 +141,8 @@ propósito — ver `.gitignore`. Las imágenes del portafolio son exportaciones
 página a página a resolución de imprenta; el sitio nunca las sirve tal cual.
 Conservar un respaldo de esa carpeta fuera del proyecto.
 
-La excepción es `public/media/start-of-the-journey.mp3`, la pista del mando de
-sonido: sí se versiona —6,3 MB— porque el sitio la sirve tal cual y no hay
+La excepción es `public/media/flip-coin.mp3`, la pista del mando de
+sonido: sí se versiona, 6,2 MB, porque el sitio la sirve tal cual y no hay
 pipeline que la derive. Solo se descarga si alguien pulsa la marca de rombos.
 
 ## Las marcas del manifiesto como mandos

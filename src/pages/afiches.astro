@@ -15,7 +15,8 @@ const base = import.meta.env.BASE_URL;
   {/* Una sola pantalla, como proyectos y como el juego: la lámina a la
       izquierda, todos los mandos a la derecha y nada que desplazar. */}
   <div class="escena" data-afiches>
-    <div class="lado-lamina">
+    <div class="reparto">
+      <div class="lado-lamina">
       <div class="marco">
         <canvas id="canvas"></canvas>
       </div>
@@ -145,6 +146,7 @@ const base = import.meta.env.BASE_URL;
           <button type="button" class="boton lleno" id="saveBtn">Descargar</button>
         </div>
       </div>
+      </div>
     </div>
   </div>
 </Base>
@@ -173,18 +175,28 @@ const base = import.meta.env.BASE_URL;
     min-height: 0;
   }
 
+  /* Esta caja solo mide: se declara contenedor para que el reparto de dentro
+     pueda calcular la lámina contra el alto disponible. Las unidades de
+     contenedor no valen dentro del propio contenedor, así que hacen falta dos
+     cajas: esta y la que reparte. */
   .escena {
     flex: 1;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(340px, 42%, 460px);
-    /* La fila se ciñe al escenario en vez de crecer con el panel. Sin esto, un
-       panel más alto que la pantalla empuja el pie fuera de la vista. */
-    grid-template-rows: minmax(0, 1fr);
-    gap: clamp(1rem, 2vw, 2.25rem);
+    min-height: 0;
+    container-type: size;
     width: min(86%, 1280px);
     margin-inline: auto;
     padding-block: clamp(1rem, 2.5vw, 2rem) clamp(1.5rem, 3vw, 2.5rem);
-    min-height: 0;
+  }
+
+  /* Y esta reparte. La columna izquierda vale exactamente lo que vale la
+     lámina, tres cuartos de su alto, y el panel se queda con todo lo demás: así
+     no queda un pasillo muerto entre las dos. */
+  .reparto {
+    display: grid;
+    grid-template-columns: min(58cqw, 75cqh) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: clamp(0.6rem, 1vw, 1rem);
+    height: 100%;
   }
 
   @media (min-width: 48rem) {
@@ -247,9 +259,12 @@ const base = import.meta.env.BASE_URL;
       0 20px 40px rgb(0 0 0 / 0.07);
   }
 
+  /* Sin número fijo de columnas: los mandos se reacomodan según el ancho que
+     tenga el panel. En estrecho caen a una columna, en ancho llegan a cuatro o
+     cinco, y el salto ocurre solo, sin puntos de corte escritos a mano. */
   .mandos {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
     gap: 0.6rem 0.8rem;
     overflow-y: auto;
     min-height: 0;
@@ -258,7 +273,7 @@ const base = import.meta.env.BASE_URL;
   }
 
   .campo.ancho {
-    grid-column: 1 / -1;
+    grid-column: span 2;
   }
 
   label {
@@ -390,19 +405,24 @@ const base = import.meta.env.BASE_URL;
   }
 
   /* ——— Cierre del panel ——— */
+  /* Datos y botones en la misma línea cuando el panel es ancho, uno debajo del
+     otro cuando no cabe. Lo decide el propio contenido, no un punto de corte. */
   .cierre {
     display: flex;
-    flex-direction: column;
-    gap: 0.7rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.7rem 1.5rem;
     padding-top: 0.8rem;
     border-top: 1px solid rgb(0 0 0 / 0.12);
   }
 
   .datos {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.4rem;
+    grid-template-columns: repeat(4, minmax(52px, auto));
+    gap: 0.4rem 1.1rem;
     margin: 0;
+    flex: 1 1 auto;
   }
 
   .datos dt {
@@ -422,8 +442,9 @@ const base = import.meta.env.BASE_URL;
      desplazarlo, que es justo lo que esta pantalla no quiere. */
   .botones {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(92px, 1fr));
     gap: 0.4rem;
+    flex: 0 1 auto;
   }
 
   .boton {
@@ -460,14 +481,21 @@ const base = import.meta.env.BASE_URL;
   }
 
   /* En vertical el panel pasa debajo de la lámina y la pantalla se reparte. */
+  /* En vertical manda la lámina: es lo que se viene a mirar. Toma el ancho
+     entero salvo que se pase de alto, y el panel se queda con el resto y
+     desplaza sus mandos por dentro, que en un teléfono es lo normal. Con el
+     reparto anterior, de panel fijo, la lámina se quedaba en el 39% del
+     escenario y se veía diminuta. */
   @media (max-width: 64rem) {
-    .escena {
-      grid-template-columns: 1fr;
-      grid-template-rows: minmax(0, 1fr) auto;
+    .reparto {
+      /* Con el mínimo en cero y no con una fracción a secas: si no, la columna
+         crece hasta el ancho mínimo de los mandos y el panel se sale. */
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: min(133cqw, 66cqh) minmax(0, 1fr);
     }
 
-    .panel {
-      max-height: 42vh;
+    .marco {
+      margin-inline: auto;
     }
   }
 </style>
