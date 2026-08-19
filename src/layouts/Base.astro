@@ -9,6 +9,8 @@ import Juego from '../components/Juego.astro';
 interface Props {
   /** Título de la pestaña. Se le añade el sufijo de marca. */
   title: string;
+  /** Usa `title` tal cual en la pestaña, sin añadirle el sufijo. */
+  tituloExacto?: boolean;
   /** Meta description. Directa y sin hipérbole, según el tono de marca. */
   description?: string;
   /** Texto del botón de cabecera. */
@@ -19,6 +21,7 @@ interface Props {
 
 const {
   title,
+  tituloExacto = false,
   description = 'Bastos es un estudio de diseño especializado en organizar y dar forma a información dispersa para volverla clara, accesible y útil.',
   accion,
   accionHref,
@@ -26,6 +29,10 @@ const {
 
 const base = import.meta.env.BASE_URL;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+
+// La portada ya se llama por su nombre completo; el resto de páginas llevan el
+// sufijo para que la pestaña diga de quién es el sitio.
+const titulo = tituloExacto ? title : `${title} — Estudio Bastos`;
 ---
 
 <!doctype html>
@@ -34,7 +41,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>{title} — Bastos</title>
+    <title>{titulo}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
 
@@ -43,8 +50,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="theme-color" content="#003ec0" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Bastos" />
-    <meta property="og:title" content={`${title} — Bastos`} />
+    <meta property="og:site_name" content="Estudio Bastos" />
+    <meta property="og:title" content={titulo} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content="es_CL" />
