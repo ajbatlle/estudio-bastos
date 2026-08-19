@@ -23,7 +23,7 @@ const base = import.meta.env.BASE_URL;
 
     <div class="panel">
       <div class="mandos">
-        <div class="campo ancho">
+        <div class="campo">
           <label for="obraTitle">Título</label>
           <input
             type="text"
@@ -40,15 +40,6 @@ const base = import.meta.env.BASE_URL;
           <input type="number" id="seedInput" class="texto" value="1" min="0" step="1" autocomplete="off" />
         </div>
 
-        <div class="campo">
-          <label>Junta</label>
-          <div class="segmento" id="gapSegment">
-            <button type="button" data-gap="0">continua</button>
-            <button type="button" data-gap="0.08" class="activo">fina</button>
-            <button type="button" data-gap="0.18">amplia</button>
-          </div>
-        </div>
-
         <div class="campo ancho">
           <label>Grilla</label>
           <div class="segmento" id="gridSegment">
@@ -58,6 +49,15 @@ const base = import.meta.env.BASE_URL;
             <button type="button" data-grid="6">6</button>
             <button type="button" data-grid="8">8</button>
             <button type="button" data-grid="10" class="activo">10</button>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Junta</label>
+          <div class="segmento" id="gapSegment">
+            <button type="button" data-gap="0">continua</button>
+            <button type="button" data-gap="0.08" class="activo">fina</button>
+            <button type="button" data-gap="0.18">amplia</button>
           </div>
         </div>
 
@@ -88,7 +88,7 @@ const base = import.meta.env.BASE_URL;
           <input type="range" id="variety" min="1" max="101" value="101" />
         </div>
 
-        <div class="campo ancho">
+        <div class="campo">
           <label>Papel</label>
           <div class="muestras" id="bgSwatches">
             <button type="button" class="muestra activo" data-c="#F2F3F9" style="--c:#F2F3F9" aria-label="Papel gris azulado"></button>
@@ -176,11 +176,11 @@ const base = import.meta.env.BASE_URL;
   .escena {
     flex: 1;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(280px, 24vw, 340px);
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 42%, 460px);
     /* La fila se ciñe al escenario en vez de crecer con el panel. Sin esto, un
        panel más alto que la pantalla empuja el pie fuera de la vista. */
     grid-template-rows: minmax(0, 1fr);
-    gap: clamp(1.5rem, 3vw, 3rem);
+    gap: clamp(1rem, 2vw, 2.25rem);
     width: min(86%, 1280px);
     margin-inline: auto;
     padding-block: clamp(1rem, 2.5vw, 2rem) clamp(1.5rem, 3vw, 2.5rem);
@@ -206,7 +206,11 @@ const base = import.meta.env.BASE_URL;
   .marco {
     width: min(100cqw, calc(100cqh * 0.75));
     height: min(100cqh, calc(100cqw / 0.75));
-    margin: auto;
+    /* Centrada en vertical pero pegada al margen izquierdo: como el alto es lo
+       que la limita, centrarla también en horizontal dejaba un pasillo vacío
+       entre el borde de la página y la lámina. */
+    margin-block: auto;
+    margin-inline: 0 auto;
     background: var(--surface-subtle);
     border-radius: 8px;
     overflow: hidden;
@@ -262,7 +266,7 @@ const base = import.meta.env.BASE_URL;
     justify-content: space-between;
     align-items: baseline;
     margin-bottom: 0.25rem;
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     letter-spacing: var(--tracking-wide);
     color: rgb(0 0 0 / 0.55);
   }
@@ -364,7 +368,7 @@ const base = import.meta.env.BASE_URL;
     appearance: none;
     width: 100%;
     height: 2px;
-    margin: 0.35rem 0;
+    margin: 0.3rem 0;
     background: rgb(0 0 0 / 0.2);
     cursor: var(--cursor);
   }
