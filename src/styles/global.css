@@ -196,6 +196,11 @@ html[data-luz-efectiva='noche'] {
      por abajo. Un pelo más corto que el relevo de la baraja: el logo dice de
      quién es antes de que llegue la ficha. */
   --pestana-paso: 0.5s;
+
+  /* Lo que tarda cada palabra en cruzar la lista de materias del manifiesto.
+     Va por palabra y no por lista, para que el ritmo no cambie si se añaden o
+     se quitan. */
+  --dispersa-ritmo: 1.15s;
 }
 
 /* ——— Juego ———

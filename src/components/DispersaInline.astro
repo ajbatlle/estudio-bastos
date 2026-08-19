@@ -1,0 +1,230 @@
+---
+// La frase del manifiesto que abre la lista de lo que una organización ya
+// tiene. No son documentos ni quejas, son las materias en las que se reparte su
+// propio trabajo: lo que genera para funcionar y nunca para mostrarse.
+//
+// Cae en vertical y sin fin, con el mismo recurso que la tira de logos: la
+// lista va dos veces y el desplazamiento de media tira deja el segundo juego
+// donde estaba el primero, así que el bucle no tiene costura.
+const materias = [
+  'proyectos',
+  'ventas',
+  'servicios',
+  'operaciones',
+  'campañas',
+  'programas',
+  'conocimiento técnico',
+  'métodos',
+  'procesos',
+  'protocolos',
+  'patentes',
+  'cifras',
+  'resultados',
+  'indicadores',
+  'clientes',
+  'socios',
+  'proveedores',
+  'alianzas',
+  'convenios',
+  'trayectoria',
+  'hitos',
+  'aprendizajes',
+];
+---
+
+<span class="dispersa" data-dispersa>
+  <button type="button" aria-expanded="false" aria-controls="lista-dispersa">
+    <strong><slot /></strong>
+  </button>
+
+  {/* Decorativa: la lista ilustra la frase, no añade información que haya que
+      leer con lector de pantalla mientras cae. */}
+  <span class="lista" id="lista-dispersa" aria-hidden="true">
+    <span class="rodillo" style={`--materias: ${materias.length}`}>
+      {[...materias, ...materias].map((materia) => <span class="materia">{materia}</span>)}
+    </span>
+  </span>
+</span>
+
+<style>
+  .dispersa {
+    position: relative;
+    display: inline;
+  }
+
+  /* El botón no debe leerse como botón, sino como la misma frase del texto con
+     el subrayado que el sitio ya usa para decir que algo hace algo. */
+  .dispersa button {
+    all: unset;
+    cursor: var(--cursor);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgb(255 255 255 / 0.55);
+    text-underline-offset: 0.22em;
+    transition:
+      text-decoration-color var(--transition-normal),
+      text-underline-offset var(--transition-normal);
+  }
+
+  .dispersa button:hover,
+  .dispersa[data-abierto] button {
+    text-decoration-color: var(--white);
+    text-underline-offset: 0.34em;
+  }
+
+  .dispersa button:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 4px;
+  }
+
+  .dispersa strong {
+    font-weight: var(--weight-bold);
+  }
+
+  /* Mismo recuadro blanco que la tira de logos y el panel del equipo. */
+  .lista {
+    position: absolute;
+    top: calc(100% + 0.7em);
+    left: 0;
+    z-index: 5;
+    display: block;
+    width: min(52vw, 250px);
+    height: 11.5rem;
+    overflow: hidden;
+
+    background: var(--white);
+    color: var(--color-brand);
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 6px 16px rgb(0 0 0 / 0.1),
+      0 20px 40px rgb(0 0 0 / 0.07);
+
+    /* Vive dentro del <h1>: hay que devolverle una escala de lectura. */
+    font-size: 0.9375rem;
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-snug);
+    letter-spacing: normal;
+    text-align: left;
+
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--transition-normal),
+      visibility var(--transition-normal);
+  }
+
+  /* Las palabras se desvanecen arriba y abajo en vez de cortarse a filo. La
+     máscara va en el rodillo y no en el recuadro, para no comerse las esquinas
+     redondeadas ni la sombra. */
+  .rodillo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+    /* En reposo la animación existe pero está detenida: no gasta nada mientras
+       la lista no se ve. El tiempo va por palabra, para que el ritmo no dependa
+       de cuántas sean. */
+    animation: caer calc(var(--materias) * var(--dispersa-ritmo)) linear infinite;
+    animation-play-state: paused;
+  }
+
+  .materia {
+    flex: none;
+    padding: 0.42em 1.1rem;
+    white-space: nowrap;
+  }
+
+  @keyframes caer {
+    from {
+      transform: translateY(-50%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @media (hover: hover) {
+    .dispersa:hover .lista,
+    .dispersa:focus-within .lista {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .dispersa:hover .rodillo,
+    .dispersa:focus-within .rodillo {
+      animation-play-state: running;
+    }
+  }
+
+  .dispersa[data-abierto] .lista {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .dispersa[data-abierto] .rodillo {
+    animation-play-state: running;
+  }
+
+  /* Con movimiento reducido la lista se queda quieta y legible. */
+  @media (prefers-reduced-motion: reduce) {
+    .rodillo {
+      animation: none;
+      transform: translateY(-50%);
+    }
+  }
+
+  /* En pantallas estrechas deja de colgar de la frase y se ancla abajo, como
+     los demás paneles: anclada al texto se saldría por un costado. */
+  @media (max-width: 48rem) {
+    .lista {
+      position: fixed;
+      inset: auto 1rem 1.25rem auto;
+      width: min(60vw, 220px);
+      height: 9.5rem;
+    }
+  }
+</style>
+
+<script>
+  // Un único par de escuchas para todo el documento: engancharlas por instancia
+  // las acumularía en cada navegación del router de Astro.
+  if (!(window as any).__dispersaMontada) {
+    (window as any).__dispersaMontada = true;
+
+    let abierta: HTMLElement | null = null;
+
+    const cerrar = () => {
+      if (!abierta) return;
+      abierta.removeAttribute('data-abierto');
+      abierta.querySelector('button')?.setAttribute('aria-expanded', 'false');
+      abierta = null;
+    };
+
+    document.addEventListener('click', (evento) => {
+      const destino = evento.target as HTMLElement;
+      const raiz = destino.closest<HTMLElement>('[data-dispersa]');
+
+      if (!raiz) return cerrar();
+      if (!destino.closest('button')) return;
+      if (abierta === raiz) return cerrar();
+
+      cerrar();
+      raiz.setAttribute('data-abierto', '');
+      raiz.querySelector('button')?.setAttribute('aria-expanded', 'true');
+      abierta = raiz;
+    });
+
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape') cerrar();
+    });
+
+    document.addEventListener('astro:before-swap', () => {
+      abierta = null;
+    });
+  }
+</script>
