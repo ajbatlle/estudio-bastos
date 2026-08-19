@@ -14,5 +14,5 @@ logo: america-solidaria
 orden: 5
 ---
 
-<!-- Por confirmar: rol —en particular si la ilustración es del estudio— y
+<!-- Por confirmar: rol, en particular si la ilustración es del estudio, y
      enlace. El año viene en el nombre del material. -->

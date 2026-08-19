@@ -463,7 +463,7 @@ import CorreoCopiable from './CorreoCopiable.astro';
         if (!CLAVE) {
           window.location.href =
             `mailto:${CORREO}` +
-            `?subject=${encodeURIComponent(`Reunión — ${datos.nombre}`)}` +
+            `?subject=${encodeURIComponent(`Reunión con ${datos.nombre}`)}` +
             `&body=${encodeURIComponent(cuerpo)}`;
           return;
         }
@@ -477,7 +477,7 @@ import CorreoCopiable from './CorreoCopiable.astro';
             headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({
               access_key: CLAVE,
-              subject: `Reunión — ${datos.nombre}`,
+              subject: `Reunión con ${datos.nombre}`,
               from_name: 'Web de Bastos',
               replyto: datos.correo,
               nombre: datos.nombre,

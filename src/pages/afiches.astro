@@ -1,0 +1,915 @@
+---
+import Base from '../layouts/Base.astro';
+
+const base = import.meta.env.BASE_URL;
+---
+
+<Base
+  title="Afiches"
+  description="Generador de afiches de Bastos. Composición sobre grilla con los elementos de la marca: cada combinación produce una pieza distinta, numerada y descargable."
+  accion="Ver proyectos"
+  accionHref={`${base}proyectos`}
+>
+  <h1 class="visually-hidden">Afiches bastos</h1>
+
+  {/* Una sola pantalla, como proyectos y como el juego: la lámina a la
+      izquierda, todos los mandos a la derecha y nada que desplazar. */}
+  <div class="escena" data-afiches>
+    <div class="lado-lamina">
+      <div class="marco">
+        <canvas id="canvas"></canvas>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="mandos">
+        <div class="campo ancho">
+          <label for="obraTitle">Título</label>
+          <input
+            type="text"
+            id="obraTitle"
+            class="texto"
+            placeholder="sin título"
+            maxlength="60"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="seedInput">Semilla</label>
+          <input type="number" id="seedInput" class="texto" value="1" min="0" step="1" autocomplete="off" />
+        </div>
+
+        <div class="campo">
+          <label>Junta</label>
+          <div class="segmento" id="gapSegment">
+            <button type="button" data-gap="0">continua</button>
+            <button type="button" data-gap="0.08" class="activo">fina</button>
+            <button type="button" data-gap="0.18">amplia</button>
+          </div>
+        </div>
+
+        <div class="campo ancho">
+          <label>Grilla</label>
+          <div class="segmento" id="gridSegment">
+            <button type="button" data-grid="3">3</button>
+            <button type="button" data-grid="4">4</button>
+            <button type="button" data-grid="5">5</button>
+            <button type="button" data-grid="6">6</button>
+            <button type="button" data-grid="8">8</button>
+            <button type="button" data-grid="10" class="activo">10</button>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Giros</label>
+          <div class="segmento" id="rotSegment">
+            <button type="button" data-rot="fija" class="activo">fija</button>
+            <button type="button" data-rot="giros">90°</button>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Simetría</label>
+          <div class="segmento" id="symSegment">
+            <button type="button" data-sym="libre" class="activo">libre</button>
+            <button type="button" data-sym="espejo">espejo</button>
+            <button type="button" data-sym="cuaterna">cuaterna</button>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="density">Densidad <span class="cifra" id="valDensity">100%</span></label>
+          <input type="range" id="density" min="30" max="100" value="100" />
+        </div>
+
+        <div class="campo">
+          <label for="variety">Variedad <span class="cifra" id="valVariety">101</span></label>
+          <input type="range" id="variety" min="1" max="101" value="101" />
+        </div>
+
+        <div class="campo ancho">
+          <label>Papel</label>
+          <div class="muestras" id="bgSwatches">
+            <button type="button" class="muestra activo" data-c="#F2F3F9" style="--c:#F2F3F9" aria-label="Papel gris azulado"></button>
+            <button type="button" class="muestra" data-c="#F2EDE0" style="--c:#F2EDE0" aria-label="Papel hueso"></button>
+            <button type="button" class="muestra" data-c="#FAFAF8" style="--c:#FAFAF8" aria-label="Papel blanco"></button>
+            <button type="button" class="muestra" data-c="#003EC0" style="--c:#003EC0" aria-label="Papel azul de marca"></button>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Tinta</label>
+          <div class="muestras" id="inkSwatches">
+            <button type="button" class="muestra auto activo" data-c="auto" aria-label="Tinta automática">A</button>
+            <button type="button" class="muestra" data-c="#003EC0" style="--c:#003EC0" aria-label="Tinta azul"></button>
+            <button type="button" class="muestra" data-c="#D0452B" style="--c:#D0452B" aria-label="Tinta roja"></button>
+            <button type="button" class="muestra" data-c="#1B1B1B" style="--c:#1B1B1B" aria-label="Tinta negra"></button>
+            <button type="button" class="muestra" data-c="#F2EDE0" style="--c:#F2EDE0" aria-label="Tinta hueso"></button>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Segunda tinta</label>
+          <div class="muestras" id="ink2Swatches">
+            <button type="button" class="muestra ninguna activo" data-c="none" aria-label="Sin segunda tinta">/</button>
+            <button type="button" class="muestra" data-c="#003EC0" style="--c:#003EC0" aria-label="Segunda tinta azul"></button>
+            <button type="button" class="muestra" data-c="#D0452B" style="--c:#D0452B" aria-label="Segunda tinta roja"></button>
+            <button type="button" class="muestra" data-c="#1B1B1B" style="--c:#1B1B1B" aria-label="Segunda tinta negra"></button>
+            <button type="button" class="muestra" data-c="#F2EDE0" style="--c:#F2EDE0" aria-label="Segunda tinta hueso"></button>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="mix">Mezcla <span class="cifra" id="valMix">30%</span></label>
+          <input type="range" id="mix" min="5" max="50" value="30" />
+        </div>
+
+        <div class="campo">
+          <label for="invert">Inversión <span class="cifra" id="valInvert">0%</span></label>
+          <input type="range" id="invert" min="0" max="100" value="0" />
+        </div>
+      </div>
+
+      <div class="cierre">
+        <dl class="datos">
+          <div><dt>grilla</dt><dd id="statGrid">10×10</dd></div>
+          <div><dt>llenas</dt><dd id="statFilled">0</dd></div>
+          <div><dt>distintos</dt><dd id="statDistinct">0</dd></div>
+          <div><dt>nº</dt><dd id="statSerial">Nº01</dd></div>
+        </dl>
+
+        <div class="botones">
+          <button type="button" class="boton" id="versionBtn">Otra versión</button>
+          <button type="button" class="boton" id="randBtn">Aleatorizar</button>
+          <button type="button" class="boton lleno" id="saveBtn">Descargar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  /* La página no tiene scroll: es una sola pantalla. La regla viaja solo con
+     esta página, así que no toca al resto del sitio. */
+  :global(html:has(.escena)),
+  :global(html:has(.escena) body) {
+    overflow: hidden;
+  }
+
+  /* Altura fija, no mínima. El cuerpo del sitio va con `min-height: 100vh`, que
+     es un suelo y no un techo: con un panel alto, el cuerpo crecía y el pie se
+     iba de la pantalla. Con la altura fijada, el reparto se hace de verdad y a
+     `main` le toca lo que sobra. En `dvh` para que el navegador móvil, que
+     esconde y muestra su barra, no descuadre la cuenta. */
+  :global(html:has(.escena) body) {
+    height: 100dvh;
+  }
+
+  /* Sin esto el <main> no puede encoger por debajo de su contenido, que es lo
+     que trae de fábrica todo elemento flexible, y el panel empuja el pie fuera
+     de la pantalla. */
+  :global(main:has(.escena)) {
+    min-height: 0;
+  }
+
+  .escena {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 24vw, 340px);
+    /* La fila se ciñe al escenario en vez de crecer con el panel. Sin esto, un
+       panel más alto que la pantalla empuja el pie fuera de la vista. */
+    grid-template-rows: minmax(0, 1fr);
+    gap: clamp(1.5rem, 3vw, 3rem);
+    width: min(86%, 1280px);
+    margin-inline: auto;
+    padding-block: clamp(1rem, 2.5vw, 2rem) clamp(1.5rem, 3vw, 2.5rem);
+    min-height: 0;
+  }
+
+  @media (min-width: 48rem) {
+    .escena { width: min(76%, 1280px); }
+  }
+
+  @media (min-width: 64rem) {
+    .escena { width: min(64%, 1280px); }
+  }
+
+  /* La lámina se mide contra el hueco que le queda: se toma la medida que sobre,
+     el ancho o el alto, y la otra sale de la proporción 3:4. Así entra entera
+     sin que haya que desplazar nada. */
+  .lado-lamina {
+    container-type: size;
+    min-height: 0;
+  }
+
+  .marco {
+    width: min(100cqw, calc(100cqh * 0.75));
+    height: min(100cqh, calc(100cqw / 0.75));
+    margin: auto;
+    background: var(--surface-subtle);
+    border-radius: 8px;
+    overflow: hidden;
+    /* El mismo bisel hundido de los recuadros del portafolio. */
+    box-shadow:
+      inset 0 3px 5px -2px rgb(0 0 0 / 0.22),
+      inset 0 -1px 0 rgb(255 255 255 / 0.9),
+      inset 0 0 0 1px rgb(0 0 0 / 0.06);
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ——— El panel ———
+     Blanco como el resto de los paneles del sitio, porque es donde vive lo que
+     se manipula. Cabe entero: si algún día no cupiera, es el único sitio del
+     sitio donde se admite desplazar. */
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 0;
+    padding: 0.95rem 1rem;
+    background: var(--white);
+    color: var(--color-brand);
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 6px 16px rgb(0 0 0 / 0.1),
+      0 20px 40px rgb(0 0 0 / 0.07);
+  }
+
+  .mandos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem 0.8rem;
+    overflow-y: auto;
+    min-height: 0;
+    /* Sin barra a la vista mientras no haga falta. */
+    scrollbar-width: thin;
+  }
+
+  .campo.ancho {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.25rem;
+    font-size: 0.6875rem;
+    letter-spacing: var(--tracking-wide);
+    color: rgb(0 0 0 / 0.55);
+  }
+
+  .cifra {
+    font-weight: var(--weight-semibold);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-brand);
+  }
+
+  /* ——— Campos de texto ——— */
+  .texto {
+    width: 100%;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid rgb(0 0 0 / 0.18);
+    border-radius: 4px;
+    background: var(--white);
+    color: var(--color-brand);
+    font: inherit;
+    font-size: 0.8125rem;
+  }
+
+  .texto:focus-visible {
+    outline: none;
+    border-color: var(--color-brand);
+  }
+
+  .texto::placeholder {
+    color: rgb(0 0 0 / 0.35);
+  }
+
+  /* ——— Segmentados ——— */
+  .segmento {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    border: 1px solid var(--color-brand);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .segmento button {
+    padding: 0.35rem 0.2rem;
+    border: none;
+    background: transparent;
+    color: var(--color-brand);
+    font: inherit;
+    font-size: 0.6875rem;
+    font-weight: var(--weight-semibold);
+    cursor: var(--cursor);
+    transition: background var(--transition-normal);
+  }
+
+  .segmento button + button {
+    border-left: 1px solid rgb(0 62 192 / 0.25);
+  }
+
+  .segmento button:hover {
+    background: rgb(0 62 192 / 0.08);
+  }
+
+  .segmento button.activo {
+    background: var(--color-brand);
+    color: var(--white);
+  }
+
+  /* ——— Muestras de color ——— */
+  .muestras {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .muestra {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid rgb(0 0 0 / 0.18);
+    border-radius: 4px;
+    background: var(--c, var(--white));
+    color: var(--color-brand);
+    font: inherit;
+    font-size: 0.625rem;
+    font-weight: var(--weight-bold);
+    cursor: var(--cursor);
+  }
+
+  .muestra.activo {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  .muestra.ninguna {
+    color: rgb(0 0 0 / 0.35);
+  }
+
+  /* ——— Deslizadores ——— */
+  input[type='range'] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    margin: 0.35rem 0;
+    background: rgb(0 0 0 / 0.2);
+    cursor: var(--cursor);
+  }
+
+  input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-full);
+    background: var(--color-brand);
+  }
+
+  input[type='range']::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--color-brand);
+  }
+
+  /* ——— Cierre del panel ——— */
+  .cierre {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgb(0 0 0 / 0.12);
+  }
+
+  .datos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  .datos dt {
+    font-size: 0.625rem;
+    letter-spacing: var(--tracking-wide);
+    color: rgb(0 0 0 / 0.5);
+  }
+
+  .datos dd {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: var(--weight-bold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Los tres en una fila: en dos filas el panel se pasaba de alto y había que
+     desplazarlo, que es justo lo que esta pantalla no quiere. */
+  .botones {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+  }
+
+  .boton {
+    padding: 0.5rem 0.4rem;
+    border: 1px solid var(--color-brand);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-brand);
+    font: inherit;
+    font-size: 0.6875rem;
+    font-weight: var(--weight-semibold);
+    cursor: var(--cursor);
+    transition:
+      background var(--transition-normal),
+      color var(--transition-normal);
+  }
+
+  .boton:hover {
+    background: rgb(0 62 192 / 0.08);
+  }
+
+  .boton.lleno {
+    background: var(--color-brand);
+    color: var(--white);
+  }
+
+  .boton.lleno:hover {
+    opacity: var(--opacity-hover);
+    background: var(--color-brand);
+  }
+
+  .boton:disabled {
+    opacity: 0.4;
+  }
+
+  /* En vertical el panel pasa debajo de la lámina y la pantalla se reparte. */
+  @media (max-width: 64rem) {
+    .escena {
+      grid-template-columns: 1fr;
+      grid-template-rows: minmax(0, 1fr) auto;
+    }
+
+    .panel {
+      max-height: 42vh;
+    }
+  }
+</style>
+
+<script>
+  // Generador de afiches. Compone los elementos de la marca sobre una grilla y
+  // exporta la lámina a PNG. Todo el dibujo va en un <canvas>: son cien piezas
+  // por lámina y en SVG el navegador se arrastraría.
+  //
+  // La misma semilla y los mismos parámetros dan siempre la misma lámina: el
+  // azar es reproducible a propósito, para poder volver a un resultado.
+  const iniciarAfiches = () => {
+    const lienzo = document.querySelector<HTMLCanvasElement>('#canvas');
+    if (!lienzo || lienzo.dataset.montado) return;
+    lienzo.dataset.montado = 'si';
+
+    const base = import.meta.env.BASE_URL;
+
+    const FUENTES = (() => {
+      const arr: string[] = [];
+      for (let i = 1; i <= 100; i++) {
+        arr.push(`${base}elements/element-${String(i).padStart(2, '0')}.svg`);
+      }
+      arr.push(`${base}elements/el-loco-tarot.svg`);
+      return arr;
+    })();
+
+    const N_ELEMENTOS = FUENTES.length;
+    // Cada papel trae su tinta evidente: la que contrasta sin pensarlo.
+    const TINTA_AUTO: Record<string, string> = {
+      '#F2F3F9': '#003EC0',
+      '#F2EDE0': '#003EC0',
+      '#FAFAF8': '#1B1B1B',
+      '#003EC0': '#F2F3F9',
+    };
+
+    // Generador reproducible: misma semilla, misma lámina.
+    const mulberry32 = (a: number) => () => {
+      a |= 0;
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+
+    let semilla = 1;
+    let grilla = 10;
+    let junta = 0.08;
+    let giros = 'fija';
+    let simetria = 'libre';
+    let densidad = 100;
+    let variedad = N_ELEMENTOS;
+    let papel = '#F2F3F9';
+    let tinta = 'auto';
+    let tinta2 = 'none';
+    let mezcla = 30;
+    let inversion = 0;
+
+    let ultimaComposicion: any[] | null = null;
+
+    const colorTinta = () => (tinta === 'auto' ? TINTA_AUTO[papel] || '#003EC0' : tinta);
+
+    const imagenes: HTMLImageElement[] = [];
+    let isotipo: HTMLImageElement | null = null;
+    let listo = false;
+
+    const cargar = (src: string) =>
+      new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(src));
+        img.src = src;
+      });
+
+    // Los SVG de marca son de un solo color: se dibujan y se rellenan con
+    // `source-in`, que es lo que permite teñirlos sin tener un archivo por tinta.
+    const tenir = (img: HTMLImageElement, lado: number, color: string) => {
+      const c = document.createElement('canvas');
+      c.width = lado;
+      c.height = lado;
+      const g = c.getContext('2d')!;
+      g.drawImage(img, 0, 0, lado, lado);
+      g.globalCompositeOperation = 'source-in';
+      g.fillStyle = color;
+      g.fillRect(0, 0, lado, lado);
+      return c;
+    };
+
+    const componer = () => {
+      const azar = mulberry32(semilla >>> 0);
+      const n = grilla;
+
+      // Subconjunto de elementos, barajado con la misma semilla.
+      const todos = Array.from({ length: N_ELEMENTOS }, (_, i) => i);
+      for (let i = todos.length - 1; i > 0; i--) {
+        const j = Math.floor(azar() * (i + 1));
+        [todos[i], todos[j]] = [todos[j], todos[i]];
+      }
+      const bolsa = todos.slice(0, Math.min(variedad, N_ELEMENTOS));
+
+      const celdas: any[] = new Array(n * n).fill(null);
+      const hayB = tinta2 !== 'none';
+
+      const celda = () => {
+        if (azar() * 100 >= densidad) return null;
+        return {
+          el: bolsa[Math.floor(azar() * bolsa.length)],
+          giro: giros === 'giros' ? Math.floor(azar() * 4) : 0,
+          volteo: false,
+          b: hayB && azar() * 100 < mezcla,
+          inv: azar() * 100 < inversion,
+        };
+      };
+      const espejada = (c: any) => c && { ...c, volteo: !c.volteo };
+
+      if (simetria === 'libre') {
+        for (let i = 0; i < n * n; i++) celdas[i] = celda();
+      } else if (simetria === 'espejo') {
+        const mitad = Math.ceil(n / 2);
+        for (let y = 0; y < n; y++)
+          for (let x = 0; x < mitad; x++) {
+            const c = celda();
+            celdas[y * n + x] = c;
+            celdas[y * n + (n - 1 - x)] = x === n - 1 - x ? c : espejada(c);
+          }
+      } else {
+        const mitad = Math.ceil(n / 2);
+        for (let y = 0; y < mitad; y++)
+          for (let x = 0; x < mitad; x++) {
+            const c = celda();
+            const xm = n - 1 - x;
+            const ym = n - 1 - y;
+            celdas[y * n + x] = c;
+            if (xm !== x) celdas[y * n + xm] = espejada(c);
+            if (ym !== y) celdas[ym * n + x] = c && { ...c, volteoY: true };
+            if (xm !== x && ym !== y) celdas[ym * n + xm] = c && { ...c, volteo: !c.volteo, volteoY: true };
+          }
+      }
+      return celdas;
+    };
+
+    // Proporciones tomadas del afiche de referencia: 3:4, margen del 4,6% del
+    // ancho, isotipo del 6,2% centrado sobre la línea de texto del pie.
+    const dibujarLamina = (g: CanvasRenderingContext2D, W: number, H: number, numero: string) => {
+      const margen = Math.round(W * 0.046);
+      const S = W - 2 * margen;
+      const n = grilla;
+      const hueco = (junta * S) / n;
+      const lado = (S - (n - 1) * hueco) / n;
+      const ladoPx = Math.max(2, Math.round(lado));
+
+      const ink = colorTinta();
+      const ink2 = tinta2 === 'none' ? ink : tinta2;
+
+      g.fillStyle = papel;
+      g.fillRect(0, 0, W, H);
+
+      const celdas = componer();
+      ultimaComposicion = celdas;
+
+      const cache = new Map<string, HTMLCanvasElement>();
+      const tesela = (el: number, color: string) => {
+        const clave = el + '|' + color;
+        if (!cache.has(clave)) cache.set(clave, tenir(imagenes[el], ladoPx, color));
+        return cache.get(clave)!;
+      };
+
+      for (let y = 0; y < n; y++)
+        for (let x = 0; x < n; x++) {
+          const c = celdas[y * n + x];
+          if (!c) continue;
+          const px = margen + x * (lado + hueco);
+          const py = margen + y * (lado + hueco);
+          const color = c.b ? ink2 : ink;
+
+          g.save();
+          g.translate(px + lado / 2, py + lado / 2);
+          if (c.volteo) g.scale(-1, 1);
+          if (c.volteoY) g.scale(1, -1);
+          if (c.giro) g.rotate((c.giro * Math.PI) / 2);
+          if (c.inv) {
+            g.fillStyle = color;
+            g.fillRect(-lado / 2, -lado / 2, lado, lado);
+            g.drawImage(tesela(c.el, papel), -lado / 2, -lado / 2, lado, lado);
+          } else {
+            g.drawImage(tesela(c.el, color), -lado / 2, -lado / 2, lado, lado);
+          }
+          g.restore();
+        }
+
+      const linea = H - Math.round(H * 0.042);
+      const diametro = Math.round(W * 0.062);
+      if (isotipo) {
+        g.drawImage(tenir(isotipo, diametro, ink), Math.round((W - diametro) / 2), linea - diametro, diametro, diametro);
+      }
+
+      const cuerpo = Math.round(W * 0.0228);
+      g.fillStyle = ink;
+      g.textBaseline = 'alphabetic';
+      g.font = `500 ${cuerpo}px 'Plus Jakarta Sans'`;
+      const titulo = (campos.obraTitle.value || '').trim();
+      if (titulo) {
+        g.textAlign = 'left';
+        g.fillText(titulo, margen, linea);
+      }
+      g.textAlign = 'right';
+      g.fillText(numero, W - margen, linea);
+    };
+
+    // Numeración correlativa. Por ahora vive en el navegador de cada visitante;
+    // para que sea única entre todos haría falta un contador en un servidor.
+    const CLAVE = 'bastos:afiche';
+    const proximoNumero = () => {
+      try {
+        return (parseInt(localStorage.getItem(CLAVE) || '0', 10) || 0) + 1;
+      } catch {
+        return 1;
+      }
+    };
+    const consumirNumero = () => {
+      try {
+        const n = proximoNumero();
+        localStorage.setItem(CLAVE, String(n));
+        return n;
+      } catch {
+        return Math.floor(Math.random() * 900) + 100;
+      }
+    };
+    const rotulo = (n: number) => 'Nº' + String(n).padStart(2, '0');
+
+    const ANCHO = 900;
+    const ALTO = 1200;
+    lienzo.width = ANCHO;
+    lienzo.height = ALTO;
+    const pincel = lienzo.getContext('2d')!;
+
+    const id = <T extends HTMLElement>(nombre: string) => document.getElementById(nombre) as T;
+    const campos = {
+      obraTitle: id<HTMLInputElement>('obraTitle'),
+      seedInput: id<HTMLInputElement>('seedInput'),
+      gridSegment: id('gridSegment'),
+      gapSegment: id('gapSegment'),
+      rotSegment: id('rotSegment'),
+      symSegment: id('symSegment'),
+      density: id<HTMLInputElement>('density'),
+      variety: id<HTMLInputElement>('variety'),
+      valDensity: id('valDensity'),
+      valVariety: id('valVariety'),
+      bgSwatches: id('bgSwatches'),
+      inkSwatches: id('inkSwatches'),
+      ink2Swatches: id('ink2Swatches'),
+      mix: id<HTMLInputElement>('mix'),
+      invert: id<HTMLInputElement>('invert'),
+      valMix: id('valMix'),
+      valInvert: id('valInvert'),
+      statGrid: id('statGrid'),
+      statFilled: id('statFilled'),
+      statDistinct: id('statDistinct'),
+      statSerial: id('statSerial'),
+      versionBtn: id<HTMLButtonElement>('versionBtn'),
+      randBtn: id<HTMLButtonElement>('randBtn'),
+      saveBtn: id<HTMLButtonElement>('saveBtn'),
+    };
+
+    const actualizarDatos = () => {
+      campos.statGrid.textContent = grilla + '×' + grilla;
+      if (ultimaComposicion) {
+        const llenas = ultimaComposicion.filter(Boolean);
+        campos.statFilled.textContent = llenas.length + '/' + grilla * grilla;
+        campos.statDistinct.textContent = String(new Set(llenas.map((c) => c.el)).size);
+      }
+      campos.statSerial.textContent = rotulo(proximoNumero());
+    };
+
+    const pintar = () => {
+      if (!listo) return;
+      dibujarLamina(pincel, ANCHO, ALTO, rotulo(proximoNumero()));
+      actualizarDatos();
+    };
+
+    const descargar = async () => {
+      const W = 1800;
+      const H = 2400;
+      try {
+        await document.fonts.load(`500 ${Math.round(W * 0.0228)}px 'Plus Jakarta Sans'`);
+      } catch {
+        /* Si la fuente no llega, el navegador usa la de reserva. */
+      }
+      const n = consumirNumero();
+      const c = document.createElement('canvas');
+      c.width = W;
+      c.height = H;
+      dibujarLamina(c.getContext('2d')!, W, H, rotulo(n));
+
+      const titulo = (campos.obraTitle.value || '').trim();
+      const nombre = titulo
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 40);
+
+      const a = document.createElement('a');
+      a.download = 'bastos-afiche-' + (nombre ? nombre + '-' : '') + String(n).padStart(3, '0') + '.png';
+      a.href = c.toDataURL('image/png');
+      a.click();
+      pintar();
+    };
+
+    const atarSegmento = (caja: HTMLElement, atributo: string, aplicar: (v: string) => void) => {
+      caja.querySelectorAll('button').forEach((b) =>
+        b.addEventListener('click', () => {
+          caja.querySelectorAll('button').forEach((x) => x.classList.remove('activo'));
+          b.classList.add('activo');
+          aplicar(b.getAttribute(atributo)!);
+          pintar();
+        }),
+      );
+    };
+
+    const atarMuestras = (caja: HTMLElement, aplicar: (v: string) => void) => {
+      caja.querySelectorAll('button').forEach((b) =>
+        b.addEventListener('click', () => {
+          caja.querySelectorAll('button').forEach((x) => x.classList.remove('activo'));
+          b.classList.add('activo');
+          aplicar(b.dataset.c!);
+          pintar();
+        }),
+      );
+    };
+
+    const marcarSegmento = (caja: HTMLElement, atributo: string, valor: any) =>
+      caja
+        .querySelectorAll('button')
+        .forEach((b) => b.classList.toggle('activo', b.getAttribute(atributo) === String(valor)));
+
+    const marcarMuestra = (caja: HTMLElement, valor: any) =>
+      caja.querySelectorAll('button').forEach((b) => b.classList.toggle('activo', b.dataset.c === String(valor)));
+
+    atarSegmento(campos.gridSegment, 'data-grid', (v) => (grilla = parseInt(v, 10)));
+    atarSegmento(campos.gapSegment, 'data-gap', (v) => (junta = parseFloat(v)));
+    atarSegmento(campos.rotSegment, 'data-rot', (v) => (giros = v));
+    atarSegmento(campos.symSegment, 'data-sym', (v) => (simetria = v));
+    atarMuestras(campos.bgSwatches, (v) => (papel = v));
+    atarMuestras(campos.inkSwatches, (v) => (tinta = v));
+    atarMuestras(campos.ink2Swatches, (v) => (tinta2 = v));
+
+    campos.density.addEventListener('input', () => {
+      densidad = +campos.density.value;
+      campos.valDensity.textContent = densidad + '%';
+      pintar();
+    });
+    campos.variety.addEventListener('input', () => {
+      variedad = +campos.variety.value;
+      campos.valVariety.textContent = String(variedad);
+      pintar();
+    });
+    campos.mix.addEventListener('input', () => {
+      mezcla = +campos.mix.value;
+      campos.valMix.textContent = mezcla + '%';
+      pintar();
+    });
+    campos.invert.addEventListener('input', () => {
+      inversion = +campos.invert.value;
+      campos.valInvert.textContent = inversion + '%';
+      pintar();
+    });
+    campos.seedInput.addEventListener('input', () => {
+      semilla = Math.max(0, Math.floor(+campos.seedInput.value || 0));
+      pintar();
+    });
+    campos.obraTitle.addEventListener('input', pintar);
+
+    const otraVersion = () => {
+      semilla = Math.floor(Math.random() * 1e9);
+      campos.seedInput.value = String(semilla);
+      pintar();
+    };
+
+    const elegir = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+
+    const aleatorizar = () => {
+      grilla = elegir([3, 4, 5, 6, 8, 10, 10]);
+      junta = elegir([0, 0.08, 0.08, 0.18]);
+      giros = elegir(['fija', 'fija', 'giros']);
+      simetria = elegir(['libre', 'libre', 'libre', 'espejo', 'cuaterna']);
+      densidad = elegir([100, 100, 100, 85, 70, 55]);
+      variedad = elegir([N_ELEMENTOS, N_ELEMENTOS, 80, 50, 20, 8]);
+      papel = elegir(['#F2F3F9', '#F2F3F9', '#F2EDE0', '#FAFAF8', '#003EC0']);
+      tinta = 'auto';
+      tinta2 = elegir(['none', 'none', 'none', '#D0452B', '#1B1B1B']);
+      if (tinta2 === colorTinta()) tinta2 = 'none';
+      mezcla = 10 + Math.floor(Math.random() * 30);
+      inversion = elegir([0, 0, 0, 12, 25]);
+      semilla = Math.floor(Math.random() * 1e9);
+
+      marcarSegmento(campos.gridSegment, 'data-grid', grilla);
+      marcarSegmento(campos.gapSegment, 'data-gap', junta);
+      marcarSegmento(campos.rotSegment, 'data-rot', giros);
+      marcarSegmento(campos.symSegment, 'data-sym', simetria);
+      marcarMuestra(campos.bgSwatches, papel);
+      marcarMuestra(campos.inkSwatches, 'auto');
+      marcarMuestra(campos.ink2Swatches, tinta2);
+      campos.density.value = String(densidad);
+      campos.valDensity.textContent = densidad + '%';
+      campos.variety.value = String(variedad);
+      campos.valVariety.textContent = String(variedad);
+      campos.mix.value = String(mezcla);
+      campos.valMix.textContent = mezcla + '%';
+      campos.invert.value = String(inversion);
+      campos.valInvert.textContent = inversion + '%';
+      campos.seedInput.value = String(semilla);
+      pintar();
+    };
+
+    campos.versionBtn.addEventListener('click', otraVersion);
+    campos.randBtn.addEventListener('click', aleatorizar);
+    campos.saveBtn.addEventListener('click', () => {
+      campos.saveBtn.disabled = true;
+      descargar().finally(() => {
+        campos.saveBtn.disabled = false;
+      });
+    });
+
+    Promise.all([
+      ...FUENTES.map((src, i) => cargar(src).then((img) => void (imagenes[i] = img))),
+      cargar(`${base}brand/Isotipo-b.svg`).then((img) => void (isotipo = img)),
+      document.fonts ? document.fonts.load("500 21px 'Plus Jakarta Sans'").catch(() => {}) : Promise.resolve(),
+    ])
+      .then(() => {
+        listo = true;
+        pintar();
+      })
+      .catch(() => {
+        pincel.fillStyle = '#F2F3F9';
+        pincel.fillRect(0, 0, ANCHO, ALTO);
+        pincel.fillStyle = '#666666';
+        pincel.font = "400 24px 'Plus Jakarta Sans', sans-serif";
+        pincel.textAlign = 'center';
+        pincel.fillText('No se pudieron cargar los elementos.', ANCHO / 2, ALTO / 2);
+      });
+  };
+
+  document.addEventListener('astro:page-load', iniciarAfiches);
+  // Y también ahora: en la primera carga el router puede haber lanzado ya su
+  // evento antes de que este módulo llegara a existir.
+  iniciarAfiches();
+</script>

@@ -1,11 +1,11 @@
 ---
 titulo: Catálogo corporativo – Genesal Energy
 descripcion: >-
-  Gama, tecnología y servicio de una fabricante de grupos electrógenos, ordenados
-  en un solo documento de consulta
+  Toda la gama de grupos electrógenos de la empresa, con la tecnología que
+  llevan dentro y el servicio que los acompaña
 tipo: Catálogo corporativo
 rol: Diseño editorial
-anio: 2024
+anio: 2023
 serie: genesal-catalogo
 mediaAlt: >-
   Doble página «Una energía global», con la Tierra de noche y el detalle de
@@ -14,5 +14,4 @@ logo: genesal
 orden: 6
 ---
 
-<!-- Por confirmar: año, rol y enlace. El año es una suposición: el material no
-     lo dice en ninguna página. -->
+<!-- Por confirmar: rol y enlace. -->

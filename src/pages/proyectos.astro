@@ -73,20 +73,17 @@ for (const proyecto of proyectos) {
             data-estado={indice === 0 ? 'activo' : indice === 1 ? 'siguiente' : indice === 2 ? 'fondo' : 'oculto'}
             aria-label={`${indice + 1} de ${proyectos.length}: ${titulo}`}
           >
-            {/* Los corchetes son parte de la composición, no una marca de hueco
-                por rellenar: van en la plantilla y no en el contenido, para que
-                los .md queden limpios. El título y el enlace van sin ellos. */}
             <div class="ficha">
               <h2>{titulo}</h2>
-              <p class="descripcion">[{descripcion}]</p>
+              <p class="descripcion">{descripcion}</p>
 
               <dl class="meta">
                 <dt class="visually-hidden">Tipo</dt>
-                <dd>[{tipo}]</dd>
+                <dd>{tipo}</dd>
                 <dt class="visually-hidden">Rol</dt>
-                <dd>[{rol}]</dd>
+                <dd>{rol}</dd>
                 <dt class="visually-hidden">Año</dt>
-                <dd>[{anio}]</dd>
+                <dd>{anio}</dd>
               </dl>
 
               {/* La pieza se amplía pulsándola, pero con teclado no hay dónde
@@ -98,7 +95,12 @@ for (const proyecto of proyectos) {
               </button>
 
               {enlace && (
-                <a class="enlace" href={enlace} target="_blank" rel="noopener">
+                <a
+                  class="enlace"
+                  href={enlace.startsWith('/') ? `${base}${enlace.slice(1)}` : enlace}
+                  target={enlace.startsWith('/') ? undefined : '_blank'}
+                  rel={enlace.startsWith('/') ? undefined : 'noopener'}
+                >
                   {enlaceTexto ?? enlace}
                   <svg
                     class="flecha"
@@ -113,7 +115,9 @@ for (const proyecto of proyectos) {
                     <path d="M4.5 11.5 11.5 4.5" />
                     <path d="M5.5 4.5h6v6" />
                   </svg>
-                  <span class="visually-hidden">(se abre en una pestaña nueva)</span>
+                  {!enlace.startsWith('/') && (
+                    <span class="visually-hidden">(se abre en una pestaña nueva)</span>
+                  )}
                 </a>
               )}
             </div>
@@ -165,9 +169,10 @@ for (const proyecto of proyectos) {
     }
 
     {/* La pestaña del cliente es fija: ni se mueve ni se releva con la baraja.
-        Lo que cambia es lo que hay dentro. Va en una capa con la misma retícula
-        que las cartas —y un hueco de la misma proporción que la lámina— para
-        quedar clavada en el borde superior del recuadro, columna de texto. */}
+        Lo que cambia es lo que hay dentro. Va clavada arriba del escenario, en
+        el eje de la caja de texto, y las cartas arrancan por debajo: es el
+        único punto que no se mueve cuando cambia el alto de una ficha o el de
+        una lámina. */}
     <div class="capa-pestana container" aria-hidden="true">
       <span class="pestana" data-pestana>
         {proyectos.map((proyecto, indice) =>
@@ -181,7 +186,6 @@ for (const proyecto of proyectos) {
           ) : null,
         )}
       </span>
-      <span class="hueco"></span>
     </div>
 
     <p class="indice container">
@@ -234,21 +238,34 @@ for (const proyecto of proyectos) {
   .escenario {
     position: relative;
     flex: 1;
-    /* Sitio para el índice, que va anclado abajo. */
-    padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
+
+    /* Las dos franjas que las cartas no pueden ocupar: la pestaña arriba y el
+       índice abajo. Van en variables porque quien las respeta es el `inset` de
+       cada carta —el relleno del escenario no les vale, ya que una caja
+       absoluta se mide contra la caja de relleno, no contra la de contenido—. */
+    --pestana-alto: 46px;
+    --pestana-aire: clamp(1rem, 2.6vw, 2.25rem);
+    --indice-hueco: clamp(2.25rem, 4.5vw, 3.5rem);
   }
 
   /* Cada proyecto es una capa que ocupa el escenario entero. Apiladas en el
      mismo sitio, lo que las distingue es el estado. */
   .proyecto {
     position: absolute;
-    inset: 0;
+    inset: 0 0 var(--indice-hueco) 0;
     display: grid;
     /* Proporción tomada de los mockups: ~27% / ~66%, con un canal entre medio. */
     grid-template-columns: minmax(0, 27fr) minmax(0, 66fr);
+    /* La fila mide lo que mide el recuadro, no lo que mida la ficha más larga:
+       si la dejara crecer con el texto, cada proyecto pondría su borde superior
+       a una altura distinta y la pestaña bailaría al pasar de uno a otro. */
+    grid-template-rows: var(--fila-alto, auto);
     gap: 7%;
     align-content: center;
-    align-items: center;
+    /* Las dos columnas arrancan a la misma altura: es lo que permite que la
+       pestaña quede a ras del borde superior del recuadro y que la ficha se lea
+       colgando de ella, en vez de flotar centrada por su cuenta. */
+    align-items: start;
 
     transition:
       translate var(--baraja-paso) var(--ease),
@@ -324,39 +341,40 @@ for (const proyecto of proyectos) {
 
   .ficha {
     opacity: 1;
+    /* El hueco de la pestaña: el texto arranca justo debajo de ella, en el
+       mismo eje, para que las dos se lean como un solo bloque. */
+    padding-top: calc(var(--pestana-alto) + var(--pestana-aire));
     /* Entra un poco después que la lámina: primero se ve la pieza, después se
        lee de qué va. */
     transition: opacity var(--baraja-paso) var(--ease) 0.12s;
   }
 
   /* ——— La pestaña del cliente ———
-     Capa aparte, con la misma retícula que las cartas. El hueco de la derecha
-     no se ve: está para que la fila mida lo que mide la lámina y la pestaña
-     quede a la altura de su borde superior. */
+     Capa aparte, clavada arriba a la izquierda del escenario. Antes iba a la
+     altura del borde superior de la lámina, y eso solo aguantaba mientras la
+     ficha fuera más baja que la lámina: en cuanto crecía, la pestaña acababa
+     encima del texto. */
   .capa-pestana {
     position: absolute;
     inset: 0;
     z-index: 4;
-    display: grid;
-    grid-template-columns: minmax(0, 27fr) minmax(0, 66fr);
-    gap: 7%;
-    align-content: center;
-    align-items: start;
     pointer-events: none;
-  }
-
-  .hueco {
-    aspect-ratio: 16 / 10;
   }
 
   /* Tamaño fijo: es lo único que no cambia al pasar de proyecto, así que no
      puede encogerse ni crecer con el logo que le toque. Mismo recuadro blanco
      que la tira de logos del manifiesto, porque los logos están hechos para
      fondo claro: sobre el azul varios se desvanecen. */
+  /* `--pestana-y` la mide el guion: es el borde superior del recuadro, que
+     depende de la retícula y no de un número que se pueda escribir aquí. Se
+     calcula una vez y vale para los diez, porque todos los recuadros miden
+     igual: la pestaña no se mueve al cambiar de proyecto. */
   .pestana {
-    position: relative;
+    position: absolute;
+    top: var(--pestana-y, 0px);
+    left: 0;
     width: 150px;
-    height: 46px;
+    height: var(--pestana-alto);
     overflow: hidden;
     background: var(--white);
     border-radius: 8px;
@@ -412,25 +430,28 @@ for (const proyecto of proyectos) {
     letter-spacing: var(--tracking-tight);
   }
 
+  /* Apretada a propósito: la ficha tiene que caber en el alto del recuadro,
+     que es lo que fija la fila. Con las separaciones anteriores —1,4em y un
+     interlineado de 1,65— se pasaba de largo y había que recortarla. */
   .descripcion {
-    margin-top: 1.4em;
+    margin-top: 1em;
   }
 
   .meta {
-    margin-top: 1.4em;
+    margin-top: 1em;
   }
 
   .descripcion,
   .meta {
     font-size: var(--text-body-sm);
-    line-height: 1.65;
+    line-height: 1.55;
   }
 
   .enlace {
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
-    margin-top: 1.4em;
+    margin-top: 1em;
     font-size: var(--text-body-sm);
     font-weight: var(--weight-bold);
     line-height: 1.65;
@@ -740,11 +761,30 @@ for (const proyecto of proyectos) {
     }
   }
 
-  @media (max-width: 60rem) {
+  /* La columna de texto sale de los mockups: 27% contra 66%. Por debajo de este
+     ancho se queda en menos de 180px —cuatro palabras por línea— y deja de
+     leerse, así que ahí se apila. */
+  @media (max-width: 64rem) {
+    /* Apilado el recuadro va arriba del todo, así que la pestaña no puede ir a
+       su altura —se le montaría encima—. Vuelve a su franja propia y las cartas
+       arrancan por debajo. */
+    .pestana {
+      top: 0;
+    }
+
+    .ficha {
+      padding-top: 0;
+    }
+
     .proyecto {
+      inset: calc(var(--pestana-alto) + var(--pestana-aire)) 0 var(--indice-hueco) 0;
       grid-template-columns: 1fr;
+      /* La lámina toma lo que sobre y la ficha lo que necesite. `minmax(0, 1fr)`
+         y no `1fr` a secas: sin el mínimo en cero, la fila se niega a encoger
+         por debajo del contenido y la baraja acaba desbordando la pantalla. */
+      grid-template-rows: minmax(0, 1fr) auto;
       gap: var(--spacing-05);
-      align-content: center;
+      align-content: stretch;
     }
 
     /* En vertical la lámina manda y la ficha se apoya debajo: al revés, el texto
@@ -753,8 +793,13 @@ for (const proyecto of proyectos) {
       order: 2;
     }
 
+    /* Aquí la altura no puede salir de la proporción: la impone el sitio que
+       queda una vez puesta la ficha. */
     .media {
       order: 1;
+      aspect-ratio: auto;
+      min-height: 0;
+      height: 100%;
     }
 
     .proyecto[data-estado='siguiente'] {
@@ -763,6 +808,64 @@ for (const proyecto of proyectos) {
 
     .proyecto[data-estado='fondo'] {
       translate: 0 6.5%;
+    }
+  }
+
+  /* La seña dibuja un ratón: donde no hay ratón, sobra. El gesto ahí es
+     deslizar, y eso ya lo sabe cualquiera que haya usado un teléfono. */
+  @media (hover: none) {
+    .sena {
+      display: none;
+    }
+  }
+
+  /* ——— Pantallas bajas ———
+     Un portátil de 600px de alto deja unos 300 para el proyecto, y la ficha
+     larga pedía 356: se desbordaba por arriba, por debajo de la pestaña. Aquí
+     el texto se aprieta en vez de invadir. Va por alto de ventana y no por
+     ancho, que es lo que de verdad escasea. */
+  @media (max-height: 46rem) {
+    .escenario {
+      --pestana-aire: 0.9rem;
+      --indice-hueco: 2rem;
+    }
+
+    .descripcion,
+    .meta,
+    .enlace {
+      margin-top: 0.9em;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+    }
+
+    /* Último cerrojo: si aun así no cupiera —una ficha larguísima en una
+       ventana muy baja—, la ficha se recorta antes que montarse sobre la
+       pestaña o sobre el índice. */
+    .ficha {
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+
+  /* En dos columnas y con poco alto, la que desborda es la lámina: su 16/10
+     pedía 338px donde había 315. Aquí la fila manda sobre la proporción, igual
+     que en vertical. Va a partir de 64rem para no pisar el bloque de apilado,
+     que ya resuelve lo suyo con sus propias filas. */
+  @media (min-width: 64.0625rem) and (max-height: 46rem) {
+    .proyecto {
+      grid-template-rows: minmax(0, 1fr);
+      align-content: stretch;
+    }
+
+    .media {
+      aspect-ratio: auto;
+      min-height: 0;
+      height: 100%;
+    }
+
+    /* La ficha no se estira: se queda centrada en su columna. */
+    .ficha {
+      align-self: center;
     }
   }
 </style>
@@ -1082,6 +1185,36 @@ for (const proyecto of proyectos) {
 
     // Al entrar en la página —o al volver a ella sin recarga— la baraja empieza
     // de nuevo desde arriba: el <body> es otro y las capas también.
+    // La pestaña va a ras del borde superior del recuadro. Ese borde sale de la
+    // retícula —columnas, canal, proporción—, así que se mide en vez de
+    // escribirse: una fórmula en CSS habría que rehacerla en cada punto de
+    // corte. Se mide una sola vez y sirve para los diez, porque todos los
+    // recuadros son del mismo tamaño; así la pestaña no se mueve al pasar de
+    // proyecto, que es justo lo que se le pide.
+    const colocarPestana = () => {
+      const escenario = document.querySelector<HTMLElement>('[data-baraja]');
+      const recuadro = escenario?.querySelector('.media');
+      if (!escenario || !recuadro) return;
+
+      // Dos pasadas, y hacen falta las dos. Primero se mide el alto del
+      // recuadro con la fila suelta —ese alto solo depende de su ancho y de su
+      // proporción, así que sale bien—. Al fijarlo, la fila cambia de tamaño y
+      // el borde superior se mueve: por eso el segundo dato se lee después, ya
+      // con la fila puesta. Midiendo todo de una vez, la pestaña quedaba
+      // desalineada justo en los proyectos de ficha larga.
+      escenario.style.removeProperty('--fila-alto');
+      escenario.style.removeProperty('--pestana-y');
+
+      const alto = Math.round(recuadro.getBoundingClientRect().height);
+      escenario.style.setProperty('--fila-alto', `${alto}px`);
+
+      const borde =
+        recuadro.getBoundingClientRect().top - escenario.getBoundingClientRect().top;
+      escenario.style.setProperty('--pestana-y', `${Math.round(borde)}px`);
+    };
+
+    window.addEventListener('resize', colocarPestana);
+
     const arrancar = () => {
       activo = 0;
       acumulado = 0;
@@ -1089,6 +1222,7 @@ for (const proyecto of proyectos) {
       if (!hayBaraja()) return;
       pintar();
       relevarLogo(0);
+      colocarPestana();
       escucharElCierre();
     };
 

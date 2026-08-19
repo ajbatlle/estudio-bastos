@@ -17,8 +17,12 @@ const proyectos = defineCollection({
       /** Qué hizo el estudio. Ej. "Desarrollo del editor". */
       rol: z.string(),
       anio: z.number().int(),
-      /** URL pública del proyecto, si la tiene. */
-      enlace: z.string().url().optional(),
+      /**
+       * A dónde lleva el proyecto. Una URL completa si es un sitio ajeno, o una
+       * ruta que empiece por barra si vive dentro de este mismo sitio: los
+       * enlaces internos no se abren en una pestaña nueva.
+       */
+      enlace: z.union([z.string().url(), z.string().startsWith('/')]).optional(),
       /** Cómo se muestra el enlace. Ej. "www.huellalocal.cl". */
       enlaceTexto: z.string().optional(),
       /**
