@@ -89,6 +89,11 @@ const dispersas = materias.map((materia, i) => {
     <strong><slot /></strong>
   </button>
 
+  {/* El paso previo: al pasar por encima, la frase dice que hay algo que abrir
+      antes de abrirlo. Decorativa para lector de pantalla, que ya recibe lo
+      mismo por el `aria-expanded` del botón. */}
+  <span class="pista" aria-hidden="true">¿Qué tipo de información?</span>
+
   {/* Decorativa: la lista ilustra la frase, no añade información que haya que
       leer con lector de pantalla mientras deriva. */}
   <span class="campo" id="lista-dispersa" aria-hidden="true">
@@ -138,6 +143,47 @@ const dispersas = materias.map((materia, i) => {
 
   .dispersa strong {
     font-weight: var(--weight-bold);
+  }
+
+  /* Mismo recuadro que el panel del equipo y la tira de logos, en pequeño: es
+     una pista, no un panel. Cuelga de la frase, no de la pestaña, porque habla
+     de la frase. */
+  .pista {
+    position: absolute;
+    top: calc(100% + 0.6em);
+    left: 0;
+    z-index: 6;
+
+    padding: 0.4em 0.75em;
+
+    background: var(--white);
+    color: var(--color-brand);
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.07),
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 6px 16px rgb(0 0 0 / 0.1),
+      0 20px 40px rgb(0 0 0 / 0.07);
+
+    /* Vive dentro del <h1>: hay que devolverle una escala de lectura. */
+    font-size: 0.75rem;
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-snug);
+    letter-spacing: normal;
+    text-align: left;
+    white-space: nowrap;
+
+    /* No debe interceptar el puntero: se abre justo debajo de la frase, y si
+       captura el hover se tapa a sí misma y parpadea. */
+    pointer-events: none;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition:
+      opacity var(--transition-fast),
+      transform var(--transition-fast),
+      visibility var(--transition-fast);
   }
 
   /* Ya no es un recuadro colgado de la frase: es la pestaña entera. Sin fondo
@@ -213,17 +259,24 @@ const dispersas = materias.map((materia, i) => {
     }
   }
 
+  /* El puntero ya no abre el campo: solo enseña la pista. Esparcir las materias
+     por toda la pestaña al rozar la frase era un sobresalto —pasaba sin
+     pedirlo y tapaba el manifiesto entero—, así que ahora hace falta el clic y
+     el hover se queda en avisar de que lo hay. */
   @media (hover: hover) {
-    .dispersa:hover .campo,
-    .dispersa:focus-within .campo {
+    .dispersa:hover .pista,
+    .dispersa:focus-within .pista {
       opacity: 1;
       visibility: visible;
+      transform: translateY(0);
     }
+  }
 
-    .dispersa:hover .materia,
-    .dispersa:focus-within .materia {
-      animation-play-state: running;
-    }
+  /* Dado el clic, la pista sobra: ya dijo lo que tenía que decir. */
+  .dispersa[data-abierto] .pista {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
   }
 
   .dispersa[data-abierto] .campo {
