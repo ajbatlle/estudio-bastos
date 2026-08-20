@@ -197,10 +197,11 @@ html[data-luz-efectiva='noche'] {
      quién es antes de que llegue la ficha. */
   --pestana-paso: 0.5s;
 
-  /* Lo que tarda cada palabra en cruzar la lista de materias del manifiesto.
-     Va por palabra y no por lista, para que el ritmo no cambie si se añaden o
-     se quitan. */
-  --dispersa-ritmo: 1.15s;
+  /* Lo que tarda una materia del manifiesto en completar su deriva. Cada
+     palabra lo multiplica por un factor propio, así que esto no fija el ritmo
+     de ninguna: fija el del conjunto, y es la única perilla para acelerar o
+     calmar el desorden entero. */
+  --dispersa-ritmo: 7s;
 }
 
 /* ——— Juego ———

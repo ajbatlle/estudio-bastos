@@ -3,9 +3,9 @@
 // tiene. No son documentos ni quejas, son las materias en las que se reparte su
 // propio trabajo: lo que genera para funcionar y nunca para mostrarse.
 //
-// Cae en vertical y sin fin, con el mismo recurso que la tira de logos: la
-// lista va dos veces y el desplazamiento de media tira deja el segundo juego
-// donde estaba el primero, así que el bucle no tiene costura.
+// La lista no se ordena ni se encuadra: se esparce por toda la pestaña y cada
+// palabra deriva por su cuenta, en su dirección y a su ritmo. La frase dice
+// «información dispersa» y la lista lo enseña en vez de contarlo.
 const materias = [
   'proyectos',
   'ventas',
@@ -17,10 +17,13 @@ const materias = [
   'métodos',
   'procesos',
   'protocolos',
+  'manuales',
   'patentes',
   'cifras',
   'resultados',
   'indicadores',
+  'memorias anuales',
+  'identidad gráfica',
   'clientes',
   'socios',
   'proveedores',
@@ -30,6 +33,55 @@ const materias = [
   'hitos',
   'aprendizajes',
 ];
+
+// Azar con semilla fija: el desorden se decide en el build y sale idéntico en
+// cada compilación. Con Math.random() cada despliegue movería las palabras de
+// sitio sin que nadie lo hubiera pedido, y el diff sería ruido puro.
+const crearAzar = (semilla: number) => () => {
+  semilla = (semilla + 0x6d2b79f5) | 0;
+  let t = Math.imul(semilla ^ (semilla >>> 15), 1 | semilla);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+const azar = crearAzar(20260819);
+
+const redondear = (n: number) => Math.round(n * 100) / 100;
+
+// El reparto sale de una rejilla con la celda desordenada, no de posiciones
+// sueltas al azar: al azar puro las palabras se apelmazan en un rincón y dejan
+// media pestaña vacía. La rejilla garantiza que ocupen todo; el temblor dentro
+// de cada celda quita la cuadrícula de la vista.
+const columnas = 5;
+const filas = Math.ceil(materias.length / columnas);
+
+const dispersas = materias.map((materia, i) => {
+  const x = (((i % columnas) + 0.5) / columnas) * 100 + (azar() - 0.5) * 14;
+  const y = ((Math.floor(i / columnas) + 0.5) / filas) * 100 + (azar() - 0.5) * 14;
+
+  // Las direcciones se reparten en abanico por el círculo completo, con un
+  // temblor que rompe la regularidad. Al azar puro se apelotonan: en una tirada
+  // salieron once de veinticinco hacia el mismo rincón, y once palabras yéndose
+  // juntas leen como una corriente, no como un desorden.
+  const angulo = ((i / materias.length) + (azar() - 0.5) / materias.length) * Math.PI * 2;
+  const alcance = 2.5 + azar() * 4.5;
+
+  // El margen se guarda contra la deriva, no contra el reparto: una palabra
+  // colocada justo en el borde se sale al derivar y aparece cortada por la
+  // mitad. El tope deja sitio para el viaje entero.
+  return {
+    materia,
+    x: redondear(Math.min(91, Math.max(9, x))),
+    y: redondear(Math.min(89, Math.max(11, y))),
+    dx: redondear(Math.cos(angulo) * alcance),
+    dy: redondear(Math.sin(angulo) * alcance),
+    // Cada palabra tarda lo suyo y arranca a destiempo (retraso negativo): con
+    // el mismo ritmo para todas el conjunto late a la vez y parece un latido
+    // ordenado, justo lo contrario de lo que la frase dice.
+    factor: redondear(0.7 + azar() * 1.3),
+    desfase: redondear(-azar() * 2),
+    giro: redondear((azar() - 0.5) * 12),
+  };
+});
 ---
 
 <span class="dispersa" data-dispersa>
@@ -38,11 +90,18 @@ const materias = [
   </button>
 
   {/* Decorativa: la lista ilustra la frase, no añade información que haya que
-      leer con lector de pantalla mientras cae. */}
-  <span class="lista" id="lista-dispersa" aria-hidden="true">
-    <span class="rodillo" style={`--materias: ${materias.length}`}>
-      {[...materias, ...materias].map((materia) => <span class="materia">{materia}</span>)}
-    </span>
+      leer con lector de pantalla mientras deriva. */}
+  <span class="campo" id="lista-dispersa" aria-hidden="true">
+    {
+      dispersas.map((d) => (
+        <span
+          class="materia"
+          style={`--x:${d.x}%;--y:${d.y}%;--dx:${d.dx}vmin;--dy:${d.dy}vmin;--factor:${d.factor};--desfase:${d.desfase};--giro:${d.giro}deg`}
+        >
+          {d.materia}
+        </span>
+      ))
+    }
   </span>
 </span>
 
@@ -81,28 +140,25 @@ const materias = [
     font-weight: var(--weight-bold);
   }
 
-  /* Mismo recuadro blanco que la tira de logos y el panel del equipo. */
-  .lista {
-    position: absolute;
-    top: calc(100% + 0.7em);
-    left: 0;
+  /* Ya no es un recuadro colgado de la frase: es la pestaña entera. Sin fondo
+     blanco ni sombra, porque no hay panel que separar del sitio.
+
+     `pointer-events: none` es lo que sostiene el gesto: la capa cubre el
+     documento completo, y sin esto se comería el hover del propio botón que la
+     abre, así que la lista parpadearía sin parar. */
+  .campo {
+    position: fixed;
+    inset: 0;
     z-index: 5;
     display: block;
-    width: min(52vw, 250px);
-    height: 11.5rem;
-    overflow: hidden;
+    pointer-events: none;
 
-    background: var(--white);
-    color: var(--color-brand);
-    border-radius: 8px;
-    box-shadow:
-      0 0 0 1px rgb(0 0 0 / 0.07),
-      0 1px 2px rgb(0 0 0 / 0.06),
-      0 6px 16px rgb(0 0 0 / 0.1),
-      0 20px 40px rgb(0 0 0 / 0.07);
+    color: var(--white);
 
-    /* Vive dentro del <h1>: hay que devolverle una escala de lectura. */
-    font-size: 0.9375rem;
+    /* Vive dentro del <h1>: hay que devolverle una escala de lectura, y aquí
+       más corta que la del panel viejo, para que quepan todas sueltas sin
+       chocar unas con otras. */
+    font-size: 0.8125rem;
     font-weight: var(--weight-regular);
     line-height: var(--leading-snug);
     letter-spacing: normal;
@@ -115,77 +171,91 @@ const materias = [
       visibility var(--transition-normal);
   }
 
-  /* Las palabras se desvanecen arriba y abajo en vez de cortarse a filo. La
-     máscara va en el rodillo y no en el recuadro, para no comerse las esquinas
-     redondeadas ni la sombra. */
-  .rodillo {
+  /* El manifiesto se echa atrás mientras las materias flotan por encima. Las
+     dos capas son blancas sobre el azul de marca: sin este velo se pisan y no
+     se lee ninguna de las dos. */
+  .campo::before {
+    content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column;
-    mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+    inset: 0;
+    background: var(--color-brand);
+    opacity: 0.9;
+  }
+
+  /* `--margen` es la mitad de la palabra más ancha más lo que viaja al derivar.
+     Sin él, el reparto coloca el centro y las palabras largas se salen cortadas
+     por el costado: la posición marca el centro, no el borde. En la pestaña
+     estrecha «memorias anuales» ocupa un tercio del ancho, así que el margen
+     que necesita ahí no se parece en nada al del escritorio. */
+  .materia {
+    --margen: 8vw;
+
+    position: absolute;
+    left: clamp(var(--margen), var(--x), calc(100% - var(--margen)));
+    top: var(--y);
+    white-space: nowrap;
+
     /* En reposo la animación existe pero está detenida: no gasta nada mientras
-       la lista no se ve. El tiempo va por palabra, para que el ritmo no dependa
-       de cuántas sean. */
-    animation: caer calc(var(--materias) * var(--dispersa-ritmo)) linear infinite;
+       la lista no se ve. */
+    animation: deriva calc(var(--dispersa-ritmo) * var(--factor)) ease-in-out
+      calc(var(--dispersa-ritmo) * var(--desfase)) infinite alternate;
     animation-play-state: paused;
   }
 
-  .materia {
-    flex: none;
-    padding: 0.42em 1.1rem;
-    white-space: nowrap;
-  }
-
-  @keyframes caer {
+  /* El `translate(-50%, -50%)` ancla la palabra por su centro: puesta por la
+     esquina, las largas se descuelgan hacia la derecha y el reparto se tuerce. */
+  @keyframes deriva {
     from {
-      transform: translateY(-50%);
+      transform: translate(-50%, -50%) rotate(var(--giro));
     }
     to {
-      transform: translateY(0);
+      transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--giro));
     }
   }
 
   @media (hover: hover) {
-    .dispersa:hover .lista,
-    .dispersa:focus-within .lista {
+    .dispersa:hover .campo,
+    .dispersa:focus-within .campo {
       opacity: 1;
       visibility: visible;
     }
 
-    .dispersa:hover .rodillo,
-    .dispersa:focus-within .rodillo {
+    .dispersa:hover .materia,
+    .dispersa:focus-within .materia {
       animation-play-state: running;
     }
   }
 
-  .dispersa[data-abierto] .lista {
+  .dispersa[data-abierto] .campo {
     opacity: 1;
     visibility: visible;
   }
 
-  .dispersa[data-abierto] .rodillo {
+  .dispersa[data-abierto] .materia {
     animation-play-state: running;
   }
 
-  /* Con movimiento reducido la lista se queda quieta y legible. */
+  /* Con movimiento reducido las palabras se quedan donde cayeron. El desorden
+     sigue estando: era del reparto, no del movimiento. */
   @media (prefers-reduced-motion: reduce) {
-    .rodillo {
+    .materia {
       animation: none;
-      transform: translateY(-50%);
+      transform: translate(-50%, -50%) rotate(var(--giro));
     }
   }
 
-  /* En pantallas estrechas deja de colgar de la frase y se ancla abajo, como
-     los demás paneles: anclada al texto se saldría por un costado. */
+  /* En pantallas estrechas la pestaña es más chica y las palabras largas se
+     tocan: se encogen un punto más y se apartan más del borde. Ahí sí se rozan
+     algunas, y se quedan rozándose: el desorden es lo que la frase enseña, y
+     una palabra medio tapada por otra sigue diciéndolo. Cortada por el filo de
+     la pestaña, en cambio, solo parece rota. */
   @media (max-width: 48rem) {
-    .lista {
-      position: fixed;
-      inset: auto 1rem 1.25rem auto;
-      width: min(60vw, 220px);
-      height: 9.5rem;
+    .campo {
+      font-size: 0.75rem;
+    }
+
+    .materia {
+      --margen: 25vw;
     }
   }
 </style>
