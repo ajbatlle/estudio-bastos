@@ -189,9 +189,8 @@ const dispersas = materias.map((materia, i) => {
   /* Ya no es un recuadro colgado de la frase: es la pestaña entera. Sin fondo
      blanco ni sombra, porque no hay panel que separar del sitio.
 
-     `pointer-events: none` es lo que sostiene el gesto: la capa cubre el
-     documento completo, y sin esto se comería el hover del propio botón que la
-     abre, así que la lista parpadearía sin parar. */
+     En reposo no se come el puntero: la capa cubre el documento completo y
+     está ahí siempre, así que sin esto tapa el sitio entero sin verse. */
   .campo {
     position: fixed;
     inset: 0;
@@ -279,9 +278,17 @@ const dispersas = materias.map((materia, i) => {
     transform: translateY(6px);
   }
 
+  /* Abierta sí se lo come, y eso es lo que sostiene el gesto: mientras las
+     materias derivan sobre el velo, lo de debajo está retirado y no esperando
+     el puntero. Sin esto el equipo, las marcas y el menú siguen abriendo sus
+     paneles a ciegas detrás de la capa, contra una frase que ya está diciendo
+     otra cosa. Lo único que queda por hacer aquí es cerrar, y de eso se ocupa
+     el clic. */
   .dispersa[data-abierto] .campo {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
+    cursor: var(--cursor);
   }
 
   .dispersa[data-abierto] .materia {
@@ -332,7 +339,10 @@ const dispersas = materias.map((materia, i) => {
       const destino = evento.target as HTMLElement;
       const raiz = destino.closest<HTMLElement>('[data-dispersa]');
 
-      if (!raiz) return cerrar();
+      // Abierta, la capa tapa el documento entero, el propio botón incluido:
+      // el clic de fuera y el que vuelve sobre la frase llegan los dos aquí, y
+      // los dos piden lo mismo.
+      if (!raiz || destino.closest('.campo')) return cerrar();
       if (!destino.closest('button')) return;
       if (abierta === raiz) return cerrar();
 
