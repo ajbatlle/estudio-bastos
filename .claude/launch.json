@@ -4,9 +4,20 @@
     {
       "name": "bastos-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 4321,
       "autoPort": true
+    },
+    {
+      "name": "diagnostico",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "../estrategia-bastos/build/serve.js"
+      ],
+      "port": 4177
     }
   ]
 }
