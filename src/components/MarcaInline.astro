@@ -113,8 +113,9 @@ const archivo = {
     animation-direction: reverse;
   }
 
-  /* Anticipo del estado interactivo: cuando pasen a ser botones o disparen un
-     hovertext, la reacción ya está y es suave. */
+  /* La marca reacciona al puntero por dos vías a la vez: crece un punto y se
+     acelera. El tamaño se resuelve aquí; el ritmo del giro, abajo en el script,
+     porque en CSS no se puede cambiar sin partir la vuelta en curso. */
   .marca:hover {
     transform: scale(1.18);
   }
@@ -184,6 +185,39 @@ const archivo = {
   // vive en su propio componente, montado en el layout.
   if (!(window as any).__perillasMontadas) {
     (window as any).__perillasMontadas = true;
+
+    // Al pasar por encima, la marca gira al triple. Se hace por la API de
+    // animaciones y no con `animation-duration` en CSS porque cambiar la
+    // duración a media vuelta recalcula el progreso sobre la duración nueva y
+    // la marca pega un salto de ángulo; `playbackRate` respeta el punto exacto
+    // del giro —y el sentido inverso de asterisco y flor— y solo cambia el
+    // ritmo. Al salir vuelve a su velocidad, también sin salto.
+    const TRIPLE = 3;
+
+    const ritmo = (marca: Element, factor: number) => {
+      marca
+        .querySelector('img')
+        ?.getAnimations()
+        .forEach((giro) => {
+          giro.playbackRate = factor;
+        });
+    };
+
+    // Solo con puntero de verdad. En táctil el toque dejaría la marca acelerada
+    // sin nadie encima, que es justo lo contrario de lo que dice el gesto.
+    if (matchMedia('(hover: hover)').matches) {
+      document.addEventListener('pointerover', (evento) => {
+        const marca = (evento.target as HTMLElement).closest('.marca');
+        if (marca) ritmo(marca, TRIPLE);
+      });
+
+      document.addEventListener('pointerout', (evento) => {
+        const marca = (evento.target as HTMLElement).closest('.marca');
+        // Pasar del <img> a la etiqueta también dispara `pointerout`, y ahí el
+        // puntero no ha salido de la marca: sigue dentro, y sigue acelerada.
+        if (marca && !marca.contains(evento.relatedTarget as Node)) ritmo(marca, 1);
+      });
+    }
 
     const hora = () =>
       Number(
