@@ -5,6 +5,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Sonido from '../components/Sonido.astro';
 import Juego from '../components/Juego.astro';
+import Iman from '../components/Iman.astro';
 
 interface Props {
   /** Título de la pestaña. Se le añade el sufijo de marca. */
@@ -76,6 +77,10 @@ const titulo = tituloExacto ? title : `${title} — Estudio Bastos`;
         juego aparta todo lo demás, cabecera aparte. */}
     <Sonido />
     <Juego />
+
+    {/* El imán del puntero sobre los botones. Va en el layout porque los que
+        lo llevan —la píldora y el diálogo— están en todas las páginas. */}
+    <Iman />
   </body>
 </html>
 

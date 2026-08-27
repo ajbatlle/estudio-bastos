@@ -1,0 +1,151 @@
+---
+// Imán del puntero. No pinta nada: mueve hacia el cursor los elementos
+// marcados con `data-iman` cuando el puntero entra en su radio, y los devuelve
+// a su sitio al salir.
+//
+// Va solo en los botones que están aislados: la píldora de la cabecera y los
+// del diálogo de agenda. En el texto del manifiesto no —mover una palabra
+// respecto de su línea se lee como un fallo de maquetación, no como un gesto—,
+// ni en los controles de los afiches, que van pegados unos a otros y ahí el
+// tirón es ruido.
+//
+// El desplazamiento va en `translate`, que no toca el flujo: el hueco del
+// botón se queda donde estaba y nada de alrededor se mueve. Y va cuadro a
+// cuadro en vez de por transición, porque la posición depende del puntero en
+// cada instante y una transición siempre llegaría tarde.
+---
+
+<script>
+  if (!(window as any).__imanMontado) {
+    (window as any).__imanMontado = true;
+
+    // Cuánta parte de la distancia al puntero recorre el botón en el punto más
+    // fuerte del campo. Cada elemento puede pedir la suya en `data-iman`.
+    const FUERZA = 0.55;
+    // Aire alrededor del botón donde ya se nota el tirón, en píxeles.
+    const ALCANCE = 64;
+    // Tope de desplazamiento: por lejos que quede el puntero, el botón no se
+    // despega más que esto de su sitio.
+    const TOPE = 22;
+    // Cuánto se acerca a su objetivo en cada cuadro. Con esto el movimiento
+    // arranca y frena solo, sin necesidad de una curva.
+    const SEGUIMIENTO = 0.18;
+
+    type Iman = { el: HTMLElement; fuerza: number; x: number; y: number };
+
+    let imanes: Iman[] = [];
+    let puntero: { x: number; y: number } | null = null;
+    let cuadro = 0;
+
+    // El puntero grueso no tiene posición mientras no toca: en táctil el imán
+    // no significa nada. Y si el sistema pide menos movimiento, tampoco.
+    const fino = () =>
+      matchMedia('(hover: hover) and (pointer: fine)').matches &&
+      !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const reunir = () => {
+      imanes = [...document.querySelectorAll<HTMLElement>('[data-iman]')].map((el) => ({
+        el,
+        fuerza: Number(el.dataset.iman) || FUERZA,
+        x: 0,
+        y: 0,
+      }));
+    };
+
+    const pintar = () => {
+      cuadro = 0;
+      let vivo = false;
+
+      for (const iman of imanes) {
+        const caja = iman.el.getBoundingClientRect();
+
+        // Un botón dentro de un diálogo cerrado no ocupa nada: se salta.
+        if (!caja.width) {
+          iman.x = iman.y = 0;
+          continue;
+        }
+
+        let metaX = 0;
+        let metaY = 0;
+
+        if (puntero) {
+          // La caja ya viene desplazada por el propio imán; el centro de
+          // reposo es el que tendría sin ese desplazamiento.
+          const cx = caja.left + caja.width / 2 - iman.x;
+          const cy = caja.top + caja.height / 2 - iman.y;
+          const dx = puntero.x - cx;
+          const dy = puntero.y - cy;
+
+          // Radio elíptico: el campo sigue la forma del botón —ancho en una
+          // píldora, no un círculo que sobra por arriba y por abajo.
+          const rx = caja.width / 2 + ALCANCE;
+          const ry = caja.height / 2 + ALCANCE;
+          const lejos = Math.hypot(dx / rx, dy / ry);
+
+          if (lejos < 1) {
+            // La curva: el tirón casi no existe en el borde del campo y
+            // aprieta cerca. Lineal se sentía como un salto al entrar.
+            const tiron = (1 - lejos) ** 1.5 * iman.fuerza;
+            metaX = Math.max(-TOPE, Math.min(TOPE, dx * tiron));
+            metaY = Math.max(-TOPE, Math.min(TOPE, dy * tiron));
+          }
+        }
+
+        iman.x += (metaX - iman.x) * SEGUIMIENTO;
+        iman.y += (metaY - iman.y) * SEGUIMIENTO;
+
+        // Por debajo de un cuarto de píxel no se ve nada: se posa en cero y
+        // deja de pedir cuadros.
+        if (Math.abs(iman.x) < 0.25 && Math.abs(iman.y) < 0.25 && !metaX && !metaY) {
+          iman.x = iman.y = 0;
+          iman.el.style.translate = '';
+        } else {
+          iman.el.style.translate = `${iman.x.toFixed(2)}px ${iman.y.toFixed(2)}px`;
+          vivo = true;
+        }
+      }
+
+      // Se sigue pintando mientras algo esté fuera de su sitio o el puntero
+      // ande cerca; en reposo el bucle se apaga del todo.
+      if (vivo) cuadro = requestAnimationFrame(pintar);
+    };
+
+    const despertar = () => {
+      if (!cuadro) cuadro = requestAnimationFrame(pintar);
+    };
+
+    document.addEventListener(
+      'pointermove',
+      (evento) => {
+        if (evento.pointerType !== 'mouse' || !fino()) return;
+        puntero = { x: evento.clientX, y: evento.clientY };
+        despertar();
+      },
+      { passive: true },
+    );
+
+    // Si el puntero se va de la ventana, los botones vuelven a su sitio.
+    document.documentElement.addEventListener('pointerleave', () => {
+      puntero = null;
+      despertar();
+    });
+
+    // Al desplazar la página el puntero no se mueve, pero los botones sí:
+    // hay que recalcular o se quedan pegados a una distancia vieja.
+    addEventListener('scroll', despertar, { passive: true });
+
+    // Los botones del diálogo ya están en el DOM aunque el diálogo esté
+    // cerrado: entran en la lista desde el principio y el bucle los ignora
+    // mientras no tengan caja.
+    const montar = () => {
+      reunir();
+      despertar();
+    };
+
+    // La primera pasada va aquí y no solo en `astro:page-load`: este guion se
+    // ejecuta como módulo y puede llegar después de que ese aviso ya haya
+    // sonado, y entonces la lista se quedaría vacía para siempre.
+    montar();
+    document.addEventListener('astro:page-load', montar);
+  }
+</script>

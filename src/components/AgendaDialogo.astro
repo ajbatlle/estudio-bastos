@@ -20,7 +20,7 @@ import CorreoCopiable from './CorreoCopiable.astro';
 ---
 
 <dialog class="agenda" data-agenda aria-labelledby="agenda-titulo">
-  <button class="cerrar" data-agenda-cerrar aria-label="Cerrar">
+  <button class="cerrar" data-agenda-cerrar aria-label="Cerrar" data-iman="0.45">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
       <path d="M6 6l12 12M18 6L6 18" />
     </svg>
@@ -71,13 +71,13 @@ import CorreoCopiable from './CorreoCopiable.astro';
 
     <p class="error" data-agenda-error hidden></p>
 
-    <button type="submit" data-agenda-enviar>Enviar propuesta</button>
+    <button type="submit" data-agenda-enviar data-iman>Enviar propuesta</button>
   </form>
 
   <div class="listo" data-agenda-listo hidden>
     <p class="listo-titulo">Recibido.</p>
     <p>Te respondemos a tu correo para confirmar el horario.</p>
-    <button type="button" data-agenda-cerrar>Cerrar</button>
+    <button type="button" data-agenda-cerrar data-iman>Cerrar</button>
   </div>
 
   <p class="alterna">
