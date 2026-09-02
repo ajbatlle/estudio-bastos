@@ -89,6 +89,9 @@
      relevar a la siguiente. Dos segundos y medio dan tiempo a mirar sin que
      la lámina se vuelva un salvapantallas. */
   --pase-turno: 2.5s;
+  /* Los dos pases de «Qué hacemos» van más despacio que el de la portada: ahí
+     hay una sola imagen que mirar y aquí, tres recuadros a la vez. */
+  --pase-lento: 4s;
   --pase-fundido: 0.9s;
 
   --cursor-blanco: url('marca/cursor-blanco.svg') 16 16, url('marca/cursor-blanco.png') 16 16, auto;
@@ -984,6 +987,31 @@ html:not([data-lamina='4']) .tipo-barra i { animation: none; scale: 0 1; }
 .pieza-demo:hover .marco,
 .pieza-demo:focus-visible .marco { outline-color: rgb(255 255 255 / 0.75); }
 
+/* El pase dentro de un recuadro: mismas capas y mismo acercamiento que en la
+   portada, pero recortando a la caja como hace el video de al lado. */
+.pieza-demo .pase {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.pieza-demo .pase img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--pase-fundido) var(--ease);
+  scale: 1.02;
+}
+
+.pieza-demo .pase img[data-viva] {
+  opacity: 1;
+  /* El acercamiento dura más que el turno para que no llegue a detenerse. */
+  animation: acercar calc(var(--pase-lento) + var(--pase-fundido) * 2) linear forwards;
+}
+
 .pieza-demo video {
   position: absolute;
   inset: 0;
@@ -1187,16 +1215,15 @@ html:not([data-lamina='4']) .tipo-barra i { animation: none; scale: 0 1; }
         <li>
           <a class="pieza-demo" href="memoria/" target="_blank" rel="noopener">
             <span class="marco">
-              <video src="media/smu-memoria.mp4" loop muted playsinline
-                     aria-hidden="true" data-demo></video>
+              <span class="pase" data-pase-pub aria-hidden="true"></span>
             </span>
             <span class="pieza-rotulo">Publicaciones institucionales</span>
           </a>
         </li>
         <li>
-          <a class="pieza-demo" href="https://www.huellalocal.cl/editor-grafico/" target="_blank" rel="noopener">
+          <a class="pieza-demo" href="https://www.huellalocal.cl/kit-dialogo/" target="_blank" rel="noopener">
             <span class="marco">
-              <video src="media/smu-editor.mp4" loop muted playsinline
+              <video src="media/smu-kit.mp4" loop muted playsinline
                      aria-hidden="true" data-demo></video>
             </span>
             <span class="pieza-rotulo">Herramienta interna</span>
@@ -1205,8 +1232,7 @@ html:not([data-lamina='4']) .tipo-barra i { animation: none; scale: 0 1; }
         <li>
           <a class="pieza-demo" href="https://estudiobastos.com/" target="_blank" rel="noopener">
             <span class="marco">
-              <video src="media/smu-sitio.mp4" loop muted playsinline
-                     aria-hidden="true" data-demo></video>
+              <span class="pase" data-pase-cuenta aria-hidden="true"></span>
             </span>
             <span class="pieza-rotulo">Cuenta mensual</span>
           </a>
@@ -1310,7 +1336,8 @@ html:not([data-lamina='4']) .tipo-barra i { animation: none; scale: 0 1; }
     if (actual === 3) arrancarRuta();
     else { pararRuta(); fase = -1; if (rutaMetodo) pintarFase(); }
 
-    actual === 5 ? arrancarDemos() : pararDemos();
+    if (actual === 5) { arrancarDemos(); arrancarPasesDemo(); }
+    else { pararDemos(); pararPasesDemo(); }
     actual === 6 ? arrancarCierre() : pararCierre();
 
     pintarRuta();
@@ -1336,107 +1363,112 @@ html:not([data-lamina='4']) .tipo-barra i { animation: none; scale: 0 1; }
   });
 
   /* ════════════════════════════════════════════════════════════════════════
-     PASE DE PORTAFOLIO
-     Las piezas se relevan solas en la portada. El orden es aleatorio pero sin
-     repetir: se baraja la lista entera y se recorre; cuando se acaba, se vuelve
-     a barajar. Con azar tirada a tirada saldría la misma pieza dos veces
-     seguidas y parecería que se ha atascado.
+     PASES DE IMÁGENES
+     El mismo mecanismo en tres sitios: la portada y dos de los tres recuadros
+     de «Qué hacemos». Las piezas se relevan solas con fundido cruzado y cada
+     una se va acercando mientras está a la vista.
+
+     El orden es aleatorio pero sin repetir: se baraja la lista entera y se
+     recorre; cuando se acaba, se vuelve a barajar. Con azar tirada a tirada
+     saldría la misma pieza dos veces seguidas y parecería que se ha atascado.
+
+     Dos capas montadas y nada más: el fundido cruzado necesita las dos, y
+     cincuenta nodos en el DOM para enseñar una sola sobran.
      ════════════════════════════════════════════════════════════════════════ */
 
+  const crearPase = (caja, carpeta, piezas, turno) => {
+    if (!caja) return { arrancar: () => {}, parar: () => {} };
+
+    let baraja = [];
+    let reloj = null;
+    let capas = [];
+
+    const siguiente = () => {
+      if (!baraja.length) {
+        baraja = [...piezas];
+        for (let i = baraja.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [baraja[i], baraja[j]] = [baraja[j], baraja[i]];
+        }
+      }
+      return baraja.pop();
+    };
+
+    const pasar = () => {
+      const entra = capas[0].hasAttribute('data-viva') ? capas[1] : capas[0];
+      const sale = entra === capas[0] ? capas[1] : capas[0];
+      entra.src = `media/${carpeta}${siguiente()}.webp`;
+      entra.setAttribute('data-viva', '');
+      sale.removeAttribute('data-viva');
+    };
+
+    return {
+      arrancar() {
+        if (reloj) return;
+        if (!capas.length) {
+          capas = [0, 1].map(() => {
+            const img = document.createElement('img');
+            img.alt = '';
+            img.decoding = 'async';
+            caja.appendChild(img);
+            return img;
+          });
+          capas[0].src = `media/${carpeta}${siguiente()}.webp`;
+          capas[0].setAttribute('data-viva', '');
+        }
+        /* Con `reduced-motion` se queda una pieza fija: el pase es movimiento
+           que nadie ha pedido. */
+        if (quieto()) return;
+        reloj = setInterval(pasar, turno);
+      },
+      parar() {
+        clearInterval(reloj);
+        reloj = null;
+      },
+    };
+  };
+
+  const seg = (v, alt) =>
+    (parseFloat(getComputedStyle(document.documentElement).getPropertyValue(v)) || alt) * 1000;
+
+  /* La portada, con el portafolio del estudio. */
   const PIEZAS = [
     '4687b037-5682-4d0d-84f6-9583c7c7c028-rw-1920',
     '7e3d94a9-975c-4bda-b746-0f42fdd48212-rw-1920',
     'a81f7949-8680-4e76-a11a-3e9e18ee3b1f-rw-1920',
-    'catastro',
-    'catastro1',
-    'concausa',
-    'concausa-5',
-    'concausa1',
-    'concausa2',
-    'concausa3',
-    'concausa4',
-    'concausa6',
-    'cuentos1',
-    'cuentos2',
-    'cuentos3',
-    'fundacion-vivienda',
-    'fundacion-vivienda-3',
-    'fundacion-vivienda-4',
-    'fundacion-vivienda2',
-    'genesal',
-    'genesal1',
-    'huella-local',
-    'huella-local-4',
-    'huella-local1',
-    'huella-local2',
-    'huella-local3',
-    'meric',
-    'meric1',
-    'wift1',
-    'wift2',
-    'wift4',
+    'catastro', 'catastro1', 'concausa', 'concausa-5', 'concausa1', 'concausa2',
+    'concausa3', 'concausa4', 'concausa6', 'cuentos1', 'cuentos2', 'cuentos3',
+    'fundacion-vivienda', 'fundacion-vivienda-3', 'fundacion-vivienda-4',
+    'fundacion-vivienda2', 'genesal', 'genesal1', 'huella-local',
+    'huella-local-4', 'huella-local1', 'huella-local2', 'huella-local3',
+    'meric', 'meric1', 'wift1', 'wift2', 'wift4',
   ];
 
-  const pase = $('[data-pase]');
-  const TURNO = (parseFloat(getComputedStyle(document.documentElement)
-                   .getPropertyValue('--pase-turno')) || 3) * 1000;
+  /* Los dos recuadros de «Qué hacemos» que no llevan video. */
+  const PIEZAS_PUB = ['catastro1', 'genesal1', 'meric'];
 
-  let baraja = [];
-  let relojPase = null;
-  /* Dos imágenes montadas y nada más: el fundido cruzado necesita las dos, y
-     cincuenta nodos en el DOM para enseñar una sola sobran. */
-  let capas = [];
+  const PIEZAS_CUENTA = [
+    '1-02', '1-03', '1-04', '1-05', '1-06', '1-07', '1-08', '1-09', '1-10',
+    '1-11', '1-12', '1-13', '1-14', '1-15', '1-16', '1-mesa-de-trabajo-1',
+  ];
 
-  const barajarPiezas = () => {
-    baraja = [...PIEZAS];
-    for (let i = baraja.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [baraja[i], baraja[j]] = [baraja[j], baraja[i]];
-    }
-  };
+  const pasePortada = crearPase($('[data-pase]'), '', PIEZAS, seg('--pase-turno', 2.5));
+  const pasePub = crearPase($('[data-pase-pub]'), 'pub/', PIEZAS_PUB, seg('--pase-lento', 4));
+  const paseCuenta = crearPase($('[data-pase-cuenta]'), 'cuenta/', PIEZAS_CUENTA, seg('--pase-lento', 4));
 
-  const siguientePieza = () => {
-    if (!baraja.length) barajarPiezas();
-    return baraja.pop();
-  };
+  const arrancarPase = () => pasePortada.arrancar();
+  const pararPase = () => pasePortada.parar();
 
-  const pasar = () => {
-    const entra = capas[0].hasAttribute('data-viva') ? capas[1] : capas[0];
-    const sale = entra === capas[0] ? capas[1] : capas[0];
-    entra.src = `media/${siguientePieza()}.webp`;
-    entra.setAttribute('data-viva', '');
-    sale.removeAttribute('data-viva');
-  };
+  /* Nada se mueve contra una pantalla que nadie mira: los dos pases de los
+     recuadros van con su lámina, igual que los videos. */
+  const arrancarPasesDemo = () => { pasePub.arrancar(); paseCuenta.arrancar(); };
+  const pararPasesDemo = () => { pasePub.parar(); paseCuenta.parar(); };
 
-  const arrancarPase = () => {
-    if (relojPase) return;
-    if (!capas.length) {
-      capas = [0, 1].map(() => {
-        const img = document.createElement('img');
-        img.alt = '';
-        img.decoding = 'async';
-        pase.appendChild(img);
-        return img;
-      });
-      capas[0].src = `media/${siguientePieza()}.webp`;
-      capas[0].setAttribute('data-viva', '');
-    }
-    /* Con `reduced-motion` la portada enseña una pieza y se queda quieta: el
-       pase es movimiento que nadie ha pedido. */
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    relojPase = setInterval(pasar, TURNO);
-  };
-
-  /* El pase se para al salir de la portada: nada anima contra una pantalla que
-     no se está mirando. */
-  const pararPase = () => {
-    clearInterval(relojPase);
-    relojPase = null;
-  };
-
-  /* Y también cuando la ventana se va a segundo plano, por lo mismo. */
+  /* Y todos, cuando la ventana se va a segundo plano. */
   document.addEventListener('visibilitychange', () => {
-    document.hidden ? pararPase() : (actual === 0 && arrancarPase());
+    if (document.hidden) { pararPase(); pararPasesDemo(); return; }
+    if (actual === 0) arrancarPase();
+    if (actual === 5) arrancarPasesDemo();
   });
 
   /* ════════════════════════════════════════════════════════════════════════
