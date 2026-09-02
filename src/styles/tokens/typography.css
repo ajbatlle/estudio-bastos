@@ -5,7 +5,7 @@
  *   Load via: https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap
  *
  * Nota: el logotipo "~bastos~" usa una tipografía propietaria (trazados en SVG).
- *   Plus Jakarta Sans Bold 700 / ExtraBold 800 se usa para todos los titulares de display.
+ *   Plus Jakarta Sans Bold 700 lleva los titulares, siempre en caja baja.
  */
 
 :root {
@@ -53,7 +53,8 @@
   --tracking-normal:   0em;
   --tracking-wide:     0.05em;
   --tracking-wider:    0.1em;
-  --tracking-caps:     0.15em;   /* "DISEÑO Y COMUNICACIONES" style */
+  /* `--tracking-caps` vivía aquí, para rótulos en versales. Se borró con ellos:
+     el sitio va entero en caja baja y no quedaba nadie usándolo. */
   --tracking-ultra:    0.25em;
 
   /* ——— Line heights ——— */
