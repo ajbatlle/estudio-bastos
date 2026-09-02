@@ -1375,12 +1375,12 @@ html:not([data-lamina='4']) .tipo-barra i { animation: none; scale: 0 1; }
      Dos capas montadas y nada más: el fundido cruzado necesita las dos, y
      cincuenta nodos en el DOM para enseñar una sola sobran.
      ════════════════════════════════════════════════════════════════════════ */
-
   const crearPase = (caja, carpeta, piezas, turno) => {
     if (!caja) return { arrancar: () => {}, parar: () => {} };
 
     let baraja = [];
     let reloj = null;
+    let vivo = false;
     let capas = [];
 
     const siguiente = () => {
@@ -1394,17 +1394,52 @@ html:not([data-lamina='4']) .tipo-barra i { animation: none; scale: 0 1; }
       return baraja.pop();
     };
 
-    const pasar = () => {
+    const ruta = (n) => `media/${carpeta}${n}.webp`;
+
+    /* La imagen se descarga y se decodifica ANTES de mostrarla. Sin esta espera,
+       la capa que entra se hacía visible con la pieza que le había tocado dos
+       turnos atrás —todavía pintada en ella— y saltaba a la nueva al terminar de
+       cargar: de ahí el destello de una imagen que duraba menos de un segundo. */
+    const cargar = async (nombre) => {
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = ruta(nombre);
+      try { await img.decode(); } catch { /* una pieza que falle no corta el pase */ }
+      return nombre;
+    };
+
+    let enCamino = null;
+
+    const pasar = async () => {
+      const nombre = await (enCamino ?? cargar(siguiente()));
+      /* Mientras se cargaba, el pase pudo pararse —se cambió de lámina o la
+         ventana pasó a segundo plano—: entonces no se releva nada. */
+      if (!vivo) return;
+
       const entra = capas[0].hasAttribute('data-viva') ? capas[1] : capas[0];
       const sale = entra === capas[0] ? capas[1] : capas[0];
-      entra.src = `media/${carpeta}${siguiente()}.webp`;
+      entra.src = ruta(nombre);
       entra.setAttribute('data-viva', '');
       sale.removeAttribute('data-viva');
+
+      // La siguiente se va cargando mientras esta se deja ver.
+      enCamino = cargar(siguiente());
+    };
+
+    /* El reloj se encadena en vez de correr por su cuenta: cada pieza cuenta su
+       turno desde que está a la vista, no desde que se pidió. Con `setInterval`,
+       lo que tardara en cargar se descontaba de su tiempo en pantalla. */
+    const ciclo = async () => {
+      await pasar();
+      if (!vivo) return;
+      reloj = setTimeout(ciclo, turno);
     };
 
     return {
-      arrancar() {
-        if (reloj) return;
+      async arrancar() {
+        if (vivo) return;
+        vivo = true;
+
         if (!capas.length) {
           capas = [0, 1].map(() => {
             const img = document.createElement('img');
@@ -1413,16 +1448,21 @@ html:not([data-lamina='4']) .tipo-barra i { animation: none; scale: 0 1; }
             caja.appendChild(img);
             return img;
           });
-          capas[0].src = `media/${carpeta}${siguiente()}.webp`;
+          const primera = await cargar(siguiente());
+          if (!vivo) return;
+          capas[0].src = ruta(primera);
           capas[0].setAttribute('data-viva', '');
+          enCamino = cargar(siguiente());
         }
+
         /* Con `reduced-motion` se queda una pieza fija: el pase es movimiento
            que nadie ha pedido. */
         if (quieto()) return;
-        reloj = setInterval(pasar, turno);
+        reloj = setTimeout(ciclo, turno);
       },
       parar() {
-        clearInterval(reloj);
+        vivo = false;
+        clearTimeout(reloj);
         reloj = null;
       },
     };
