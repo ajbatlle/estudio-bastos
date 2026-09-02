@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="es" data-textura="medio">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Se comparte por enlace, no se busca. -->
+<meta name="robots" content="noindex, nofollow">
+<!-- Uno de los cuatro elementos de la marca, en el azul de los archivos de
+     marca. El de los cuatro círculos y no el asterisco ni la flor: a 16 píxeles
+     los otros pierden el trazo fino y se vuelven una mancha. -->
+<link rel="icon" type="image/svg+xml" href="marca/favicon.svg">
+<title>Bastos para SMU</title>
+
+<style>
+/* ──────────────────────────────────────────────────────────────────────────
+   Bastos × SMU — secuencia de presentación
+   Registro: MARCA. Habla en nombre del estudio, así que manda el sistema del
+   sitio: mesh azul-negro con grano, plano, sin radio, cursor isotipo,
+   `difference` en los titulares, movimiento austero.
+
+   Los tokens son los de `estudio-bastos/src/styles/tokens/`, copiados aquí y
+   no importados a propósito: esta pieza se abre desde un disco en una sala de
+   reunión y no puede depender de que haya red ni build.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* La variable, no el CDN: una petición a un tercero en una sala de reunión con
+   wifi de invitados es un titular sin tipografía. */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('fuentes/PlusJakartaSans-Variable.woff2') format('woff2-variations');
+}
+
+:root {
+  --blue-100: oklch(43% 0.21 262deg);
+  --blue-90:  oklch(37% 0.19 262deg);
+  --white: #ffffff;
+  --black: #0a0a0a;
+  --gray-80: #333333;
+  --gray-60: #666666;
+  --gray-20: #cccccc;
+  --gray-5:  #f2f2f2;
+
+  --surface-brand: var(--blue-100);
+  --text-on-brand: var(--white);
+
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  /* La monoespaciada solo aparece en los nombres de archivo del censo: son la
+     prueba citada tal cual se publicó, y en la de texto no se leerían como cita. */
+  --font-mono: 'Courier New', monospace;
+
+  --tracking-tight: -0.02em;
+  --tracking-caps:   0.15em;
+  --leading-tight: 1.1;
+  --leading-normal: 1.5;
+
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-fast:   0.25s var(--ease);
+  --transition-normal: 0.45s var(--ease);
+  --transition-slow:   0.7s  var(--ease);
+  --opacity-hover: 0.75;
+
+  /* El sistema es plano y sin radio; los contenedores de media son la excepción
+     declarada, y ahí el radio es 8px. */
+  --radius-md: 8px;
+  --radius-pill: 9999px;
+
+  /* ——— Aire ———
+   * Los mismos márgenes del sitio, copiados de `Header.astro`, `Footer.astro` y
+   * `.container` de `global.css`. Van contra el ANCHO de pantalla (vw) y no
+   * contra el alto: es lo que hace que el bloque respire igual en un portátil
+   * que en un proyector, y lo que aquí estaba mal —iban en vh y en un 16:9 bajo
+   * dejaban el logotipo pegado al borde—.
+   * La cabecera lleva menos aire abajo que arriba, a propósito: acerca el
+   * contenido a la cabecera en vez de dejarla flotando. */
+  --aire-cabecera-arriba: clamp(1.5rem, 4.2vw, 5rem);
+  --aire-cabecera-abajo:  clamp(1.1rem, 2.9vw, 3.4rem);
+  --alto-logo:            clamp(18px, 1.78vw, 36px);
+  --aire-pie:             clamp(1.25rem, 2.4vw, 2.25rem);
+
+  /* Ritmos con nombre propio: los comparten el CSS y el guion. El cerrojo de
+     la rueda se mide contra `--paso`; si se cambia aquí y no allí, un golpe de
+     trackpad vuelve a llevarse tres pantallas por delante. */
+  --paso: 0.62s;
+
+  /* El pase de portafolio: lo que dura cada pieza a la vista y lo que tarda en
+     relevar a la siguiente. Dos segundos y medio dan tiempo a mirar sin que
+     la lámina se vuelva un salvapantallas. */
+  --pase-turno: 2.5s;
+  --pase-fundido: 0.9s;
+
+  --cursor-blanco: url('marca/cursor-blanco.svg') 16 16, url('marca/cursor-blanco.png') 16 16, auto;
+  --cursor-azul:   url('marca/cursor-azul.svg')   16 16, url('marca/cursor-azul.png')   16 16, auto;
+  --cursor: var(--cursor-blanco);
+
+  --mesh:
+    radial-gradient(75% 55% at 12% 8%, oklch(48% 0.2 262 / 0.55), transparent 62%),
+    radial-gradient(65% 60% at 88% 18%, oklch(40% 0.2 262 / 0.5), transparent 60%),
+    radial-gradient(85% 75% at 78% 100%, oklch(17% 0.07 262 / 0.72), transparent 66%),
+    radial-gradient(70% 65% at 2% 96%, oklch(21% 0.09 262 / 0.6), transparent 62%);
+
+  /* La intensidad del grano vive dentro del SVG y no se puede sacar a una
+     variable: de ahí que haya un azulejo por nivel en vez de un número. */
+  --grano-medio: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncG type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncB type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncA type='linear' slope='0' intercept='0.22'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grano-alto: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncG type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncB type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncA type='linear' slope='0' intercept='0.45'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grano: var(--grano-medio);
+}
+
+/* Los ajustes se marcan en <html> y no en <body>: es donde el sitio del estudio
+   los marca, y así una futura navegación no se los lleva por delante. */
+html[data-textura='limpio'] { --grano: none; }
+html[data-textura='medio']  { --grano: var(--grano-medio); }
+html[data-textura='alto']   { --grano: var(--grano-alto); }
+
+/* La variante de noche del sitio no existe aquí a propósito: ver el bloque de
+   ambiente al final del guion. */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Casi todos los controles de esta página empiezan por `all: unset`, para que no
+   se lean como botones del navegador sino como la pieza que son. Eso resetea
+   también `box-sizing`, así que cada uno lo devuelve a `border-box` en su propia
+   regla: con `content-box`, un control de ancho 100% y relleno se sale de su
+   caja. No se puede arreglar aquí — una regla de tipo pierde contra la clase que
+   lleva el `all`. */
+
+/* `hidden` tiene que ganarle a cualquier `display` de componente: un cajón con
+   `display: grid` se quedaría abierto para siempre. */
+[hidden] { display: none !important; }
+
+img, svg { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* El mesh y el grano van como capas del fondo del propio body, no como
+   elementos aparte. Es lo que permite que lo que va en `mix-blend-mode:
+   difference` produzca color: un elemento fijo se promueve a su propia capa de
+   composición y la fusión deja de alcanzarlo. */
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: var(--font-sans);
+  font-size: clamp(0.95rem, 0.55rem + 0.62vw, 1.12rem);
+  line-height: var(--leading-normal);
+  color: var(--text-on-brand);
+  background-color: var(--surface-brand);
+  background-image: var(--grano), var(--mesh);
+  background-size: 160px 160px, auto, auto, auto, auto;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-blend-mode: overlay, normal, normal, normal, normal;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  cursor: var(--cursor);
+}
+
+/* Se invierte en la variable y no en la propiedad: así lo heredan los botones
+   de dentro de cada lámina. Si no, cada uno pediría el blanco y desaparecería
+   sobre el recuadro. */
+.lamina {
+  --cursor: var(--cursor-azul);
+  cursor: var(--cursor);
+}
+
+a { color: inherit; cursor: var(--cursor); text-decoration: none; }
+
+/* El sistema es plano, pero el foco se ve. */
+:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+/* ——— Huecos sin texto ———
+ * El copy que falta se marca con un filete y el nombre de lo que va ahí, para
+ * que la maqueta siga leyéndose y se vea dónde entra cada cosa. En cuanto un
+ * hueco recibe texto, el filete desaparece solo: la regla mira `:empty`, así que
+ * no hay que acordarse de quitar nada. */
+[data-vacio]:empty {
+  display: block;
+  min-height: 1.2em;
+  border-bottom: 1px dashed currentColor;
+  opacity: 0.35;
+}
+
+[data-vacio]:empty::after {
+  content: '[' attr(data-vacio) ']';
+  font-size: 0.72rem;
+  font-style: italic;
+}
+
+/* Dentro de una lámina blanca el filete va en la tinta del texto, no en blanco. */
+.lamina [data-vacio]:empty,
+.rv [data-vacio]:empty,
+.hallazgo [data-vacio]:empty,
+.prueba [data-vacio]:empty { opacity: 0.4; }
+
+.oculto-visual {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ——— Tipografía de marca ——— */
+
+/* Los titulares van en caja baja y en un cuerpo contenido. El peso y el tracking
+   negativo bastan para que pesen; las versales y los cuerpos enormes hacen que
+   una lámina grite antes de decir nada. */
+.titulo {
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  font-size: clamp(1.3rem, 1rem + 1.5vw, 2rem);
+  max-width: 26ch;
+  margin-bottom: 0.7rem;
+}
+
+/* El título lo produce el fondo, no la pintura: en `difference` cambia solo
+   lo produce el fondo que tiene debajo, sin que ninguna regla lo diga. Va en el
+   propio elemento y ningún ancestro suyo lleva `transform` en reposo; si lo
+   llevara, la fusión dejaría de ver el fondo de la página. */
+.titulo-fusion { mix-blend-mode: difference; }
+
+/* Cualquier cifra que cambie en pantalla lleva tabulares, o el bloque se mueve
+   en cada dígito. */
+.cifra { font-variant-numeric: tabular-nums; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANDAMIAJE · la baraja de pantallas
+   Las pantallas se apilan en la misma celda de una rejilla. Rejilla y no
+   `position: absolute` porque así la altura la fija la más alta y no hay que
+   medir nada a mano.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.baraja {
+  display: grid;
+  height: 100dvh;
+  grid-template: 1fr / 1fr;
+}
+
+.pantalla {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  /* Centrado con márgenes automáticos y no con `justify-content: center`: cuando
+     el contenido excede la altura, el centrado recorta por arriba y esa parte se
+     vuelve inalcanzable —no hay scroll hacia atrás—. Con `auto` el bloque se
+     centra si sobra sitio y se apoya arriba si falta. */
+  justify-content: flex-start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* La barra queda fina y translúcida: en una proyección estorba, pero
+     esconderla del todo ocultaría que hay más contenido debajo. */
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.35) transparent;
+  padding-block:
+    calc(var(--aire-cabecera-arriba) + var(--alto-logo) + var(--aire-cabecera-abajo))
+    calc(var(--aire-pie) + 3.4rem);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  /* Fundido y nada más. El cambio de pantalla se siente como un cambio de luz,
+     no como un movimiento — y además, cualquier `translate` distinto de `none`
+     promovería la pantalla a su propia capa de composición y el `difference` de
+     los numerales dejaría de ver el fondo de la página.
+     `visibility` a 0s en la salida cortaría el fundido; en la entrada tiene que
+     llegar de inmediato o no habría nada que desvanecer. */
+  transition:
+    opacity var(--paso) var(--ease),
+    visibility 0s linear var(--paso);
+}
+
+.pantalla[data-activa] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity var(--paso) var(--ease),
+    visibility 0s;
+}
+
+/* Los márgenes son proporcionales y no fijos: con píxeles el aire desaparece en
+   pantallas chicas y el bloque se ve apretado. */
+/* Los mismos anchos que `.container` del sitio: proporcionales, no fijos. Con
+   márgenes en píxeles el aire desaparece en pantallas chicas. */
+.contenedor { width: min(86%, 1280px); margin-inline: auto; }
+@media (min-width: 48rem) { .contenedor { width: min(76%, 1280px); } }
+@media (min-width: 64rem) { .contenedor { width: min(64%, 1280px); } }
+
+.pantalla > .contenedor { margin-block: auto; }
+
+/* ——— Cabecera ——— */
+
+.cabecera {
+  position: fixed;
+  inset: 0 auto auto 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: var(--aire-cabecera-arriba) var(--aire-cabecera-abajo);
+  z-index: 3;
+}
+
+.cabecera .contenedor {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+
+.marca-logo { height: var(--alto-logo); width: auto; }
+
+.rotulo-cliente {
+  font-size: clamp(0.72rem, 0.65rem + 0.2vw, 0.85rem);
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* ——— Los cuatro elementos ———
+   Decoración de marca, no controles: van en `<img>` sueltos y `aria-hidden`. Si
+   fueran botones prometerían algo que no hacen, y un botón que no responde es
+   peor que ninguno.
+   Cada uno gira a su propio ritmo y dos al revés: con la misma duración los
+   cuatro laten a la vez y el conjunto se lee como un engranaje. */
+
+.elementos { display: flex; align-items: center; gap: 0.9rem; }
+
+.elementos img {
+  width: clamp(16px, 1.8vw, 22px);
+  height: auto;
+  animation: giro 7s linear infinite;
+}
+.elementos img:nth-child(2) { animation-duration: 5.5s; animation-direction: reverse; }
+.elementos img:nth-child(3) { animation-duration: 9s; }
+.elementos img:nth-child(4) { animation-duration: 6.5s; animation-direction: reverse; }
+
+@keyframes giro { to { rotate: 360deg; } }
+
+/* ——— Ruta con hitos ———
+   El plazo de la reunión, dicho como los pasos que lo componen. Es navegación y
+   mapa a la vez: el activo crece, sube de opacidad y lleva su rótulo escrito;
+   tres señales para un mismo estado, ninguna dependiente del color. */
+
+.ruta {
+  position: fixed;
+  inset: auto auto 0 0;
+  width: 100%;
+  padding-bottom: var(--aire-pie);
+  z-index: 3;
+}
+
+.ruta .contenedor {
+  display: flex; align-items: center; gap: clamp(0.4rem, 1vw, 0.9rem);
+}
+
+.hito {
+  all: unset;
+  box-sizing: border-box;
+  position: relative;
+  flex: 1;
+  cursor: var(--cursor);
+  padding-top: 0.9rem;
+  display: flex; flex-direction: column; gap: 0.45rem;
+}
+
+/* La línea va detrás del rótulo y se dibuja de izquierda a derecha: es el
+   trazo, no una barra que se rellena. */
+.hito::before {
+  content: '';
+  display: block;
+  height: 2px;
+  background: rgb(255 255 255 / 0.28);
+  transition: background var(--transition-normal), height var(--transition-normal);
+}
+.hito:hover::before { background: rgb(255 255 255 / 0.6); }
+.hito[aria-current='step']::before { background: var(--white); height: 3px; }
+
+.hito span {
+  /* El mismo cuerpo que el pie del sitio. */
+  font-size: clamp(0.6875rem, 0.75vw, 0.875rem);
+  letter-spacing: 0.08em;
+  opacity: 0.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity var(--transition-normal);
+}
+.hito[aria-current='step'] span { opacity: 1; }
+
+@media (max-width: 40rem) {
+  /* En estrecho el rótulo no cabe once veces: queda el trazo, que ya dice
+     cuántos pasos hay y en cuál se está. */
+  .hito span { display: none; }
+  .hito { padding-top: 0.6rem; }
+}
+
+/* ——— Píldora ———
+   Lo pulsable no se señala con la manita del sistema: se señala con las
+   píldoras, los subrayados y las marcas que crecen. */
+
+.pildora {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  border-radius: var(--radius-pill);
+  padding: 0.6em 1.35em;
+  font-size: clamp(0.8rem, 0.7rem + 0.2vw, 0.95rem);
+  cursor: var(--cursor);
+  transition: background var(--transition-normal), color var(--transition-normal),
+              border-color var(--transition-normal);
+}
+.pildora:hover { background: var(--white); color: var(--blue-100); border-color: var(--white); }
+
+/* ——— Lámina blanca ———
+   Lo que no aguanta el mesh va sobre recuadro blanco. Plano y sin radio: en
+   contexto de marca las cajas se separan con una regla de 1px, no con sombra. */
+
+.lamina {
+  background: var(--white);
+  color: var(--black);
+  padding: clamp(1.1rem, 2.4vw, 1.9rem);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   01 · PORTADA
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* La portada no lleva el bloque centrado de las demás láminas: el cuadro ocupa
+   todo el alto que dejan la cabecera y la ruta, y los costados los marca el
+   contenedor —los mismos márgenes que el logotipo de arriba y los rótulos de
+   abajo—. El `min-height: 0` deja que el cuadro se encoja: sin él, un elemento de
+   rejilla nunca baja de su contenido y la imagen desbordaba la lámina. */
+.pantalla[data-pantalla='0'] > .contenedor {
+  margin-block: 0;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+}
+
+/* ——— Pase de portafolio ———
+   Un cuadro fijo y las piezas dentro: da igual que una sea apaisada, otra
+   vertical y otra una tira larga, todas se ven en el mismo marco. El recorte lo
+   hace `object-fit: cover`, que iguala la proporción sin deformar nada.
+   `overflow: hidden` no es un detalle: es lo que recorta el acercamiento. */
+.pase {
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 0.06);
+}
+
+/* Absolutas y no en flujo: un alto en porcentaje solo se resuelve contra un
+   contenedor con altura declarada, y la del `.pase` la fija la rejilla. En
+   flujo, la imagen se pintaba a su tamaño natural y desbordaba la lámina. */
+.pase img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--pase-fundido) var(--ease);
+  /* La escala de reposo es 1.02 y no 1: a escala exacta, el borde redondeado
+     deja ver un pelo de fondo mientras la imagen se reescala. */
+  scale: 1.02;
+}
+
+.pase img[data-viva] {
+  opacity: 1;
+  /* El acercamiento dura más que el turno para que no llegue a detenerse: una
+     imagen que termina de moverse antes de irse se ve congelada. */
+  animation: acercar calc(var(--pase-turno) + var(--pase-fundido) * 2) linear forwards;
+}
+
+@keyframes acercar {
+  from { scale: 1.02; }
+  to   { scale: 1.11; }
+}
+
+/* El movimiento no se impone: con `reduced-motion` la pieza se queda quieta. */
+@media (prefers-reduced-motion: reduce) {
+  .pase img[data-viva] { animation: none; }
+}
+
+.portada-pie {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 0.6rem 1.6rem; margin-top: clamp(1.6rem, 4vh, 3rem);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEXTO DE LÁMINA
+   Dos medidas del mismo párrafo: la frase corta que sostiene una lámina entera
+   y el párrafo largo, que baja de cuerpo y sube de medida para no convertirse
+   en una columna de quince líneas.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.manifiesto {
+  font-size: clamp(1.4rem, 1rem + 2.6vw, 2.9rem);
+  font-weight: 300;
+  line-height: 1.28;
+  letter-spacing: -0.01em;
+  max-width: 22ch;
+}
+@media (min-width: 48rem) { .manifiesto { max-width: 26ch; } }
+
+.parrafo {
+  font-size: clamp(1.05rem, 0.85rem + 1.1vw, 1.6rem);
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  max-width: 34ch;
+}
+@media (min-width: 48rem) { .parrafo { max-width: 46ch; } }
+
+/* Lo que un párrafo destaca no lleva color pintado: lo produce el fondo. En
+   `difference` sobre el mesh sale dorado, y viraría solo si cambiara el fondo.
+   Ningún ancestro suyo puede llevar `transform` ni opacidad distinta de 1 en
+   reposo, o la fusión dejaría de ver el fondo de la página. */
+.fusion {
+  font-weight: 700;
+  mix-blend-mode: difference;
+}
+
+/* ——— Lámina con video ———
+   El texto a un lado y el recorrido al otro. El video manda en el reparto: a
+   media columna no se distingue lo que pasa en pantalla, que es de lo que va la
+   lámina. En estrecho se apilan y el texto va primero. */
+/* Los párrafos de una lámina se separan con una línea de aire, no con un salto
+   entero: el corte de idea se lee sin abrir un hueco. */
+.texto-lamina { display: grid; gap: 0.9em; }
+
+.con-pieza {
+  display: grid;
+  gap: clamp(1.2rem, 3vw, 2.4rem);
+  align-items: center;
+}
+@media (min-width: 62rem) {
+  .con-pieza { grid-template-columns: 1fr 1fr; }
+}
+
+/* En dos columnas la medida la fija la columna, no el `max-width` del párrafo:
+   con los dos límites a la vez el texto se estrangulaba a treinta caracteres.
+   El cuerpo va contra el ancho de pantalla y crece todo lo que da la columna sin
+   provocar scroll: esto se lee proyectado y desde el fondo de una sala, así que
+   el texto pequeño no es una opción. Los topes están medidos sobre las dos
+   pantallas en que va a caer —1280×720 y 1920×1080—, no puestos a ojo. */
+.con-pieza .parrafo {
+  max-width: none;
+  /* Contra el ancho Y contra el alto, y manda el que se quede corto. Solo con
+     `vw`, una ventana ancha y baja daría letra grande y aparecería el scroll,
+     que es justo lo que no puede pasar en una proyección. */
+  font-size: clamp(0.95rem, min(1.65vw, 2.9vh), 2rem);
+  line-height: 1.4;
+}
+
+/* El mismo cuadro que la portada: redondeado, recortado y sin dejar que el
+   video decida el tamaño. La proporción la fija `aspect-ratio` y no la altura
+   del archivo, así la caja no salta mientras carga. */
+.marco {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 0.06);
+  /* Más alto que el propio video (16:10): el recorte que hace `cover` se come
+     un poco de los costados y a cambio se ve más recorrido de página en cada
+     momento, que es de lo que va la lámina. */
+  aspect-ratio: 4 / 3;
+}
+
+.marco video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+/* ——— Lámina con la pieza abajo ———
+   El texto en dos columnas arriba y la pieza ocupando el ancho entero debajo.
+   Es el formato para lo que se lee a lo largo —una línea de tiempo— frente al
+   de dos columnas, que sirve cuando la pieza es tan alta como el texto. */
+.pieza-abajo {
+  display: grid;
+  gap: clamp(1.6rem, 5.5vh, 3.6rem);
+  align-content: center;
+}
+
+.texto-columnas {
+  display: grid;
+  gap: clamp(1rem, 2.5vw, 2.5rem);
+}
+@media (min-width: 62rem) {
+  .texto-columnas { grid-template-columns: 1fr 1fr; }
+}
+
+/* Mismo criterio que en la lámina del problema: el cuerpo crece contra el ancho
+   y contra el alto, y manda el que se quede corto. */
+.pieza-abajo .parrafo {
+  max-width: none;
+  font-size: clamp(0.9rem, min(1.35vw, 2.4vh), 1.7rem);
+  line-height: 1.4;
+}
+
+/* ——— Marco claro ———
+   El recorrido por smu.cl trae su propio fondo blanco; la ruta del método no,
+   así que el marco se lo pone. Mismo radio que el otro: las dos láminas tienen
+   que leerse como la misma pieza. */
+.marco-claro {
+  background: var(--white);
+  display: grid;
+  place-items: center;
+  padding: clamp(1.2rem, 3.6cqw, 3rem);
+  container-type: inline-size;
+}
+
+/* Sin proporción fija, a diferencia del marco del video: aquí el contenido es
+   texto y línea, y el alto tiene que salir de ellos. Con una caja dibujada de
+   antemano sobraba blanco por todas partes. */
+.marco-ancho { aspect-ratio: auto; }
+
+/* ——— Ruta del método ———
+   Cuatro etapas que se encienden una tras otra y, al llegar a la última, los
+   tres productos. El reloj lo lleva el guion y el movimiento lo hacen
+   transiciones, no fotogramas: así cada cambio sale con la curva de la casa
+   —arranca con decisión y frena largo— en vez de a saltos. */
+.ruta-metodo {
+  --azul: var(--blue-100);
+  --gris: #d4d4d8;
+  position: relative;
+  width: 100%;
+  /* El hueco de los entregables se reserva abajo: van en `absolute` y no miden,
+     así que sin este relleno la caja no los cuenta y se salen del marco. */
+  padding-block: clamp(0.7rem, 2cqw, 1.2rem) clamp(1.8rem, 5.3cqw, 2.9rem);
+}
+
+/* El riel va de centro a centro de los puntos extremos —de 1/8 a 7/8 del
+   ancho—, no de borde a borde: una línea que sobresale de los puntos parece
+   cortada.
+   Punteado y no continuo: una línea maciza pesa como un subrayado, y la de
+   puntos deja respirar los cuatro hitos, que es lo que hay que mirar. */
+.riel {
+  position: absolute;
+  inset: clamp(0.7rem, 2cqw, 1.2rem) 12.5% auto;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--gris) 0 2px, transparent 2px 8px);
+}
+
+/* El trazo persigue al punto que se acaba de encender, y llega un poco después:
+   ese retraso es lo que hace que se lea como un recorrido y no como cuatro
+   luces independientes. */
+/* Se descubre con `clip-path` y no con `scale`: al escalar, el punteado se
+   estiraría y sus puntos dejarían de coincidir con los del riel de debajo. */
+.avance {
+  display: block;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, var(--azul) 0 2px, transparent 2px 8px);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.1s cubic-bezier(0.25, 0.8, 0.25, 1) 0.15s;
+}
+
+.ruta-metodo[data-fase="1"] .avance { clip-path: inset(0 66.67% 0 0); }
+.ruta-metodo[data-fase="2"] .avance { clip-path: inset(0 33.33% 0 0); }
+.ruta-metodo[data-fase="3"] .avance,
+.ruta-metodo[data-fase="4"] .avance { clip-path: inset(0 0 0 0); }
+
+.etapas {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  list-style: none;
+}
+
+.etapas li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: clamp(0.4rem, 1.5cqw, 0.8rem);
+}
+
+.punto {
+  position: relative;
+  width: clamp(10px, 2.1cqw, 19px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--gris);
+  transition:
+    scale 0.75s cubic-bezier(0.25, 0.8, 0.25, 1),
+    background 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* El anillo que se abre al encenderse. Va en un pseudo-elemento para que la
+   escala del punto y la del anillo no se peleen por la misma propiedad. */
+.punto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--azul);
+  opacity: 0;
+  scale: 1;
+}
+
+/* Pasada: el punto se queda encendido pero vuelve a su tamaño. Así se ve por
+   dónde va y por dónde ha pasado, sin que todo pese lo mismo. */
+.etapas li.pasada .punto { background: var(--azul); }
+
+.etapas li.viva .punto {
+  background: var(--azul);
+  scale: 1.55;
+}
+
+.etapas li.viva .punto::after {
+  animation: anillo 1.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@keyframes anillo {
+  from { opacity: 0.55; scale: 1; }
+  to   { opacity: 0;    scale: 3.2; }
+}
+
+.rotulo {
+  font-size: clamp(0.68rem, 2cqw, 1.15rem);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  color: var(--gris);
+  white-space: nowrap;
+  transition:
+    color 0.5s cubic-bezier(0.25, 0.8, 0.25, 1),
+    translate 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.etapas li.pasada .rotulo { color: var(--azul); }
+
+/* El rótulo activo baja un pelo con su punto: el conjunto se mueve como una
+   pieza y no como un círculo que crece encima de un texto quieto. */
+.etapas li.viva .rotulo {
+  color: var(--azul);
+  translate: 0 0.15em;
+}
+
+/* ——— Lo que se entrega ———
+   Cuelga del cuarto punto, que es de donde sale: no son tres opciones sueltas
+   centradas en la lámina, son lo que produce esa etapa. Texto y nada más —negro,
+   regular, pequeño—: una píldora los convertiría en botones, y aquí no hay nada
+   que pulsar.
+   Va en `absolute` para no ensanchar su columna: si empujara la rejilla, los
+   cuatro puntos dejarían de estar repartidos. */
+.productos {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  translate: -50% 0;
+  margin-top: clamp(0.45rem, 1.6cqw, 0.9rem);
+  /* Centrado bajo el punto, y no más ancho que el aire que queda hasta el borde:
+     desde el centro de la cuarta columna al costado del marco hay un 12,5% del
+     ancho de la ruta, así que 25cqw es lo que cabe sin salirse. */
+  width: min(25cqw, 22ch);
+  display: grid;
+  gap: clamp(0.1rem, 0.45cqw, 0.3rem);
+  text-align: center;
+  list-style: none;
+}
+
+.productos li {
+  color: var(--black);
+  font-weight: 400;
+  font-size: clamp(0.45rem, 1.35cqw, 0.75rem);
+  line-height: 1.3;
+  opacity: 0;
+  translate: 0 0.7em;
+  transition:
+    opacity 0.7s cubic-bezier(0.25, 0.8, 0.25, 1),
+    translate 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* Entran uno tras otro. El escalón va en el markup con `--i`, para que añadir
+     un producto no obligue a tocar el CSS. */
+  transition-delay: calc(var(--i) * 0.14s);
+}
+
+.ruta-metodo[data-fase="4"] .productos li {
+  opacity: 1;
+  translate: 0 0;
+}
+
+
+/* Sin movimiento pedido, la ruta se queda en su último estado —las cuatro
+   etapas hechas y los productos a la vista—, que es la imagen completa. */
+@media (prefers-reduced-motion: reduce) {
+  .ruta-metodo :is(.avance, .punto, .rotulo, .productos li) { transition: none; }
+  .etapas li.viva .punto::after { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   04 · LA OPORTUNIDAD · revelación en el lugar
+   El desglose crece donde está. Sin modal y sin cambio de pantalla.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.rejilla-2 {
+  display: grid;
+  gap: 1px;
+  background: rgb(255 255 255 / 0.25);   /* las láminas se separan con una regla de 1px */
+  margin-top: clamp(1.2rem, 3vh, 2rem);
+}
+@media (min-width: 52rem) { .rejilla-2 { grid-template-columns: 1fr 1fr; } }
+
+.rv { background: var(--white); color: var(--black); }
+
+.rv-cabeza {
+  all: unset;
+  box-sizing: border-box;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  width: 100%;
+  cursor: var(--cursor);
+  padding: clamp(1.1rem, 2.4vw, 1.7rem);
+}
+
+.rv-cabeza h3 {
+  font-size: clamp(0.95rem, 0.85rem + 0.4vw, 1.15rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.rv-marca { font-weight: 300; font-size: 1.4em; line-height: 1; opacity: 0.5; }
+
+.rv-cuerpo {
+  padding: 0 clamp(1.1rem, 2.4vw, 1.7rem) clamp(1.1rem, 2.4vw, 1.7rem);
+  font-size: clamp(0.8rem, 0.7rem + 0.28vw, 0.92rem);
+  line-height: 1.6;
+  color: #2b2b2b;
+}
+.rv-cuerpo p + p { margin-top: 0.7rem; }
+/* ═══════════════════════════════════════════════════════════════════════════
+   05 · SMU
+   Tablero de lo que SMU publica en su sección de inversionistas, contado sobre
+   los enlaces de esa página. Ninguna cifra está estimada: todas salen del
+   recuento, y el markup no lleva valores —los pone el guion desde la capa de
+   datos—, así que actualizar el tablero es rehacer el recuento y nada más.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.tablero {
+  container-type: inline-size;
+  display: grid;
+  gap: clamp(0.7rem, 2vh, 1.2rem);
+}
+
+.tablero-cifras {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4em 1.6em;
+  font-size: clamp(0.8rem, min(1.15vw, 2vh), 1.25rem);
+}
+
+.tablero-cifras b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tablero-cifras span { opacity: 0.75; }
+
+/* ——— Las barras ———
+   Una fila por tipo de producto: el rótulo, la barra y la cifra. La cifra va
+   siempre escrita al lado: la barra acelera la comparación, no la sustituye. */
+.tipos {
+  display: grid;
+  gap: clamp(0.18rem, 0.6vh, 0.4rem);
+  list-style: none;
+}
+
+.tipo {
+  display: grid;
+  grid-template-columns: minmax(9em, 15em) 1fr auto;
+  align-items: center;
+  gap: clamp(0.5rem, 1.5cqw, 1.1rem);
+  font-size: clamp(0.62rem, min(0.95vw, 1.7vh), 1rem);
+  line-height: 1.25;
+  transition: opacity var(--transition-fast);
+}
+
+/* Al señalar un tipo, los demás se retiran en vez de desaparecer: se ve cuánto
+   es esa parte y sobre qué total. */
+.tablero[data-foco] .tipo { opacity: 0.32; }
+.tablero[data-foco] .tipo.marcado { opacity: 1; }
+
+.tipo-nombre {
+  all: unset;
+  box-sizing: border-box;
+  cursor: var(--cursor);
+  text-align: right;
+}
+
+.tipo-barra {
+  position: relative;
+  height: clamp(0.5rem, 1.4vh, 0.85rem);
+  background: rgb(255 255 255 / 0.16);
+}
+
+/* El ancho de cada barra lo pone el guion en `--parte`, contra el tipo más
+   numeroso: así la barra más larga llena la fila y las demás se leen contra
+   ella, que es la comparación que importa. */
+.tipo-barra i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--parte) * 100%);
+  background: var(--white);
+  transform-origin: left center;
+  scale: 0 1;
+  animation: crecer 0.9s var(--ease) forwards;
+  animation-delay: calc(var(--i) * 0.05s);
+}
+
+/* Las barras se dibujan al entrar en la lámina, no en carga: si crecieran
+   detrás de otra pantalla, nadie las vería crecer. */
+html:not([data-lamina='4']) .tipo-barra i { animation: none; scale: 0 1; }
+
+@keyframes crecer { to { scale: 1 1; } }
+
+.tipo-cifra {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.2em;
+  text-align: right;
+}
+
+/* ——— La ficha ———
+   Lo que se sabe del tipo señalado. El hueco está reservado: sin altura fija,
+   la lista entera daría un salto cada vez que el puntero cruza una fila. */
+.tablero-ficha {
+  border-top: 1px solid rgb(255 255 255 / 0.25);
+  padding-top: 0.6rem;
+  font-size: clamp(0.62rem, min(0.92vw, 1.6vh), 0.95rem);
+  line-height: 1.5;
+  min-height: 3.4em;
+}
+
+.tablero-ficha b { font-weight: 700; }
+.tablero-ficha .apunte { opacity: 0.7; }
+
+/* ——— Procedencia ———
+   Dónde y cuándo se midió. En pequeño y en gris: está, no compite. Sin ella, el
+   tablero pide que le crean; con ella, se puede comprobar. */
+.fuente {
+  margin-top: clamp(0.8rem, 2.2vh, 1.4rem);
+  max-width: 78ch;
+  font-size: clamp(0.55rem, min(0.62vw, 1.1vh), 0.72rem);
+  line-height: 1.55;
+  opacity: 0.55;
+}
+/* ═══════════════════════════════════════════════════════════════════════════
+   06 · QUÉ HACEMOS · tres piezas
+   Cada recuadro es un enlace a la pieza real y, dentro, un video grabado
+   navegándola. Se paran los tres cuando la lámina no está delante: nada se
+   mueve contra una pantalla que nadie mira.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.vitrina {
+  display: grid;
+  gap: clamp(0.8rem, 2vw, 1.8rem);
+  list-style: none;
+}
+@media (min-width: 52rem) {
+  .vitrina { grid-template-columns: repeat(3, 1fr); }
+}
+
+.pieza-demo {
+  display: grid;
+  gap: clamp(0.5rem, 1.4vh, 0.9rem);
+  cursor: var(--cursor);
+}
+
+/* El recuadro se aclara al pasar por encima: es la única señal de que lleva a
+   alguna parte, porque aquí no hay manita del sistema ni subrayado. */
+.pieza-demo .marco {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 0.06);
+  aspect-ratio: 4 / 3;
+  outline: 1px solid rgb(255 255 255 / 0);
+  outline-offset: 3px;
+  transition: outline-color var(--transition-normal);
+}
+
+.pieza-demo:hover .marco,
+.pieza-demo:focus-visible .marco { outline-color: rgb(255 255 255 / 0.75); }
+
+.pieza-demo video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* El recorrido empieza arriba a la izquierda, que es donde está la interfaz
+     de las tres piezas; centrado se perdía el panel de herramientas. */
+  object-position: left top;
+  display: block;
+  transition: scale var(--transition-slow);
+}
+
+/* Un acercamiento corto al pasar por encima, sin rebote: confirma que el
+   recuadro responde antes de pulsarlo. */
+.pieza-demo:hover video,
+.pieza-demo:focus-visible video { scale: 1.03; }
+
+.pieza-rotulo {
+  font-size: clamp(0.7rem, min(0.95vw, 1.7vh), 1rem);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pieza-demo video { transition: none; }
+  .pieza-demo:hover video { scale: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   07 · LOS ESCUCHAMOS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* La columna se estira hasta el alto del recuadro de al lado y el correo se
+   apoya en su base: los dos bloques cierran a la misma línea. Con el texto
+   centrado, el correo quedaba flotando a media altura. */
+.pantalla[data-pantalla='6'] .texto-lamina {
+  align-self: stretch;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 0;
+}
+
+.pantalla[data-pantalla='6'] .manifiesto {
+  align-self: center;
+  font-weight: 700;
+}
+
+/* El correo se lee y se copia a mano. Antes llevaba un botón que lo copiaba al
+   portapapeles con un relevo de iconos; sobraba: en una reunión nadie pulsa la
+   pantalla del proyector, lo apunta o lo pide. */
+.correo-cierre {
+  font-size: clamp(1rem, min(1.5vw, 2.6vh), 1.8rem);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+}
+
+/* ——— Reducción de movimiento ———
+   Lo global apaga transiciones y animaciones; lo que además hay que decir es
+   que los elementos de la cabecera dejen de girar del todo. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .elementos img { animation: none; }
+}
+</style>
+</head>
+
+<body>
+
+<a class="oculto-visual" href="#contenido">Ir al contenido</a>
+
+<header class="cabecera">
+  <div class="contenedor">
+    <img class="marca-logo" src="marca/Logo-blanco.svg" alt="Bastos" width="401" height="74">
+
+    <div class="elementos" aria-hidden="true">
+      <img src="marca/element1-blanco.svg" alt="" width="256" height="256">
+      <img src="marca/element2-blanco.svg" alt="" width="256" height="256">
+      <img src="marca/element3-blanco.svg" alt="" width="256" height="256">
+      <img src="marca/element4-blanco.svg" alt="" width="256" height="256">
+    </div>
+  </div>
+</header>
+
+<main class="baraja" id="contenido">
+
+  <!-- ══ 01 · PORTADA ═══════════════════════════════════════════════════ -->
+  <section class="pantalla" data-pantalla="0" data-hito="Estudio Bastos" aria-label="Portada" data-activa>
+    <div class="contenedor">
+      <div class="pase" data-pase aria-label="Trabajo del estudio" role="img"></div>
+    </div>
+  </section>
+
+  <!-- ══ 02 · MANIFIESTO ════════════════════════════════════════════════ -->
+  <section class="pantalla" data-pantalla="1" data-hito="Quiénes somos" aria-label="Qué hace Bastos">
+    <div class="contenedor">
+      <p class="manifiesto">
+        Bastos es un estudio de diseño especializado en organizar información
+        dispersa y volverla <strong class="fusion">clara, accesible y útil</strong>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ 03 · EL PROBLEMA ═══════════════════════════════════════════════ -->
+  <section class="pantalla" data-pantalla="2" data-hito="El problema" aria-label="Sobreinformación">
+    <div class="contenedor con-pieza">
+      <p class="parrafo">
+        Hoy tenemos un problema de sobreinformación. <strong class="fusion">Tanto las
+        personas como las organizaciones tenemos que lidiar día a día con una
+        cantidad de información que nos sobrepasa.</strong> Incluso, la inteligencia
+        artificial está agudizando ese problema, ya que hoy se hace muy barato y
+        fácil producir grandes cantidades de información, generar informes y
+        documentos largos que circulan una vez y se pierden.
+      </p>
+
+      <!-- Recorrido grabado en smu.cl/inversionistas: portada de la sección,
+           noticias, información financiera y memorias. Sin sonido y en bucle: es
+           una imagen que se mueve, no un video que haya que poner en marcha. -->
+      <div class="marco">
+        <video src="media/smu-inversionistas.mp4" autoplay loop muted playsinline
+               aria-label="Recorrido por la sección de inversionistas de smu.cl"
+               data-video></video>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 04 · LA OPORTUNIDAD ════════════════════════════════════════════ -->
+  <section class="pantalla" data-pantalla="3" data-hito="La oportunidad" aria-label="Dónde está la oportunidad">
+    <div class="contenedor pieza-abajo">
+      <div class="texto-columnas">
+        <p class="parrafo">
+          La curaduría de información y el diseño de productos de comunicación pueden
+          ayudar a ordenar los datos existentes y retener el conocimiento para que sea
+          fácil de consultar, aprender y comunicar.
+        </p>
+        <p class="parrafo fusion">
+          En Bastos podemos rescatar parte de ese conocimiento acumulado y darle valor,
+          para acelerar procesos y hacer más efectiva la comunicación.
+        </p>
+      </div>
+
+      <!-- Las cuatro etapas del método y, al llegar a la última, lo que se entrega.
+           Va en CSS y no en video: se dibuja nítida a cualquier resolución, pesa cero
+           y editarla es cambiar una palabra. La ruta va `aria-hidden` y su lectura
+           se deja al párrafo oculto del final: cuatro puntos y cuatro rótulos
+           sueltos no se anuncian como una secuencia. -->
+      <div class="marco marco-claro marco-ancho">
+        <div class="ruta-metodo" data-ruta-metodo data-fase="-1" aria-hidden="true">
+          <div class="riel"><i class="avance"></i></div>
+          <ol class="etapas">
+            <li><span class="punto"></span><span class="rotulo">Escuchar</span></li>
+            <li><span class="punto"></span><span class="rotulo">Ordenar</span></li>
+            <li><span class="punto"></span><span class="rotulo">Diseñar</span></li>
+            <li>
+              <span class="punto"></span>
+              <span class="rotulo">Entregar</span>
+              <!-- Cuelgan de esta etapa y no de la ruta entera: es lo que sale
+                   de aquí, no un menú aparte. -->
+              <ul class="productos">
+                <li style="--i: 0">Publicación institucional</li>
+                <li style="--i: 1">Herramienta interna</li>
+                <li style="--i: 2">Asesoría anual</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+        <p class="oculto-visual">
+          Método de trabajo: escuchar, ordenar, diseñar y entregar. Lo que se entrega:
+          publicación institucional, herramienta interna y asesoría anual.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 05 · SMU ═══════════════════════════════════════════════════════ -->
+  <section class="pantalla" data-pantalla="4" data-hito="SMU" aria-label="Lo que publica SMU">
+    <div class="contenedor">
+      <!-- El tablero se dibuja desde la capa de datos: aquí no hay ninguna cifra
+           escrita a mano. Ver DATOS_SMU en el guion. -->
+      <div class="tablero" data-tablero>
+        <p class="tablero-cifras" data-tablero-cifras></p>
+        <ul class="tipos" data-tipos></ul>
+        <p class="tablero-ficha" data-ficha aria-live="polite"></p>
+      </div>
+
+      <p class="fuente" data-fuente-smu></p>
+    </div>
+  </section>
+
+  <!-- ══ 06 · QUÉ HACEMOS ═══════════════════════════════════════════════ -->
+  <section class="pantalla" data-pantalla="5" data-hito="Qué hacemos" aria-label="Los tres productos">
+    <div class="contenedor">
+      <!-- Tres piezas reales, grabadas navegándolas. Cada recuadro es un enlace:
+           el video enseña de qué se trata y el clic lleva a la pieza misma, que
+           es lo único que convence del todo. -->
+      <ul class="vitrina">
+        <li>
+          <a class="pieza-demo" href="memoria/" target="_blank" rel="noopener">
+            <span class="marco">
+              <video src="media/smu-memoria.mp4" loop muted playsinline
+                     aria-hidden="true" data-demo></video>
+            </span>
+            <span class="pieza-rotulo">Publicaciones institucionales</span>
+          </a>
+        </li>
+        <li>
+          <a class="pieza-demo" href="https://www.huellalocal.cl/editor-grafico/" target="_blank" rel="noopener">
+            <span class="marco">
+              <video src="media/smu-editor.mp4" loop muted playsinline
+                     aria-hidden="true" data-demo></video>
+            </span>
+            <span class="pieza-rotulo">Herramienta interna</span>
+          </a>
+        </li>
+        <li>
+          <a class="pieza-demo" href="https://estudiobastos.com/" target="_blank" rel="noopener">
+            <span class="marco">
+              <video src="media/smu-sitio.mp4" loop muted playsinline
+                     aria-hidden="true" data-demo></video>
+            </span>
+            <span class="pieza-rotulo">Cuenta mensual</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ══ 07 · LOS ESCUCHAMOS ════════════════════════════════════════════ -->
+  <section class="pantalla" data-pantalla="6" data-hito="Los escuchamos" aria-label="Cierre">
+    <div class="contenedor con-pieza">
+      <!-- El mismo recorrido por la memoria que en «Qué hacemos»: cerrar con la
+           pieza a la vista deja delante lo que se propone, no una despedida. -->
+      <div class="marco">
+        <video src="media/smu-memoria.mp4" loop muted playsinline
+               aria-hidden="true" data-cierre></video>
+      </div>
+
+      <div class="texto-lamina">
+        <p class="manifiesto">Sigamos conversando</p>
+        <p class="correo-cierre">hola@estudiobastos.com</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="ruta" aria-label="Pasos de la presentación">
+  <div class="contenedor" data-ruta></div>
+</nav>
+
+<script>
+(() => {
+  'use strict';
+
+  /* El puntero grueso no tiene posición mientras no toca: en táctil un imán no
+     significa nada. Y si el sistema pide menos movimiento, tampoco. */
+  const fino = () =>
+    matchMedia('(hover: hover) and (pointer: fine)').matches &&
+    !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+  const quieto = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* El recorrido por smu.cl. Si el sistema pide menos movimiento se queda en el
+     primer fotograma y aparecen los controles: la pieza sigue estando, solo que
+     la pone en marcha quien quiera verla. */
+  const video = $('[data-video]');
+  if (video && quieto()) {
+    video.removeAttribute('autoplay');
+    video.controls = true;
+    video.pause();
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     LA BARAJA
+     Las pantallas pasan de una en una. El cerrojo se mide contra `--paso`, que
+     por eso vive en CSS y no aquí: el número lo comparten los dos. Si se cambia
+     el ritmo en un sitio y no en el otro, un golpe de trackpad vuelve a
+     llevarse tres pantallas por delante.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  const pantallas = $$('.pantalla');
+  const PASO = (parseFloat(getComputedStyle(document.documentElement)
+                  .getPropertyValue('--paso')) || 0.62) * 1000;
+
+  let actual = 0;
+  let cerrojo = false;
+
+  const irA = (i, { foco = true } = {}) => {
+    const destino = Math.max(0, Math.min(pantallas.length - 1, i));
+    if (destino === actual || cerrojo) return;
+
+    cerrojo = true;
+    setTimeout(() => { cerrojo = false; }, PASO);
+
+    cerrarRevelados();
+
+    pantallas[actual].removeAttribute('data-activa');
+    actual = destino;
+    pantallas[actual].setAttribute('data-activa', '');
+    pantallas[actual].scrollTop = 0;
+
+    /* En qué lámina estamos, marcado en <html> como los demás estados: es lo que
+       apaga el logotipo de la cabecera cuando la firma va abajo, y lo que para
+       el pase de portafolio cuando la portada no está a la vista. */
+    document.documentElement.dataset.lamina = String(actual);
+    actual === 0 ? arrancarPase() : pararPase();
+
+    /* El recorrido solo corre cuando su lámina está delante: nada se mueve
+       contra una pantalla que nadie mira, y al volver empieza de cero en vez de
+       aparecer a mitad de camino. */
+    if (video) {
+      if (actual === 2 && !quieto()) video.play().catch(() => {});
+      else { video.pause(); if (actual !== 2) video.currentTime = 0; }
+    }
+
+    /* La ruta, por lo mismo: se para al salir y vuelve a empezar de cero, no a
+       mitad de recorrido. */
+    if (actual === 3) arrancarRuta();
+    else { pararRuta(); fase = -1; if (rutaMetodo) pintarFase(); }
+
+    actual === 5 ? arrancarDemos() : pararDemos();
+    actual === 6 ? arrancarCierre() : pararCierre();
+
+    pintarRuta();
+
+    /* El foco viaja con la pantalla: si se queda en el botón de la anterior, la
+       siguiente flecha del teclado actúa sobre algo que ya no se ve. */
+    if (foco) {
+      pantallas[actual].setAttribute('tabindex', '-1');
+      pantallas[actual].focus({ preventScroll: true });
+    }
+  };
+
+  /* ——— Ruta con hitos ——— */
+  const ruta = $('[data-ruta]');
+  pantallas.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.className = 'hito';
+    b.type = 'button';
+    b.innerHTML = `<span>${p.dataset.hito}</span>`;
+    b.setAttribute('aria-label', `Paso ${i + 1} de ${pantallas.length}: ${p.dataset.hito}`);
+    b.addEventListener('click', () => irA(i));
+    ruta.appendChild(b);
+  });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     PASE DE PORTAFOLIO
+     Las piezas se relevan solas en la portada. El orden es aleatorio pero sin
+     repetir: se baraja la lista entera y se recorre; cuando se acaba, se vuelve
+     a barajar. Con azar tirada a tirada saldría la misma pieza dos veces
+     seguidas y parecería que se ha atascado.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  const PIEZAS = [
+    '4687b037-5682-4d0d-84f6-9583c7c7c028-rw-1920',
+    '7e3d94a9-975c-4bda-b746-0f42fdd48212-rw-1920',
+    'a81f7949-8680-4e76-a11a-3e9e18ee3b1f-rw-1920',
+    'catastro',
+    'catastro1',
+    'concausa',
+    'concausa-5',
+    'concausa1',
+    'concausa2',
+    'concausa3',
+    'concausa4',
+    'concausa6',
+    'cuentos1',
+    'cuentos2',
+    'cuentos3',
+    'fundacion-vivienda',
+    'fundacion-vivienda-3',
+    'fundacion-vivienda-4',
+    'fundacion-vivienda2',
+    'genesal',
+    'genesal1',
+    'huella-local',
+    'huella-local-4',
+    'huella-local1',
+    'huella-local2',
+    'huella-local3',
+    'meric',
+    'meric1',
+    'wift1',
+    'wift2',
+    'wift4',
+  ];
+
+  const pase = $('[data-pase]');
+  const TURNO = (parseFloat(getComputedStyle(document.documentElement)
+                   .getPropertyValue('--pase-turno')) || 3) * 1000;
+
+  let baraja = [];
+  let relojPase = null;
+  /* Dos imágenes montadas y nada más: el fundido cruzado necesita las dos, y
+     cincuenta nodos en el DOM para enseñar una sola sobran. */
+  let capas = [];
+
+  const barajarPiezas = () => {
+    baraja = [...PIEZAS];
+    for (let i = baraja.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [baraja[i], baraja[j]] = [baraja[j], baraja[i]];
+    }
+  };
+
+  const siguientePieza = () => {
+    if (!baraja.length) barajarPiezas();
+    return baraja.pop();
+  };
+
+  const pasar = () => {
+    const entra = capas[0].hasAttribute('data-viva') ? capas[1] : capas[0];
+    const sale = entra === capas[0] ? capas[1] : capas[0];
+    entra.src = `media/${siguientePieza()}.webp`;
+    entra.setAttribute('data-viva', '');
+    sale.removeAttribute('data-viva');
+  };
+
+  const arrancarPase = () => {
+    if (relojPase) return;
+    if (!capas.length) {
+      capas = [0, 1].map(() => {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.decoding = 'async';
+        pase.appendChild(img);
+        return img;
+      });
+      capas[0].src = `media/${siguientePieza()}.webp`;
+      capas[0].setAttribute('data-viva', '');
+    }
+    /* Con `reduced-motion` la portada enseña una pieza y se queda quieta: el
+       pase es movimiento que nadie ha pedido. */
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    relojPase = setInterval(pasar, TURNO);
+  };
+
+  /* El pase se para al salir de la portada: nada anima contra una pantalla que
+     no se está mirando. */
+  const pararPase = () => {
+    clearInterval(relojPase);
+    relojPase = null;
+  };
+
+  /* Y también cuando la ventana se va a segundo plano, por lo mismo. */
+  document.addEventListener('visibilitychange', () => {
+    document.hidden ? pararPase() : (actual === 0 && arrancarPase());
+  });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     RUTA DEL MÉTODO
+     Cuatro etapas y, al final, lo que se entrega. El reloj va aquí y el
+     movimiento lo hacen transiciones de CSS: el guion solo dice en qué fase
+     estamos, y cada cambio sale con la curva de la casa. Con keyframes puros y
+     retrasos el bucle se desacompasaba al dar la vuelta.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  const rutaMetodo = $('[data-ruta-metodo]');
+  const etapas = rutaMetodo ? $$('.etapas li', rutaMetodo) : [];
+
+  /* Lo que dura cada fase. La última —los productos ya desplegados— aguanta más:
+     es lo que hay que llegar a leer. El apagado del final es corto a propósito,
+     lo justo para que se vea que la vuelta empieza otra vez. */
+  const FASES = [1800, 1800, 1800, 1800, 4200, 700];
+
+  let fase = -1;
+  let relojRuta = null;
+
+  const pintarFase = () => {
+    rutaMetodo.dataset.fase = String(fase);
+    etapas.forEach((li, i) => {
+      /* «viva» es la etapa en curso; «pasada», las que ya ocurrieron. En la fase
+         de productos la última sigue viva: los productos son suyos. */
+      const actualEtapa = Math.min(fase, 3);
+      li.classList.toggle('viva', i === actualEtapa && fase >= 0);
+      li.classList.toggle('pasada', fase >= 0 && i < actualEtapa);
+    });
+  };
+
+  const pasoRuta = () => {
+    fase = fase >= FASES.length - 1 ? -1 : fase + 1;
+    pintarFase();
+    relojRuta = setTimeout(pasoRuta, fase < 0 ? 400 : FASES[fase]);
+  };
+
+  const arrancarRuta = () => {
+    if (!rutaMetodo || relojRuta) return;
+    if (quieto()) {
+      /* Sin movimiento pedido, la ruta se queda en su estado final: las cuatro
+         etapas hechas y los productos a la vista, que es la imagen completa. */
+      fase = 4;
+      pintarFase();
+      return;
+    }
+    pasoRuta();
+  };
+
+  const pararRuta = () => {
+    clearTimeout(relojRuta);
+    relojRuta = null;
+  };
+
+  const pintarRuta = () => {
+    $$('.hito', ruta).forEach((b, i) => {
+      if (i === actual) b.setAttribute('aria-current', 'step');
+      else b.removeAttribute('aria-current');
+    });
+  };
+  pintarRuta();
+
+  /* La portada es la lámina de partida: se marca y arranca el pase sin esperar
+     a que alguien navegue. */
+  document.documentElement.dataset.lamina = '0';
+  arrancarPase();
+
+  $$('[data-avanza]').forEach((b) => b.addEventListener('click', () => irA(actual + 1)));
+
+  /* ——— Teclado ———
+     Las teclas de pantalla van aquí; las de contenido (1–3) las escuchan el
+     y solo cuando su pantalla está activa. */
+  document.addEventListener('keydown', (e) => {
+    if (e.target.matches('input, textarea')) return;
+
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': case 'PageDown':
+        e.preventDefault(); irA(actual + 1); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); irA(actual - 1); break;
+      case ' ':
+        /* El espacio activa el botón que tenga el foco: si se lo queda la
+           baraja, un botón enfocado deja de responder. */
+        if (e.target.closest('button, a')) return;
+        e.preventDefault(); irA(actual + 1); break;
+      case 'Home': e.preventDefault(); irA(0); break;
+      case 'End':  e.preventDefault(); irA(pantallas.length - 1); break;
+      case 'Escape': cerrarRevelados(); break;
+    }
+  });
+
+  /* ——— Rueda con cerrojo ———
+     Un golpe de trackpad emite decenas de eventos. Y si la pantalla activa
+     todavía tiene recorrido propio en esa dirección, la rueda es suya: navegar
+     entonces dejaría contenido sin leer. */
+  let acumulado = 0;
+  document.addEventListener('wheel', (e) => {
+    const p = pantallas[actual];
+    const margen = 2;   // el subpíxel del scroll nunca llega a cero exacto
+    const bajaDentro = e.deltaY > 0 && p.scrollTop + p.clientHeight < p.scrollHeight - margen;
+    const subeDentro = e.deltaY < 0 && p.scrollTop > margen;
+    if (bajaDentro || subeDentro) return;
+
+    if (cerrojo) return;
+    acumulado += e.deltaY;
+    if (Math.abs(acumulado) < 40) return;   // un roce no cambia de pantalla
+    irA(actual + (acumulado > 0 ? 1 : -1));
+    acumulado = 0;
+  }, { passive: true });
+
+  /* ——— Deslizar ——— */
+  let tocoY = null, tocoX = null;
+  document.addEventListener('touchstart', (e) => {
+    tocoY = e.touches[0].clientY; tocoX = e.touches[0].clientX;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    if (tocoY === null) return;
+    const dy = e.changedTouches[0].clientY - tocoY;
+    const dx = e.changedTouches[0].clientX - tocoX;
+    tocoY = tocoX = null;
+    /* Solo si el gesto es claramente vertical: un deslizamiento diagonal suele
+       ser alguien recolocando la mano, no pidiendo pasar de pantalla. */
+    if (Math.abs(dy) < 60 || Math.abs(dx) > Math.abs(dy)) return;
+    const p = pantallas[actual];
+    if (p.scrollHeight > p.clientHeight + 2) return;   // el scroll interno manda
+    irA(actual + (dy < 0 ? 1 : -1));
+  }, { passive: true });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     IMÁN DE PUNTERO
+     Solo en botones aislados. No en texto: mover una palabra respecto de su
+     línea se lee como un fallo de maquetación, no como un gesto.
+     ════════════════════════════════════════════════════════════════════════ */
+  if (fino()) {
+    const FUERZA = 0.55;      // parte de la distancia que recorre en el punto más fuerte
+    const ALCANCE = 64;       // aire alrededor donde ya se nota el tirón, en px
+    const TOPE = 22;          // por lejos que quede el puntero, no se despega más
+    const SEGUIMIENTO = 0.18; // cuánto se acerca a su objetivo por cuadro
+
+    const imanes = $$('[data-iman]').map((el) => ({ el, x: 0, y: 0, fuerza: FUERZA }));
+    const puntero = { x: -9999, y: -9999 };
+    let cuadro = null;
+
+    const pintar = () => {
+      cuadro = null;
+      let vivo = false;
+
+      for (const iman of imanes) {
+        const caja = iman.el.getBoundingClientRect();
+        /* La caja ya viene desplazada por el propio imán; el centro de reposo es
+           el que tendría sin ese desplazamiento. */
+        const cx = caja.left + caja.width / 2 - iman.x;
+        const cy = caja.top + caja.height / 2 - iman.y;
+        const dx = puntero.x - cx;
+        const dy = puntero.y - cy;
+
+        /* Radio elíptico: el campo sigue la forma del botón —ancho en una
+           píldora, no un círculo que sobra por arriba y por abajo. */
+        const rx = caja.width / 2 + ALCANCE;
+        const ry = caja.height / 2 + ALCANCE;
+        const lejos = Math.hypot(dx / rx, dy / ry);
+
+        let metaX = 0, metaY = 0;
+        if (lejos < 1) {
+          /* El tirón casi no existe en el borde del campo y aprieta cerca.
+             Lineal se sentía como un salto al entrar. */
+          const tiron = (1 - lejos) ** 1.5 * iman.fuerza;
+          metaX = Math.max(-TOPE, Math.min(TOPE, dx * tiron));
+          metaY = Math.max(-TOPE, Math.min(TOPE, dy * tiron));
+        }
+
+        iman.x += (metaX - iman.x) * SEGUIMIENTO;
+        iman.y += (metaY - iman.y) * SEGUIMIENTO;
+
+        /* Por debajo de un cuarto de píxel no se ve nada: se posa en cero y deja
+           de pedir cuadros. */
+        if (Math.abs(iman.x) < 0.25 && Math.abs(iman.y) < 0.25 && !metaX && !metaY) {
+          iman.x = iman.y = 0;
+          iman.el.style.translate = '';
+        } else {
+          iman.el.style.translate = `${iman.x.toFixed(2)}px ${iman.y.toFixed(2)}px`;
+          vivo = true;
+        }
+      }
+
+      if (vivo) cuadro = requestAnimationFrame(pintar);
+    };
+
+    const despertar = () => { if (!cuadro) cuadro = requestAnimationFrame(pintar); };
+
+    document.addEventListener('pointermove', (e) => {
+      puntero.x = e.clientX; puntero.y = e.clientY; despertar();
+    }, { passive: true });
+
+    /* Al salir el puntero de la ventana los botones se quedarían pegados a una
+       distancia vieja. */
+    document.addEventListener('pointerleave', () => {
+      puntero.x = puntero.y = -9999; despertar();
+    });
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     CERRAR LO ABIERTO
+     Volver a una lámina y encontrarla medio abierta desorienta, así que al
+     cambiar de lámina y con Escape se pliega todo lo desplegado.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  const cerrarRevelados = () => {
+    $$('[data-rv][aria-expanded="true"], [data-hallazgo][aria-expanded="true"]')
+      .forEach((b) => plegar(b));
+  };
+
+  /* ════════════════════════════════════════════════════════════════════════
+     REVELACIÓN EN EL LUGAR y CAJA DE CAJONES
+     El mismo mecanismo: el desglose crece dentro de la misma tarjeta, sin modal
+     y sin cambio de pantalla.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  const plegar = (boton) => {
+    boton.setAttribute('aria-expanded', 'false');
+    document.getElementById(boton.getAttribute('aria-controls')).hidden = true;
+    /* El signo va `aria-hidden`: el `aria-expanded` ya lo dice, y leerlo dos
+       veces sobra. */
+    const marca = $('.rv-marca, .marca', boton);
+    if (marca) marca.textContent = '+';
+  };
+
+  const desplegar = (boton) => {
+    boton.setAttribute('aria-expanded', 'true');
+    /* `hidden` de verdad y no `display:none` a mano: saca el contenido del orden
+       de tabulación gratis. */
+    document.getElementById(boton.getAttribute('aria-controls')).hidden = false;
+    const marca = $('.rv-marca, .marca', boton);
+    if (marca) marca.textContent = '–';
+  };
+
+  $$('[data-rv]').forEach((b) => {
+    b.addEventListener('click', () => {
+      b.getAttribute('aria-expanded') === 'true' ? plegar(b) : desplegar(b);
+    });
+  });
+
+  /* Los hallazgos del censo abren uno cada vez: son cinco y con dos abiertos el
+     quinto se va fuera de pantalla en una proyección. */
+  const hallazgos = $$('[data-hallazgo]');
+  hallazgos.forEach((b) => {
+    b.addEventListener('click', () => {
+      const abierto = b.getAttribute('aria-expanded') === 'true';
+      hallazgos.forEach(plegar);
+      if (!abierto) desplegar(b);
+    });
+  });
+
+  /* ————— Las tres piezas de «Qué hacemos» —————
+     Corren solo con su lámina delante y vuelven a empezar al salir: quien la
+     abra ve los tres recorridos desde el principio, no a mitad de camino. */
+  const demos = $$('[data-demo]');
+
+  const arrancarDemos = () => {
+    if (quieto()) return;
+    demos.forEach((v) => v.play().catch(() => {}));
+  };
+
+  const pararDemos = () => {
+    demos.forEach((v) => { v.pause(); v.currentTime = 0; });
+  };
+
+  /* ════════════════════════════════════════════════════════════════════════
+     TABLERO SMU · capa de datos
+     Todo lo que se enseña aquí sale de un recuento sobre los enlaces que
+     smu.cl/inversionistas monta al abrirla. Nada está estimado y el markup no
+     lleva ni una cifra: si el recuento cambia, se cambia este objeto y el
+     tablero entero se redibuja.
+
+     Cómo se contó: se tomaron los enlaces a archivo (pdf, xlsx, docx, pptx, mp3,
+     mp4) de esa página, se quitaron los repetidos por URL y cada archivo se
+     clasificó por el patrón de su nombre. Los 239 quedaron clasificados sin
+     residuo: no hay un cajón de «otros» donde esconder lo que no encaja.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  const DATOS_SMU = {
+    medido: '2 de septiembre de 2026',
+    fuente: 'smu.cl/inversionistas',
+    enlaces: 282,
+    archivos: 239,
+    /* La diferencia entre enlaces y archivos no es un error de la web: son
+       documentos que la propia página ofrece desde más de un sitio —la ficha del
+       trimestre y el resumen de portada, por ejemplo—. */
+    repetidos: 43,
+
+    tipos: [
+      { id: 'reporte',   nombre: 'Reporte de resultados',     n: 39, desde: 2017, hasta: 2026, cadencia: 'trimestral', paquete: true },
+      { id: 'present',   nombre: 'Presentación de resultados', n: 39, desde: 2017, hasta: 2026, cadencia: 'trimestral', paquete: true },
+      { id: 'eeff',      nombre: 'Estados financieros',        n: 38, desde: 2017, hasta: 2026, cadencia: 'trimestral', paquete: true },
+      { id: 'call',      nombre: 'Conference call',            n: 38, desde: 2017, hasta: 2026, cadencia: 'trimestral', paquete: true,
+        apunte: 'audio o video' },
+      { id: 'planilla',  nombre: 'Planilla financiera',        n: 37, desde: 2017, hasta: 2026, cadencia: 'trimestral', paquete: true,
+        apunte: 'Excel' },
+      { id: 'hechos',    nombre: 'Hechos esenciales',          n: 19, desde: 2026, hasta: 2026, cadencia: 'cuando ocurre' },
+      { id: 'junta',     nombre: 'Junta de accionistas',       n: 13, desde: 2026, hasta: 2026, cadencia: 'anual',
+        apunte: 'aviso, poder, candidatos, actas' },
+      { id: 'memoria',   nombre: 'Memoria integrada',          n: 6,  desde: 2020, hasta: 2025, cadencia: 'anual',
+        apunte: '2.535 páginas y 55,8 MB entre las seis' },
+      { id: 'esg',       nombre: 'Suplemento ESG',             n: 4,  desde: 2022, hasta: 2025, cadencia: 'anual',
+        apunte: 'en inglés, aparte de la memoria' },
+      { id: 'partes',    nombre: 'Partes relacionadas',        n: 4,  desde: 2025, hasta: 2026, cadencia: 'semestral',
+        apunte: 'norma CMF 501' },
+      { id: 'corp',      nombre: 'Presentación corporativa',   n: 2,  desde: 2026, hasta: 2026, cadencia: 'cuando se usa' },
+    ],
+  };
+
+  {
+    const tablero = $('[data-tablero]');
+
+    if (tablero) {
+      const lista = $('[data-tipos]');
+      const ficha = $('[data-ficha]');
+      const tipos = DATOS_SMU.tipos;
+      const mayor = Math.max(...tipos.map((t) => t.n));
+
+      /* Las cinco piezas del paquete trimestral son la mayoría de lo publicado.
+         La cifra se calcula, no se escribe: si mañana una deja de ser trimestral,
+         el titular se corrige solo. */
+      const paquete = tipos.filter((t) => t.paquete);
+      const nPaquete = paquete.reduce((s, t) => s + t.n, 0);
+      const porcentaje = Math.round((nPaquete / DATOS_SMU.archivos) * 100);
+
+      /* Arriba, solo lo que se puede leer de un vistazo: una cifra y qué es. Lo
+         que necesita una frase entera va abajo, escrito como una frase. */
+      $('[data-tablero-cifras]').innerHTML =
+        `<b>${DATOS_SMU.archivos}</b>&nbsp;<span>archivos publicados</span>` +
+        `<b>${tipos.length}</b>&nbsp;<span>tipos de documento</span>`;
+
+      const ponerFicha = (t) => {
+        if (!t) {
+          /* En reposo, las dos cosas que dice el recuento. Una idea por oración,
+             con sujeto y verbo: si hay que releerlo, está mal escrito. */
+          ficha.innerHTML =
+            `<span class="apunte">Cinco de los ${tipos.length} tipos se publican cada ` +
+            `trimestre y suman ${nPaquete} archivos: el ${porcentaje}% del total. ` +
+            `Hay ${DATOS_SMU.enlaces} enlaces para ${DATOS_SMU.archivos} archivos, ` +
+            `porque ${DATOS_SMU.repetidos} están enlazados más de una vez.</span>`;
+          return;
+        }
+        const años = t.desde === t.hasta ? `${t.desde}` : `${t.desde}–${t.hasta}`;
+        ficha.innerHTML =
+          `<b>${t.nombre}</b> — ${t.n} archivos, ${años}, ${t.cadencia}.` +
+          (t.apunte ? ` <span class="apunte">${t.apunte}.</span>` : '');
+      };
+
+      const marcar = (id) => {
+        if (!id) {
+          tablero.removeAttribute('data-foco');
+          $$('.tipo', lista).forEach((li) => li.classList.remove('marcado'));
+          ponerFicha(null);
+          return;
+        }
+        tablero.setAttribute('data-foco', '');
+        $$('.tipo', lista).forEach((li) => li.classList.toggle('marcado', li.dataset.id === id));
+        ponerFicha(tipos.find((t) => t.id === id));
+      };
+
+      tipos.forEach((t, i) => {
+        const li = document.createElement('li');
+        li.className = 'tipo';
+        li.dataset.id = t.id;
+        li.style.setProperty('--i', String(i));
+        /* El nombre es el botón: es lo que se lee y lo que se señala, así que no
+           hace falta un control aparte al lado. */
+        li.innerHTML =
+          `<button class="tipo-nombre" type="button">${t.nombre}</button>` +
+          `<span class="tipo-barra" style="--parte:${(t.n / mayor).toFixed(4)}; --i:${i}" aria-hidden="true"><i></i></span>` +
+          `<span class="tipo-cifra">${t.n}</span>`;
+
+        const b = $('button', li);
+        b.setAttribute('aria-label', `${t.nombre}: ${t.n} archivos, ${t.cadencia}.`);
+        /* Puntero, teclado y toque desde el primer momento. */
+        b.addEventListener('pointerenter', () => marcar(t.id));
+        b.addEventListener('focus', () => marcar(t.id));
+        b.addEventListener('click', () => marcar(t.id));
+        lista.appendChild(li);
+      });
+
+      lista.addEventListener('pointerleave', () => marcar(null));
+      lista.addEventListener('focusout', (e) => {
+        if (!e.relatedTarget?.closest?.('[data-tipos]')) marcar(null);
+      });
+
+      ponerFicha(null);
+
+      /* La procedencia: quién midió, qué y cuándo. Nada más. */
+      $('[data-fuente-smu]').textContent =
+        `Diagnóstico de Estudio Bastos · ${DATOS_SMU.fuente} · ${DATOS_SMU.medido}`;
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     AMBIENTE
+     ════════════════════════════════════════════════════════════════════════ */
+
+  /* El ambiente no lo toca nadie: la textura va escrita en el <html> y el azul
+     es siempre el de marca. El sitio del estudio lo hunde de noche siguiendo el
+     reloj de Chile; una presentación, no —se ve a la hora que toque la reunión—,
+     así que aquí no hay ni una línea de guion para eso. */
+
+  /* ════════════════════════════════════════════════════════════════════════
+     EL RECORRIDO DEL CIERRE
+     La misma pieza de «Qué hacemos», con la misma regla: corre solo cuando su
+     lámina está delante y vuelve a empezar al salir.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  const videoCierre = $('[data-cierre]');
+
+  const arrancarCierre = () => {
+    if (!videoCierre || quieto()) return;
+    videoCierre.play().catch(() => {});
+  };
+
+  const pararCierre = () => {
+    if (!videoCierre) return;
+    videoCierre.pause();
+    videoCierre.currentTime = 0;
+  };
+})();
+</script>
+
+</body>
+</html>
