@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Memoria Integrada SMU 2025</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Lora:ital@0;1&display=swap');
+  /* --up-strong y --down cumplen 4,5:1 sobre papel y sobre los fondos de los chips. */
+  :root{ --bg:#f0efed; --ink:#1c1c1c; --paper:#fff; --muted:#6b6b6b; --line:#dcd8d0; --up:#0A9345; --up-strong:#07733A; --down:#c23b2e; --smu:#E1251A; }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',Arial,sans-serif;}
+
+  .app{display:grid;grid-template-columns:1fr;height:100vh;}
+  .app-nav{background:#faf9f6;border-right:1px solid var(--line);overflow-y:auto;}
+  .app-nav-head{padding:20px 20px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+  .app-nav-head img{height:22px;display:block;}
+  .app-nav-head .home-mini{background:none;border:1px solid var(--line);border-radius:5px;padding:5px 8px;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;}
+  .idx-title{padding:14px 20px 8px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;}
+  .idx-list .row{display:flex;align-items:center;gap:11px;padding:11px 18px;cursor:pointer;border:0;border-bottom:1px solid #efedE8;transition:background .15s ease;width:100%;text-align:left;background:#faf9f6;font-family:'Archivo',Arial,sans-serif;color:var(--ink);}
+  .idx-list .row:hover{background:#f0eee8;}
+  .idx-list .row.active{background:#eeecE5;}
+  .idx-list .row .dot{width:10px;height:10px;border-radius:50%;flex:none;}
+  .idx-list .row .n{font-family:'Archivo Black';font-size:12px;color:var(--muted);width:18px;flex:none;}
+  .idx-list .row .t{font-size:12.5px;font-weight:600;flex:1;line-height:1.25;}
+  .idx-list .row .p{font-size:11px;color:var(--muted);flex:none;}
+
+  .app-main{display:flex;flex-direction:column;overflow:hidden;}
+  .top-strip{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:#fff;flex:none;}
+  .home-btn{background:none;border:none;cursor:pointer;padding:2px 4px;flex:none;display:flex;align-items:center;}
+  .home-btn img{height:16px;display:block;}
+  .rail{display:flex;gap:3px;flex:1;align-items:center;overflow-x:auto;}
+  .rail .seg{
+    height:15px;border-radius:3px;flex:1;min-width:14px;border:0;padding:0;
+    cursor:pointer;transition:all .18s ease;opacity:.6;
+    font-family:'Archivo Black';font-size:8.5px;line-height:15px;text-align:center;
+  }
+  .rail .seg:hover{opacity:.9;}
+  .rail .seg.active{opacity:1;height:20px;line-height:20px;font-size:10px;}
+  .rail-label{flex:none;font-size:10.5px;font-weight:700;color:var(--muted);white-space:nowrap;}
+  .idx-open-btn{flex:none;background:var(--ink);color:#fff;border:none;border-radius:14px;font-size:10.5px;font-weight:700;padding:6px 11px;cursor:pointer;}
+  .app-view{overflow-y:auto;flex:1;position:relative;background:#fff;}
+
+  /* ============ PORTADA ============ */
+  .cover-screen{min-height:100%;display:flex;flex-direction:column;background:var(--bg);}
+  .cover-top{padding:34px 30px 0;}
+  .cover-top img{height:30px;display:block;margin-bottom:26px;}
+  .cover-title{font-size:clamp(20px,3.2vw,30px);color:#3a3a3a;font-weight:400;line-height:1.1;letter-spacing:.01em;}
+  .cover-title b{font-family:'Archivo Black';display:block;color:var(--ink);}
+  .cover-stripes{
+    flex:1;display:flex;gap:0;align-items:stretch;
+    margin:30px 30px 0;min-height:220px;
+  }
+  .stripe{
+    flex:1;cursor:pointer;position:relative;border:0;background:none;
+    display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+    transition:flex .22s ease;
+    padding:0 0 10px;
+  }
+  .stripe .bar{position:absolute;inset:0 26% 0 26%;transition:inset .22s ease;}
+  .stripe:hover .bar, .stripe.hl .bar{inset:0 12% 0 12%;}
+  .stripe .sn{position:relative;font-family:'Archivo Black';color:#fff;font-size:13px;}
+  .stripe-caption{
+    margin:14px 30px 0;min-height:44px;
+    border-top:1.5px solid var(--ink);
+    padding-top:10px;
+    display:flex;align-items:baseline;gap:12px;
+  }
+  .stripe-caption .cap-n{font-family:'Archivo Black';font-size:26px;line-height:1;min-width:38px;}
+  .stripe-caption .cap-t{font-size:14px;font-weight:700;line-height:1.25;}
+  .stripe-caption .cap-hint{font-size:11px;color:var(--muted);font-weight:600;}
+  .cover-kpis{padding:22px 30px 30px;}
+  .cover-kpis .ck-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px;}
+  .kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;}
+  .kpi-strip.p3{grid-template-columns:repeat(3,1fr);}
+  .kpi{border:1px solid var(--line);border-radius:6px;padding:10px;cursor:pointer;transition:border-color .15s;background:#fff;display:block;width:100%;text-align:left;font-family:'Archivo',Arial,sans-serif;color:var(--ink);}
+  .kpi:hover{border-color:var(--ink);}
+  .kpi .kv{display:block;font-family:'Archivo Black';font-size:15px;line-height:1;}
+  .kpi .kl{display:block;font-size:8.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:4px;line-height:1.3;}
+  .kpi .kd{display:block;font-size:9px;font-weight:700;margin-top:5px;}
+  .kpi .kd .delta{margin-left:0;}
+  .kpi .kd-note{color:#5a5a5a;}
+
+  /* ============ CAPÍTULOS ============ */
+  .ch-head{padding:18px 20px 14px;color:#fff;}
+  .ch-head .n{font-family:'Archivo Black';font-size:30px;line-height:1;opacity:.9;}
+  .ch-head .t{font-family:'Archivo Black';font-size:18px;line-height:1.15;margin-top:4px;}
+  .ch-body{padding:18px 20px 34px;}
+  .sec-k{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:0 0 10px;}
+
+  .depth-toggle{display:flex;gap:0;margin:0 0 16px;border:1px solid var(--line);border-radius:16px;overflow:hidden;width:max-content;}
+  .depth-toggle button{border:none;background:#fff;font-family:'Archivo';font-size:10.5px;font-weight:700;padding:6px 14px;cursor:pointer;color:var(--muted);}
+  .depth-toggle button.on{background:var(--ink);color:#fff;}
+  .prose-block{font-size:12.5px;line-height:1.62;color:#3a3a3a;margin-top:16px;border-top:1px solid var(--line);padding-top:14px;display:none;}
+  .prose-block.show{display:block;}
+  .prose-block p{margin:0 0 10px;}
+
+  .delta{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle;}
+  .delta.good{background:#e6f4ec;color:var(--up-strong);}
+  .delta.bad{background:#fbeae7;color:var(--down);}
+  .delta.flat{background:#f0eee8;color:#5a5a5a;}
+
+  .letter{font-family:'Lora',serif;font-style:italic;font-size:13.5px;line-height:1.65;color:#2a2a2a;}
+  .letter p{margin:0 0 12px;}
+  .letter .sig{margin-top:16px;font-weight:600;font-style:normal;font-size:12px;color:var(--muted);}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+  .stat{background:#fdf3e8;border-radius:6px;padding:12px;}
+  .stat.wide{grid-column:1/-1;background:#F0A400;color:#1c1c1c;}
+  .stat.wide .rv-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .stat .big{font-family:'Archivo Black';font-size:26px;line-height:1;}
+  .stat.wide .big{font-size:40px;}
+  .stat .lab{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-top:2px;color:#7a4a00;}
+  .stat.wide .lab{color:#1c1c1c;opacity:.78;margin-top:0;}
+  .stat.wide .rv-body{border-top-color:rgba(0,0,0,.25);}
+  .brand-row{display:flex;justify-content:space-between;font-size:11.5px;padding:6px 0;border-bottom:1px solid #eee0c8;}
+  .brand-row b{font-weight:700;}
+
+  .mat-pillar{margin-bottom:18px;border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+  .mat-pillar .mp-head{padding:9px 14px;color:#fff;font-family:'Archivo Black';font-size:11.5px;}
+  .mat-row{display:flex;gap:12px;padding:11px 14px;border-bottom:1px solid #f0eee8;}
+  .mat-row:last-child{border-bottom:none;}
+  .mat-row .theme{width:96px;flex:none;font-size:11px;font-weight:700;line-height:1.3;color:#3a3a3a;}
+  .mat-row .adv{flex:1;font-size:11.5px;line-height:1.5;color:#4a4a4a;}
+  .mat-row .adv ul{margin:0;padding-left:14px;}
+  .mat-row .adv li{margin-bottom:3px;}
+  .ods-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+  .ods-tag{font-size:9.5px;font-weight:700;background:#eee9f5;color:#4A1371;padding:2px 6px;border-radius:3px;}
+
+  .gov-note{font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:16px;}
+  .board-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
+  .board-card{border:1px solid var(--line);border-radius:6px;padding:12px;}
+  .board-card .role{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#8A6108;}
+  .board-card .name{font-family:'Archivo Black';font-size:13px;margin:3px 0 6px;line-height:1.15;}
+  .board-card .bio{font-size:10.5px;color:#5a5a5a;line-height:1.45;}
+  .board-card .own{margin-top:8px;font-size:10px;color:var(--muted);font-weight:600;}
+  .donut-wrap{display:flex;align-items:center;gap:18px;margin:8px 0 6px;flex-wrap:wrap;}
+  .donut-legend{flex:1;min-width:150px;}
+  .donut-legend .dl-row{display:flex;justify-content:space-between;font-size:11.5px;padding:5px 0;border-bottom:1px solid #f0eee8;}
+  .donut-legend .dl-row b{font-weight:700;}
+
+  .eth-stat-row{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .eth-stat{flex:1;min-width:100px;background:#fbf0e8;border-radius:6px;padding:14px;}
+  .eth-stat .big{font-family:'Archivo Black';font-size:22px;line-height:1;color:#a24d1a;}
+  .eth-stat .lab{font-size:10px;color:#6b4526;font-weight:700;margin-top:3px;line-height:1.3;}
+  .values-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+  .value-chip{font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:14px;background:#D46A2A;color:#fff;}
+  .dtable{width:100%;border-collapse:collapse;font-size:10.5px;}
+  .dtable th{text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);padding:6px;border-bottom:1.5px solid var(--ink);}
+  .dtable td{padding:6px;border-bottom:1px solid #f0eee8;}
+  .dtable td.num{text-align:right;font-weight:600;}
+  .dtable tr.total td{font-weight:700;border-top:1.5px solid var(--ink);border-bottom:none;}
+
+  .hero-num{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap;}
+  .hero-num .hn{font-family:'Archivo Black';font-size:52px;line-height:1;}
+  .hero-sub{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:14px;}
+  .palancas{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .palanca{background:#f7edf3;border-radius:6px;padding:9px 12px;font-size:10.5px;font-weight:700;color:#89225A;}
+  .clubs{display:flex;gap:8px;flex-wrap:wrap;}
+  .club{border:1px solid var(--line);border-radius:14px;padding:5px 12px;font-size:10.5px;font-weight:700;color:#3a3a3a;}
+
+  .soc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .soc{border:1px solid var(--line);border-radius:6px;padding:12px;}
+  .soc .sv{font-family:'Archivo Black';font-size:19px;color:#0A9345;line-height:1.05;}
+  .soc .sl{font-size:10px;font-weight:700;color:#3a3a3a;margin-top:4px;line-height:1.35;}
+
+  .doc-map .dm{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:8px;}
+  .doc-map .dm .ic{width:34px;height:34px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;font-family:'Archivo Black';color:#fff;font-size:13px;background:#3B7D9C;}
+  .doc-map .dm .dt{font-size:12px;font-weight:700;}
+  .doc-map .dm .dd{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.4;}
+
+  /* ============ ACCESIBILIDAD BASE ============ */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+  [hidden]{display:none !important;}
+  button:focus-visible,[tabindex]:focus-visible,a:focus-visible{outline:3px solid #0B57D0;outline-offset:2px;border-radius:3px;}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;}
+  }
+
+  /* ---- glosario en línea ---- */
+  .term{
+    font:inherit;color:inherit;background:none;border:0;padding:0;
+    border-bottom:1.5px dotted currentColor;font-weight:700;cursor:pointer;
+  }
+  .term:hover,.term[aria-expanded="true"]{background:#fdf3e8;}
+  .gloss{
+    position:fixed;z-index:60;max-width:290px;
+    background:var(--ink);color:#fff;border-radius:8px;padding:10px 12px;
+    font-size:11.5px;line-height:1.45;
+    box-shadow:0 8px 26px rgba(0,0,0,.28);
+    opacity:0;visibility:hidden;transition:opacity .14s ease;
+  }
+  .gloss.open{opacity:1;visibility:visible;}
+  .gloss .gl-t{display:block;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:#FFCF5C;margin-bottom:4px;}
+
+  /* ---- revelación en el lugar ---- */
+  .rv{position:relative;}
+  .rv-head{position:relative;display:block;width:100%;text-align:left;background:none;border:0;padding:0 20px 0 0;font:inherit;color:inherit;cursor:pointer;font-family:'Archivo',Arial,sans-serif;}
+  .rv-head .rv-mark{position:absolute;top:0;right:0;font-family:'Archivo Black';font-size:14px;opacity:.5;line-height:1;}
+  .rv-body{margin-top:9px;padding-top:8px;border-top:1px solid rgba(0,0,0,.14);}
+  .rv-row{display:flex;justify-content:space-between;gap:10px;font-size:10.5px;line-height:1.4;padding:4px 0;}
+  .rv-row b{font-weight:700;white-space:nowrap;}
+  .rv-note{font-size:10.5px;line-height:1.5;color:#5a5a5a;margin-top:6px;}
+
+  .board-toggle{display:block;width:100%;text-align:left;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;position:relative;}
+  .board-toggle .caret{position:absolute;right:0;top:4px;font-family:'Archivo Black';font-size:13px;color:#5a5a5a;}
+  .board-toggle .name{display:block;padding-right:16px;}
+
+  /* ---- estimación integrada a la narrativa ---- */
+  .est-p{font-size:13px;line-height:1.65;color:#3a3a3a;margin:0 0 12px;}
+  .est-p .ask{font-weight:700;color:var(--ink);}
+  .est-chart{display:flex;gap:22px;height:180px;margin:6px 0 6px;}
+  .est-col{flex:1;max-width:150px;position:relative;}
+  .est-zero{position:absolute;left:0;right:0;border-top:1.5px solid var(--ink);}
+  .est-ph{position:absolute;left:16%;right:16%;top:0;bottom:0;border:1.5px dashed #7a746a;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Archivo Black';font-size:26px;color:#7a746a;}
+  .est-bar{position:absolute;left:16%;right:16%;border-radius:3px;transition:top .8s cubic-bezier(.2,.85,.25,1),height .8s cubic-bezier(.2,.85,.25,1);}
+  .est-val{position:absolute;left:0;right:0;text-align:center;font-family:'Archivo Black';font-size:15px;}
+  .est-labels{display:flex;gap:22px;margin-bottom:16px;}
+  .est-lab{flex:1;max-width:150px;font-size:10.5px;font-weight:700;line-height:1.35;color:#4a4a4a;}
+  .est-opts{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 16px;}
+  .est-opt{font-family:'Archivo';font-size:11.5px;font-weight:700;padding:8px 15px;border:1.5px solid var(--line);border-radius:18px;background:#fff;color:#3a3a3a;cursor:pointer;}
+  .est-opt:hover{border-color:var(--ink);}
+  .est-opt[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .est-opts.answered .est-opt:not([aria-pressed="true"]){opacity:.45;}
+  .est-after{font-size:13px;line-height:1.65;color:#3a3a3a;}
+  .est-after p{margin:0 0 12px;}
+  .est-cifras{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 14px;}
+  .est-cif{border:1px solid var(--line);border-radius:6px;padding:10px;}
+  .est-cif .ec-v{font-family:'Archivo Black';font-size:15px;line-height:1.1;}
+  .est-cif .ec-l{font-size:9.5px;font-weight:700;color:#5a5a5a;line-height:1.35;margin-top:4px;}
+  .est-links{display:flex;flex-wrap:wrap;gap:7px;}
+  .est-link{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:16px;background:#fff;padding:6px 12px;font-family:'Archivo';font-size:10.5px;font-weight:700;color:#3a3a3a;cursor:pointer;}
+  .est-link:hover{border-color:var(--ink);}
+  .est-link .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+
+  /* ---- sparkline en línea ---- */
+  .spark{display:inline-block;vertical-align:-2px;margin:0 4px;}
+
+  /* ---- gráfico SSS ---- */
+  .sss-controls{display:flex;border:1px solid var(--line);border-radius:16px;overflow:hidden;width:max-content;margin:0 0 14px;}
+  .sss-controls button{border:0;background:#fff;font-family:'Archivo';font-size:10.5px;font-weight:700;padding:6px 15px;cursor:pointer;color:var(--muted);}
+  .sss-controls button[aria-pressed="true"]{background:var(--ink);color:#fff;}
+  .sss-wrap{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;}
+  .sss-chart{flex:1;min-width:230px;}
+  .sss-row{display:grid;grid-template-columns:5fr 1fr;align-items:stretch;height:28px;}
+  .sss-neg{position:relative;height:100%;border-right:1.5px solid var(--ink);}
+  .sss-pos{position:relative;height:100%;}
+  .sss-neg i,.sss-pos i{position:absolute;top:6px;bottom:6px;display:block;transition:width .45s ease;}
+  .sss-neg i{right:0;border-radius:3px 0 0 3px;}
+  .sss-pos i{left:0;border-radius:0 3px 3px 0;}
+  .sss-row.hl i{filter:brightness(.72);}
+  .sss-legend{flex:0 0 220px;}
+  /* La leyenda comparte la altura de fila del gráfico: barra y fila quedan en registro. */
+  .sss-leg{display:flex;width:100%;height:28px;justify-content:space-between;align-items:center;gap:10px;background:none;border:0;border-bottom:1px solid #f0eee8;padding:0 5px;font-family:'Archivo';font-size:11.5px;color:#3a3a3a;text-align:left;cursor:pointer;}
+  .sss-leg b{font-weight:700;font-variant-numeric:tabular-nums;}
+  .sss-leg.hl{background:#f2f0ea;}
+  .sss-leg.tot{border-top:1.5px solid var(--ink);border-bottom:0;font-weight:700;}
+
+  /* ---- cuadrícula unitaria ---- */
+  .ug{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;max-width:238px;margin:12px 0 12px;}
+  .ug i{display:block;width:100%;padding-top:100%;border-radius:50%;transition:transform .15s ease,opacity .15s ease;}
+  .ug.focus i:not(.on){opacity:.28;}
+  .ug i.on{transform:scale(1.12);}
+  .ug-legend{display:flex;gap:8px;flex-wrap:wrap;}
+  .ug-leg{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:18px;background:#fff;padding:7px 13px;font-family:'Archivo';font-size:11px;font-weight:700;color:#3a3a3a;cursor:pointer;}
+  .ug-leg.hl{border-color:var(--ink);}
+  .ug-leg .sw{width:10px;height:10px;border-radius:50%;flex:none;}
+  .ug-note{font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:10px;}
+
+  /* ---- entrada por perfil de lector ---- */
+  .perfil{margin:24px 30px 0;}
+  .perfil-lab{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px;}
+  .perfil-opts{display:flex;gap:7px;flex-wrap:wrap;}
+  .perfil-opt{font-family:'Archivo';font-size:11px;font-weight:700;padding:7px 15px;border:1.5px solid var(--line);border-radius:18px;background:#fff;color:#3a3a3a;cursor:pointer;}
+  .perfil-opt:hover{border-color:var(--ink);}
+  .perfil-opt[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  /* ---- procedencia ---- */
+  .fuente{margin-top:28px;padding-top:10px;border-top:1px solid var(--line);font-size:10px;line-height:1.6;color:var(--muted);}
+  .nota-fuente{font-size:10.5px;line-height:1.55;color:#5a5a5a;border-left:2px solid var(--line);padding-left:10px;margin-top:10px;}
+
+  @media (max-width:859px){
+    .app{grid-template-columns:1fr;}
+    .app.mode-list .app-nav{display:block;}
+    .app.mode-list .app-main{display:none;}
+    .app.mode-view .app-nav{display:none;}
+    .app.mode-view .app-main{display:flex;}
+    .kpi-strip{grid-template-columns:repeat(2,1fr);}
+    .board-grid,.soc-grid{grid-template-columns:1fr;}
+    .cover-stripes{margin:24px 18px 0;min-height:200px;}
+    .cover-top{padding:26px 18px 0;}
+    .cover-kpis{padding:18px;}
+    .perfil{margin:20px 18px 0;}
+    .est-cifras{grid-template-columns:1fr;}
+    /* La leyenda se mantiene junto al gráfico: el resaltado vinculado pierde sentido si se separan. */
+    .sss-wrap{gap:10px;flex-wrap:nowrap;}
+    .sss-chart{min-width:0;}
+    .sss-legend{flex:0 0 128px;}
+    .sss-row{height:38px;}
+    .sss-leg{height:38px;font-size:9.5px;padding:0 3px;gap:5px;}
+    .sss-leg span{line-height:1.25;}
+  }
+  @media (min-width:860px){
+    .app{grid-template-columns:300px 1fr;}
+    .app-nav{display:block !important;}
+    .app-main{display:flex !important;}
+    .idx-open-btn{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="app mode-view" id="app">
+  <nav class="app-nav" id="app-nav">
+    <div class="app-nav-head">
+      <img id="logo-side" alt="SMU">
+      <button class="home-mini" onclick="showCover()">Portada</button>
+    </div>
+    <div class="idx-title" id="idx-title">Memoria Integrada 2025 — Índice</div>
+    <div class="idx-list" id="idx-list" role="list" aria-labelledby="idx-title"></div>
+  </nav>
+  <div class="app-main">
+    <div class="top-strip">
+      <button class="home-btn" onclick="showCover()" aria-label="Ir a la portada"><img id="logo-top" alt="SMU"></button>
+      <div class="rail" id="rail" role="group" aria-label="Riel de capítulos"></div>
+      <span class="rail-label" id="rail-label">Portada</span>
+      <button class="idx-open-btn" onclick="openList()">Índice ☰</button>
+    </div>
+    <main class="app-view" id="app-view" tabindex="-1"></main>
+  </div>
+</div>
+
+<div class="gloss" id="gloss" role="tooltip"></div>
+
+<script>
+const LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOwAAAAyCAMAAABoOcd5AAAANlBMVEUAAADlHiXlHiXlHiXlHiXlHiXlHiXlHiXlHiXlHiXlHiXlHiXlHiXlHiXlHiXlHiXlHiXlHiU7QyQqAAAAEXRSTlMAgEDA8BCg4HAgX9BRsDCQTLv/rgAAAAQoSURBVGje5VrbctwgDDXifjEu//+z7WyTZY0k5GRtzzQ9D52JYRFHVxBdfh4Alv8BZdOmPWC0KvL8CEH9wT+oHXBtD+NmJGxaTZ+bXRmGYUTdaWlE7CPkdxjwnlF9I6CBo7oZNHnHF9CwWTocGt0+RtTwXX18bwPeoBp1Y6AjNT+YRsEH+5yBR190YbCc28gG01iYhM2q+dmhb3qEm5i9+bvIujbFNnLNjccn2ZXi84mtYdxAFtsJQ6njXM2nH1OLPlOUbxjxFrISV6+6A3azMHA4KvHGYyMAd5B1TUAynQOKN9Z41GDuyQsj3EA2NAHaPRgfc4Q8V0ns8YygridbTRNQHv+aiFyQQsJksfUsObZeT1Y3AZvudRB5An9uUBNChfagy8mmJsA8yQGjHa2Uy6hIqUbCTrLE5WR9E6D8oHlDZqQYHvOi5DFlItReTLY0uew8AZRQ3Z3EvPyxZL4y1UYDLia7ymVnLKGjm9eXu0HpK0+CWnGZ8FqyVi47yM9w0lFgj69cWaM3dS3ZJBoWq54ur1vZEwY2ufN6cNeSDXqOkIeNzlLaCkeSgec1rC8mq3YAwfJaOF3qiioPRlxZPVxLdpRmh8Aby4yYwJN84J5cnS8lG+kUwZtHLs0bX2Zl1CvJAioMcaqLBnJtTuRhhVGQQcvfSLa5eREG+U5oLLW1jXHp4c97yTYQRmW2G+EUhvYGD4jXrWT19NgMR/pzxMp6MaReKhJ+Hdk6y6ehYfRwdjxdwD/WtDOU5ftkzfJVMDGHyw7Wpk2OyToK79iRWc2gDUzIWuSCZ1zw1NBVwwLss2lR1OrJBdbxk6WPhwZf8hSdM8vbZFe2TxQnncPUwuxgqHCZVaSo0uehCECu5t4mG9jWiZ7XUF37Io4ga9APE5nJNBYApIpTe5ts5DJMYVoJPdO62K/pmCxe0ZJ+suKfAtFAUCsRLF9GZtqhftL+c7s3O3yuD3jDQIkqVCLrihIQzuq3BdUoFOQNWRNaqZispWKRSL26G0BCPavhZshY9tzlTW68UCGzEknD9G8C/HnvAZvm05OR+swM2SUTy4GsFbaYn9ZLTVQkY8fnKpc+0IKwFNnak4Ik5TsAptHGBUk+ovJMka1EtqvU4Tuea1j5AfKXoZevbY486S17IihIKaHJUs58nvUKpxPGxfDt3x44gVqa7FEp34XN3LNHR7Z8iOOOOdAUACmP8gGZrX9IOZOtSYjrA2lCN0f6uBzwY3yi3SofeDXWfTOnsXW6m2G3PKxc0bFMow6wvSwTQ+L/VTJh6TgvSxU29UVFmHftzuUYsgVbUPMlBRyVSuzyPgBvX//VQAZqfgyrf50b4tKR1B7PMdyOBzy1wxaX928sy0lQhnrB82nhUQGCUgD1beG3C7Epjz6T0/Jz8eqcfg12+fEAANZpfgOM2ZCUk9UjzAAAAABJRU5ErkJggg==";
+document.getElementById('logo-side').src = LOGO;
+document.getElementById('logo-top').src = LOGO;
+
+const chapters = [
+  {n:1, title:"A nuestros grupos de interés", page:5, color:"#E1251A", subs:[], kind:"letter"},
+  {n:2, title:"Nuestra compañía", page:11, color:"#F0A400", subs:[["2.1 SMU en una mirada",13],["2.2 Quiénes somos",15],["2.3 Presencia geográfica",16],["2.4 Historia",17],["2.5 Negocio",19],["2.6 Estrategia",26],["2.7 Industria de supermercados",32]], kind:"infographic"},
+  {n:3, title:"Sostenibilidad en SMU", page:35, color:"#4A1371", subs:[["3.1 Gestión de sostenibilidad",37],["3.2 Grupos de interés",42],["3.3 Creación de valor",52]], kind:"materiality"},
+  {n:4, title:"Gobernanza", page:53, color:"#FFB61C", subs:[["4.1 Estructura de gobierno corporativo",55],["4.2 Directorio",58],["4.3 Informe anual del Comité de Directores",84],["4.4 Administración",89],["4.5 Estructura accionaria",92],["4.6 Gestión de riesgos",98]], kind:"governance"},
+  {n:5, title:"Cultura de la integridad y la gestión ética", page:123, color:"#D46A2A", subs:[["5.1 Gestión de la ética",125],["5.2 Cumplimiento",137],["5.3 Marco regulatorio",146]], kind:"ethics"},
+  {n:6, title:"Somos una empresa de personas", page:149, color:"#B81E15", subs:[["6.1 Cultura organizacional",151],["6.2 Desarrollo de personas",153],["6.3 Diversidad e inclusión",164],["6.4 Beneficios y bienestar",171],["6.5 Relaciones laborales",179],["6.6 Seguridad y salud en el trabajo",181],["6.7 Nuestra gente: indicadores",194]], kind:"people"},
+  {n:7, title:"El cliente al centro", page:205, color:"#89225A", subs:[["7.1 Experiencia del cliente",207],["7.2 Aseguramiento de la calidad e inocuidad",216]], kind:"customer"},
+  {n:8, title:"Abastecimiento responsable", page:219, color:"#6B2FA0", subs:[["8.1 Gestión de proveedores",221],["8.2 Desarrollo de proveedores locales",227],["8.3 Pagos a proveedores",232]], kind:"suppliers"},
+  {n:9, title:"Compromiso con la sociedad", page:235, color:"#0A9345", subs:[["9.1 Relación con la comunidad",237],["9.2 Trabajo colaborativo con organizaciones",238]], kind:"society"},
+  {n:10, title:"Nos preocupamos por el medio ambiente", page:243, color:"#005B80", subs:[["10.1 Gestión de residuos",246],["10.2 Gestión energética",252],["10.3 Huella de carbono",254],["10.4 Gestión de la huella de agua",255],["10.5 Indicadores ambientales",257]], kind:"environment"},
+  {n:11, title:"Desempeño financiero", page:263, color:"#013B9F", subs:[], kind:"financial"},
+  {n:12, title:"Información adicional", page:293, color:"#3B7D9C", subs:[], kind:"annex"},
+];
+
+// Las seis cifras de portada son referencias a la capa de datos, no valores copiados.
+const KPIS_PORTADA = ['ingresos_2025','nps_2025','utilidad_neta_2025','emisiones_2025','dotacion_2025','locales_total'];
+
+// ============ UTILIDADES DE COLOR Y CONTRASTE ============
+// El color de capítulo nunca porta información por sí solo, pero sí funciona como
+// superficie. Estas funciones garantizan contraste AA sobre cada una de las 12 superficies.
+function hexToRgb(h){h=h.replace('#','');return [0,2,4].map(i=>parseInt(h.substr(i,2),16));}
+function relLum(rgb){const f=v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);};return 0.2126*f(rgb[0])+0.7152*f(rgb[1])+0.0722*f(rgb[2]);}
+function contrast(a,b){const l1=relLum(a),l2=relLum(b);const hi=Math.max(l1,l2),lo=Math.min(l1,l2);return (hi+0.05)/(lo+0.05);}
+function toHex(rgb){return '#'+rgb.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');}
+
+// Superficie de color apta para texto: oscurece el color de capítulo hasta que
+// alguna de las dos tintas (blanco o negro) alcanza 4,5:1.
+const _bgCache={};
+function bgFor(hex){
+  if(_bgCache[hex]) return _bgCache[hex];
+  let rgb=hexToRgb(hex), k=1;
+  while(k>0.3 && Math.max(contrast(rgb,[255,255,255]),contrast(rgb,[28,28,28]))<4.5){
+    k-=0.05; rgb=hexToRgb(hex).map(v=>v*k);
+  }
+  return _bgCache[hex]=toHex(rgb);
+}
+// Tinta sobre una superficie de color.
+function textOn(hex){
+  const rgb=hexToRgb(hex);
+  return contrast(rgb,[255,255,255])>=contrast(rgb,[28,28,28])?'#ffffff':'#1c1c1c';
+}
+// Color de capítulo usable como texto sobre papel blanco.
+const _inkCache={};
+function inkOn(hex){
+  if(_inkCache[hex]) return _inkCache[hex];
+  let rgb=hexToRgb(hex), k=1;
+  while(k>0.15 && contrast(rgb,[255,255,255])<4.5){ k-=0.04; rgb=hexToRgb(hex).map(v=>v*k); }
+  return _inkCache[hex]=toHex(rgb);
+}
+
+// ============ CAPA DE DATOS ============
+// Toda cifra publicada se declara aquí con su procedencia. El markup no contiene
+// valores: los lee de esta capa. Actualizar el año siguiente es actualizar este objeto.
+// fuente_pagina refiere a la página de la sección en la Memoria Integrada SMU 2025.
+const DATOS = {
+  // --- Capítulo 2 · Nuestra compañía
+  locales_total:{id:'locales_total',valor:447,unidad:'locales',display:'447',etiqueta:'Locales Chile + Perú',anio:2025,fuente_pagina:13,capitulo:2,nota:'71 aperturas y reconversiones'},
+  locales_unimarc:{id:'locales_unimarc',valor:301,unidad:'locales',display:'301 locales',etiqueta:'Unimarc (Chile)',anio:2025,fuente_pagina:13,capitulo:2},
+  locales_alvi:{id:'locales_alvi',valor:57,unidad:'locales',display:'57 locales',etiqueta:'Alvi (Chile)',anio:2025,fuente_pagina:13,capitulo:2},
+  locales_super10:{id:'locales_super10',valor:54,unidad:'locales',display:'54 locales',etiqueta:'Super 10 (Chile)',anio:2025,fuente_pagina:13,capitulo:2},
+  locales_maxiahorro:{id:'locales_maxiahorro',valor:30,unidad:'locales',display:'30 locales',etiqueta:'Maxiahorro (Perú)',anio:2025,fuente_pagina:13,capitulo:2},
+  locales_mayorsa:{id:'locales_mayorsa',valor:5,unidad:'locales',display:'5 locales',etiqueta:'Mayorsa (Perú)',anio:2025,fuente_pagina:13,capitulo:2},
+  aperturas_2025:{id:'aperturas_2025',valor:71,unidad:'tiendas',display:'71',etiqueta:'Aperturas y reconversiones de tiendas en 2025',anio:2025,fuente_pagina:13,capitulo:2},
+  tiendas_nuevas_trienio:{id:'tiendas_nuevas_trienio',valor:54,unidad:'tiendas',display:'54',etiqueta:'Tiendas nuevas 2023-2025 (43 en Chile, 11 en Perú)',anio:2025,fuente_pagina:17,capitulo:2},
+  clientes:{id:'clientes',valor:10000000,unidad:'clientes',display:'+10M',etiqueta:'Millones de clientes',anio:2025,fuente_pagina:13,capitulo:2},
+  participacion_mercado:{id:'participacion_mercado',valor:16,unidad:'%',display:'16%',etiqueta:'Participación de mercado en Chile',anio:2025,fuente_pagina:13,capitulo:2},
+  posicion_industria:{id:'posicion_industria',valor:3,unidad:'lugar',display:'3°',etiqueta:'Actor industria supermercadista en Chile',anio:2025,fuente_pagina:13,capitulo:2},
+  inversion_plan_2628:{id:'inversion_plan_2628',valor:370000,unidad:'MM CLP',display:'$370 mil MM',etiqueta:'Inversión del plan estratégico 2026-2028',anio:2025,fuente_pagina:26,capitulo:2},
+  inversion_crecimiento:{id:'inversion_crecimiento',valor:55,unidad:'%',display:'55%',etiqueta:'Destinado a proyectos de crecimiento',anio:2025,fuente_pagina:26,capitulo:2},
+  inversion_eficiencia:{id:'inversion_eficiencia',valor:20,unidad:'%',display:'20%',etiqueta:'Destinado a proyectos de eficiencia',anio:2025,fuente_pagina:26,capitulo:2},
+  innovacion_2025:{id:'innovacion_2025',valor:950,unidad:'MM CLP',display:'$950 MM',etiqueta:'Destinados a innovación en 2025',anio:2025,fuente_pagina:26,capitulo:2},
+
+  // --- Capítulo 3 · Sostenibilidad
+  teleton_aporte_c3:{id:'teleton_aporte_c3',valor:1440,unidad:'MM CLP',display:'$1.440 millones',etiqueta:'Aporte a la campaña Teletón 2025',anio:2025,fuente_pagina:37,capitulo:3,
+    nota:'El capítulo 9 informa una contribución total de $1.434 millones. El documento original reporta ambas cifras por separado y aquí se preservan con su fuente respectiva.'},
+
+  // --- Capítulo 4 · Gobernanza
+  controlador_2025:{id:'controlador_2025',valor:39.8,unidad:'%',display:'39,8%',etiqueta:'Participación del grupo controlador',anio:2025,fuente_pagina:92,capitulo:4,comparacion:{anio:2024,variacion:'desde 45,2%',direccion:'down',favorable:null}},
+  fondos_pensiones:{id:'fondos_pensiones',valor:26.4,unidad:'%',display:'26,4%',etiqueta:'Fondos de pensiones',anio:2025,fuente_pagina:92,capitulo:4},
+  otros_accionistas:{id:'otros_accionistas',valor:33.8,unidad:'%',display:'33,8%',etiqueta:'Otros fondos, extranjeros y minoritarios',anio:2025,fuente_pagina:92,capitulo:4},
+  directores:{id:'directores',valor:8,unidad:'directores',display:'8',etiqueta:'Directores titulares al 31.12.2025',anio:2025,fuente_pagina:58,capitulo:4},
+
+  // --- Capítulo 5 · Ética
+  horas_etica:{id:'horas_etica',valor:317208,unidad:'horas',display:'317.208',etiqueta:'Horas de capacitación en ética y cumplimiento',anio:2025,fuente_pagina:125,capitulo:5},
+  personas_etica:{id:'personas_etica',valor:20788,unidad:'personas',display:'20.788',etiqueta:'Personas capacitadas en ética y cumplimiento',anio:2025,fuente_pagina:125,capitulo:5},
+  capacitados_acoso:{id:'capacitados_acoso',valor:21770,unidad:'personas',display:'21.770',etiqueta:'Personas capacitadas en prevención de acoso',anio:2025,fuente_pagina:125,capitulo:5},
+  cobertura_acoso:{id:'cobertura_acoso',valor:94,unidad:'%',display:'94%',etiqueta:'De la dotación',anio:2025,fuente_pagina:125,capitulo:5},
+
+  // --- Capítulo 6 · Personas
+  dotacion_2025:{id:'dotacion_2025',valor:23039,unidad:'colaboradores',display:'23.039',etiqueta:'Colaboradores al 31.12.2025',anio:2025,fuente_pagina:194,capitulo:6,comparacion:{anio:2024,variacion:'−5%',direccion:'down',favorable:null}},
+  dotacion_2024:{id:'dotacion_2024',valor:24247,unidad:'colaboradores',display:'24.247',etiqueta:'Colaboradores al 31.12.2024',anio:2024,fuente_pagina:194,capitulo:6},
+  dotacion_chile:{id:'dotacion_chile',valor:22366,unidad:'colaboradores',display:'22.366',etiqueta:'Colaboradores en Chile',anio:2025,fuente_pagina:194,capitulo:6},
+  dotacion_peru:{id:'dotacion_peru',valor:673,unidad:'colaboradores',display:'673',etiqueta:'Colaboradores en Perú',anio:2025,fuente_pagina:194,capitulo:6},
+  mujeres_dotacion:{id:'mujeres_dotacion',valor:14880,unidad:'colaboradoras',display:'14.880',etiqueta:'Mujeres — 64,6% de la dotación',anio:2025,fuente_pagina:194,capitulo:6},
+  hombres_dotacion:{id:'hombres_dotacion',valor:8159,unidad:'colaboradores',display:'8.159',etiqueta:'Hombres — 35,4% de la dotación',anio:2025,fuente_pagina:194,capitulo:6},
+  discapacidad:{id:'discapacidad',valor:330,unidad:'personas',display:'330',etiqueta:'Personas en situación de discapacidad al cierre de 2025',anio:2025,fuente_pagina:164,capitulo:6},
+  gestores_inclusion:{id:'gestores_inclusion',valor:25,unidad:'personas',display:'25',etiqueta:'Gestores de inclusión laboral',anio:2025,fuente_pagina:164,capitulo:6},
+  accidentabilidad_2025:{id:'accidentabilidad_2025',valor:3.1,unidad:'tasa',display:'3,1',etiqueta:'Tasa de accidentabilidad',anio:2025,fuente_pagina:181,capitulo:6,comparacion:{anio:2024,variacion:'desde 3,3',direccion:'down',favorable:true}},
+  accidentes_fatales:{id:'accidentes_fatales',valor:0,unidad:'accidentes',display:'0',etiqueta:'Accidentes fatales en 2025',anio:2025,fuente_pagina:181,capitulo:6},
+
+  // --- Capítulo 7 · Cliente
+  nps_2025:{id:'nps_2025',valor:73.0,unidad:'%',display:'73,0%',etiqueta:'NPS clientes Chile',anio:2025,fuente_pagina:207,capitulo:7,comparacion:{anio:2024,variacion:'+3,8 pp',direccion:'up',favorable:true}},
+  nps_2024:{id:'nps_2024',valor:69.2,unidad:'%',display:'69,2%',etiqueta:'NPS clientes Chile 2024',anio:2024,fuente_pagina:207,capitulo:7},
+  meta_nps:{id:'meta_nps',valor:66.5,unidad:'%',display:'66,5%',etiqueta:'Meta NPS 2025',anio:2025,fuente_pagina:207,capitulo:7},
+  marcas_propias_part:{id:'marcas_propias_part',valor:13,unidad:'%',display:'13%',etiqueta:'Participación de marcas propias y exclusivas en el año',anio:2025,fuente_pagina:207,capitulo:7},
+  respuesta_reclamos:{id:'respuesta_reclamos',valor:100,unidad:'%',display:'100%',etiqueta:'Tasa de respuesta de reclamos',anio:2025,fuente_pagina:207,capitulo:7},
+  fiscalizaciones_sumario:{id:'fiscalizaciones_sumario',valor:5.6,unidad:'%',display:'5,6%',etiqueta:'De las fiscalizaciones 2025 resultó en sumario sanitario (7% en 2024 y 2023)',anio:2025,fuente_pagina:216,capitulo:7},
+  establecimientos_muestreo:{id:'establecimientos_muestreo',valor:187,unidad:'establecimientos',display:'187',etiqueta:'Establecimientos con muestreo — 100% de productos dentro de la normativa',anio:2025,fuente_pagina:216,capitulo:7},
+  formulaciones:{id:'formulaciones',valor:120,unidad:'formulaciones',display:'120',etiqueta:'Formulaciones de marcas propias muestreadas en el plan de vigilancia',anio:2025,fuente_pagina:216,capitulo:7},
+  sumarios_inocuidad:{id:'sumarios_inocuidad',valor:0,unidad:'sumarios',display:'0',etiqueta:'Sumarios sanitarios por motivos de seguridad alimentaria',anio:2025,fuente_pagina:216,capitulo:7},
+
+  // --- Capítulo 8 · Abastecimiento
+  proveedores_total:{id:'proveedores_total',valor:3355,unidad:'proveedores',display:'3.355',etiqueta:'Proveedores a nivel consolidado en 2025',anio:2025,fuente_pagina:221,capitulo:8},
+  criticos_retail:{id:'criticos_retail',valor:20,unidad:'proveedores',display:'20',etiqueta:'Proveedores retail críticos (mayor venta del año)',anio:2025,fuente_pagina:221,capitulo:8},
+  criticos_no_retail:{id:'criticos_no_retail',valor:5,unidad:'proveedores',display:'5',etiqueta:'Proveedores no retail críticos',anio:2025,fuente_pagina:221,capitulo:8},
+  nps_proveedores:{id:'nps_proveedores',valor:72.6,unidad:'%',display:'72,6%',etiqueta:'NPS proveedores 100% Nuestro',anio:2025,fuente_pagina:227,capitulo:8},
+  compras_nacionales:{id:'compras_nacionales',valor:94,unidad:'%',display:'94%',etiqueta:'De las compras en Chile corresponden a proveedores nacionales',anio:2025,fuente_pagina:227,capitulo:8},
+  proveedores_100n:{id:'proveedores_100n',valor:170,unidad:'proveedores',display:'170',etiqueta:'Proveedores del programa 100% Nuestro, de las 16 regiones de Chile',anio:2025,fuente_pagina:227,capitulo:8},
+  exhibicion_100n:{id:'exhibicion_100n',valor:193,unidad:'espacios',display:'193',etiqueta:'Espacios de exhibición exclusiva 100% Nuestro al cierre de 2025',anio:2025,fuente_pagina:227,capitulo:8},
+  recomendacion_100n:{id:'recomendacion_100n',valor:83.6,unidad:'%',display:'83,6%',etiqueta:'Recomendación del programa entre clientes que lo conocen',anio:2025,fuente_pagina:227,capitulo:8},
+  plazo_pequenos:{id:'plazo_pequenos',valor:30,unidad:'días',display:'30 días',etiqueta:'Plazo máximo de pago a proveedores pequeños',anio:2025,fuente_pagina:232,capitulo:8},
+  facturas_total:{id:'facturas_total',valor:3366504,unidad:'facturas',display:'3.366.504',etiqueta:'Facturas pagadas a proveedores nacionales',anio:2025,fuente_pagina:232,capitulo:8},
+
+  // --- Capítulo 9 · Sociedad
+  organizaciones_sociales:{id:'organizaciones_sociales',valor:316,unidad:'organizaciones',display:'316',etiqueta:'Organizaciones sociales colaboraron en la donación de alimentos',anio:2025,fuente_pagina:237,capitulo:9},
+  beneficiarios_alimentos:{id:'beneficiarios_alimentos',valor:146000,unidad:'personas',display:'+146 mil',etiqueta:'Beneficiarios de productos donados',anio:2025,fuente_pagina:237,capitulo:9},
+  teleton_total_c9:{id:'teleton_total_c9',valor:1434,unidad:'MM CLP',display:'$1.434 MM',etiqueta:'Contribución total a la Teletón (Compañía + GiftCard + colaboradores)',anio:2025,fuente_pagina:238,capitulo:9,
+    nota:'El capítulo 3 informa un aporte de $1.440 millones a la campaña. El documento original reporta ambas cifras por separado y aquí se preservan con su fuente respectiva.'},
+  unidos_por_institucion:{id:'unidos_por_institucion',valor:13,unidad:'MM CLP',display:'$13 MM',etiqueta:'A cada institución de la Campaña Unidos: Fundación Las Rosas y Club de Leones Cruz del Sur',anio:2025,fuente_pagina:238,capitulo:9},
+  proyectos_descubreme:{id:'proyectos_descubreme',valor:11,unidad:'proyectos',display:'11',etiqueta:'Proyectos financiados por el Fondo Descúbreme',anio:2025,fuente_pagina:238,capitulo:9},
+  beneficiarios_descubreme:{id:'beneficiarios_descubreme',valor:272,unidad:'personas',display:'272',etiqueta:'Beneficiarios directos del Fondo Descúbreme',anio:2025,fuente_pagina:238,capitulo:9},
+
+  // --- Capítulo 10 · Medio ambiente
+  emisiones_2025:{id:'emisiones_2025',valor:300050,unidad:'ton CO₂e',display:'300.050',etiqueta:'Ton CO₂e emitidas y cuantificadas en 2025',anio:2025,fuente_pagina:254,capitulo:10,comparacion:{anio:2024,variacion:'−16,2%',direccion:'down',favorable:true}},
+  rescatados:{id:'rescatados',valor:5363,unidad:'ton',display:'5.363 ton',etiqueta:'Alimentos rescatados con descuentos de hasta 50% antes de mermar',anio:2025,fuente_pagina:246,capitulo:10},
+  evitados:{id:'evitados',valor:6074,unidad:'ton',display:'6.074 ton',etiqueta:'Alimentos que se evitó transformar en residuos (= 3.807,8 ton CO₂e)',anio:2025,fuente_pagina:246,capitulo:10},
+  donados:{id:'donados',valor:555,unidad:'ton',display:'555 ton',etiqueta:'Alimentos y productos donados a personas vulnerables',anio:2025,fuente_pagina:246,capitulo:10},
+  led:{id:'led',valor:-918,unidad:'ton CO₂e',display:'−918 ton CO₂e',etiqueta:'Reducción por cambio a iluminación LED (Sello Huella Chile, 5° año consecutivo)',anio:2025,fuente_pagina:254,capitulo:10},
+  renovable_2025:{id:'renovable_2025',valor:20.0,unidad:'%',display:'20,0%',etiqueta:'De la electricidad de SMU Chile provino de fuentes renovables en 2025',anio:2025,fuente_pagina:252,capitulo:10},
+  meta_renovable_2028:{id:'meta_renovable_2028',valor:55,unidad:'%',display:'55%',etiqueta:'Meta de consumo eléctrico renovable de SMU Chile al año 2028',anio:2028,fuente_pagina:252,capitulo:10},
+
+  // --- Capítulo 11 · Desempeño financiero
+  ingresos_2025:{id:'ingresos_2025',valor:2819055,unidad:'MM CLP',display:'CLP 2.819.055 MM',etiqueta:'Ingresos 2025',anio:2025,fuente_pagina:263,capitulo:11,comparacion:{anio:2024,variacion:'−2,4%',direccion:'down',favorable:false,pct:-2.4}},
+  ganancia_bruta_2025:{id:'ganancia_bruta_2025',valor:908110,unidad:'MM CLP',display:'CLP 908.110 MM',etiqueta:'Ganancia bruta',anio:2025,fuente_pagina:263,capitulo:11,comparacion:{anio:2024,variacion:'+2,5%',direccion:'up',favorable:true,pct:2.5}},
+  margen_bruto_2025:{id:'margen_bruto_2025',valor:32.2,unidad:'%',display:'32,2%',etiqueta:'Margen bruto',anio:2025,fuente_pagina:263,capitulo:11,comparacion:{anio:2024,variacion:'+150 pb',direccion:'up',favorable:true}},
+  ebitda_2025:{id:'ebitda_2025',valor:217721,unidad:'MM CLP',display:'CLP 217.721 MM',etiqueta:'EBITDA (margen 7,7%)',anio:2025,fuente_pagina:263,capitulo:11,comparacion:{anio:2024,variacion:'−6,1%',direccion:'down',favorable:false,pct:-6.1}},
+  utilidad_neta_2025:{id:'utilidad_neta_2025',valor:63123,unidad:'MM CLP',display:'CLP 63.123 MM',etiqueta:'Utilidad neta',anio:2025,fuente_pagina:263,capitulo:11,comparacion:{anio:2024,variacion:'+29,5%',direccion:'up',favorable:true,pct:29.5}},
+  bonos_pagados:{id:'bonos_pagados',valor:145000,unidad:'MM CLP',display:'~CLP 145 mil MM',etiqueta:'Vencimientos de bonos pagados en el primer semestre de 2025',anio:2025,fuente_pagina:263,capitulo:11},
+};
+
+// Series históricas: alimentan los sparklines. Solo años efectivamente publicados.
+const SERIES = {
+  accidentabilidad:{id:'accidentabilidad',etiqueta:'Tasa de accidentabilidad',capitulo:6,fuente_pagina:181,
+    puntos:[{anio:2023,valor:3.4,display:'3,4'},{anio:2024,valor:3.3,display:'3,3'},{anio:2025,valor:3.1,display:'3,1'}],sentido:'menor_mejor'},
+  nps_clientes:{id:'nps_clientes',etiqueta:'NPS de clientes',capitulo:7,fuente_pagina:207,
+    puntos:[{anio:2024,valor:69.2,display:'69,2%'},{anio:2025,valor:73.0,display:'73,0%'}],sentido:'mayor_mejor'},
+  controlador:{id:'controlador',etiqueta:'Participación del grupo controlador',capitulo:4,fuente_pagina:92,
+    puntos:[{anio:2024,valor:45.2,display:'45,2%'},{anio:2025,valor:39.8,display:'39,8%'}],sentido:'neutro'},
+};
+
+// Ventas de locales equivalentes: dataset del gráfico del capítulo 11.
+const SSS = {
+  fuente_pagina:263, capitulo:11,
+  vistas:[{k:'t4',lab:'4T25'},{k:'anio',lab:'Año 2025'}],
+  escala:{neg:10,pos:2},
+  filas:[
+    {k:'unimarc',nombre:'Unimarc',t4:0.9,anio:-1.5},
+    {k:'mayoristas',nombre:'Mayoristas',t4:-9.1,anio:-9.3},
+    {k:'chile',nombre:'Supermercados Chile',t4:-1.3,anio:-3.6},
+    {k:'peru',nombre:'Supermercados Perú',t4:-5.2,anio:-8.9},
+    {k:'total',nombre:'Total SMU',t4:-1.3,anio:-3.6,total:true},
+  ]
+};
+
+function val(x){return typeof x==='function'?x():x;}
+function D(id){return DATOS[id];}
+function V(id){return DATOS[id].display;}
+function L(id){return DATOS[id].etiqueta;}
+function chipDe(id){
+  const d=DATOS[id]; if(!d||!d.comparacion) return '';
+  const c=d.comparacion;
+  const txt = /^desde/.test(c.variacion) ? `${c.variacion} en ${c.anio}` : `${c.variacion} vs ${c.anio}`;
+  return deltaChip(txt, c.direccion, c.favorable);
+}
+function fmtPct(v){return (v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1).replace('.',',')+'%';}
+
+function fuenteCap(ch){
+  const pgs=new Set([ch.page,...ch.subs.map(s=>s[1])]);
+  Object.values(DATOS).forEach(d=>{if(d.capitulo===ch.n)pgs.add(d.fuente_pagina);});
+  return `<div class="fuente">Fuente: Memoria Integrada SMU 2025 — capítulo ${ch.n}, p. ${[...pgs].sort((a,b)=>a-b).join(', ')}.</div>`;
+}
+
+// ============ GLOSARIO EN LÍNEA ============
+// Definiciones cortas para términos que cruzan capítulos. Aparecen al pasar el cursor
+// (600 ms), al hacer clic y al recibir foco de teclado. No navegan ni abren paneles.
+const GLOSARIO = {
+  mayorista10:{t:'Mayorista 10', d:'Formato mayorista incorporado por SMU en 2008. Durante 2025 se aceleró su conversión a los formatos Alvi y Super10.'},
+  cien:{t:'100% Nuestro', d:'Programa de Unimarc que incorpora productos de micro, pequeñas y medianas empresas al surtido. Nace en 2012 en la región de Aysén; 170 proveedores en 2025.'},
+  descubreme:{t:'Descúbreme', d:'Fundación aliada de SMU en la inclusión laboral de personas en situación de discapacidad cognitiva. Su Fondo 2025 financió 11 proyectos.'},
+  teleton:{t:'Teletón', d:'Unimarc es el supermercado oficial de la Teletón desde 2011.'},
+  alvi:{t:'Alvi', d:'Formato de tiendas mayoristas de SMU: 57 locales al cierre de 2025. Tras las conversiones, la cadena mayorista más grande de Chile.'},
+  peru:{t:'Perú', d:'SMU opera allí los supermercados soft discount Maxiahorro (30 locales) y las tiendas mayoristas Mayorsa (5), más un centro de distribución en Piura.'},
+  ey:{t:'EY', d:'Verificador externo del reporte: emitió el informe de aseguramiento de los indicadores GRI y NCG 461 (p. 340-348).'},
+};
+const TERMINOS = [
+  ['Mayorista 10','mayorista10'],
+  ['100% Nuestro','cien'],
+  ['Descúbreme','descubreme'],
+  ['Teletón','teleton'],
+  ['Alvi','alvi'],
+  ['Perú','peru'],
+  ['EY','ey'],
+];
+const _AL = '0-9A-Za-zÁÉÍÓÚÜÑáéíóúüñ';
+function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+const GL_RE = new RegExp('(^|[^'+_AL+'])('+TERMINOS.map(t=>escRe(t[0])).join('|')+')(?![' + _AL + '])','g');
+
+let glDone = new Set();
+function glReset(){ glDone = new Set(); }
+// Marca la primera aparición de cada término dentro del capítulo en curso.
+function gl(txt){
+  return String(txt).replace(GL_RE,(m,pre,term)=>{
+    const par = TERMINOS.find(t=>t[0]===term);
+    if(!par || glDone.has(par[1])) return m;
+    glDone.add(par[1]);
+    return pre+`<button type="button" class="term" data-g="${par[1]}" aria-expanded="false">${term}</button>`;
+  });
+}
+
+let glTimer=null, glOpen=null, glShownAt=0;
+function glShow(btn){
+  const g = GLOSARIO[btn.dataset.g]; if(!g) return;
+  if(glOpen && glOpen!==btn) glClear(glOpen);
+  const el = document.getElementById('gloss');
+  el.innerHTML = `<span class="gl-t">${g.t}</span>${g.d}`;
+  el.classList.add('open');
+  el.style.left='0px'; el.style.top='0px';
+  const r = btn.getBoundingClientRect();
+  const w = el.offsetWidth, h = el.offsetHeight;
+  let x = r.left + r.width/2 - w/2;
+  x = Math.max(10, Math.min(x, window.innerWidth - w - 10));
+  let y = r.top - h - 9;
+  if(y < 8) y = r.bottom + 9;
+  el.style.left = x+'px'; el.style.top = y+'px';
+  btn.setAttribute('aria-expanded','true');
+  btn.setAttribute('aria-describedby','gloss');
+  glOpen = btn; glShownAt = Date.now();
+}
+function glClear(b){ b.setAttribute('aria-expanded','false'); b.removeAttribute('aria-describedby'); }
+function glHide(){
+  if(glOpen) glClear(glOpen);
+  glOpen = null;
+  document.getElementById('gloss').classList.remove('open');
+}
+function _term(e){ return e.target && e.target.closest ? e.target.closest('.term') : null; }
+document.addEventListener('mouseover',e=>{
+  const b=_term(e); if(!b) return;
+  clearTimeout(glTimer);
+  glTimer=setTimeout(()=>glShow(b),600);
+});
+document.addEventListener('mouseout',e=>{
+  const b=_term(e); if(!b) return;
+  clearTimeout(glTimer);
+  if(glOpen===b && document.activeElement!==b) glHide();
+});
+document.addEventListener('focusin',e=>{
+  const b=_term(e);
+  if(b) glShow(b); else if(glOpen && document.activeElement!==glOpen) glHide();
+});
+document.addEventListener('click',e=>{
+  const b=_term(e);
+  if(b){
+    clearTimeout(glTimer);
+    if(glOpen===b){ if(Date.now()-glShownAt>400) glHide(); }
+    else glShow(b);
+    return;
+  }
+  if(glOpen) glHide();
+});
+
+// ============ REVELACIÓN EN EL LUGAR ============
+// El desglose crece dentro de la misma tarjeta. Sin modal, sin cambio de pantalla.
+let rvSeq = 0;
+function rvCard(cls, headHtml, bodyHtml, extra){
+  const id = 'rv'+(++rvSeq);
+  return `<div class="${cls} rv"${extra||''}>
+    <button type="button" class="rv-head" aria-expanded="false" aria-controls="${id}" onclick="toggleRv(this)">
+      ${headHtml}<span class="rv-mark" aria-hidden="true">+</span>
+    </button>
+    <div class="rv-body" id="${id}" hidden>${bodyHtml}</div>
+  </div>`;
+}
+function rvRows(pairs){
+  return pairs.map(([l,v])=>`<div class="rv-row"><span>${l}</span><b>${v}</b></div>`).join('');
+}
+function toggleRv(btn){
+  const open = btn.getAttribute('aria-expanded')==='true';
+  btn.setAttribute('aria-expanded', String(!open));
+  const body = document.getElementById(btn.getAttribute('aria-controls'));
+  if(body) body.hidden = open;
+  const mark = btn.querySelector('.rv-mark');
+  if(mark) mark.textContent = open ? '+' : '–';
+}
+function cerrarExpandidos(){
+  document.querySelectorAll('.rv-head[aria-expanded="true"], .board-toggle[aria-expanded="true"]').forEach(b=>{
+    if(b.classList.contains('rv-head')) toggleRv(b); else toggleBio(b);
+  });
+}
+function toggleBio(btn){
+  const open = btn.getAttribute('aria-expanded')==='true';
+  btn.setAttribute('aria-expanded', String(!open));
+  const body = document.getElementById(btn.getAttribute('aria-controls'));
+  if(body) body.hidden = open;
+  const caret = btn.querySelector('.caret');
+  if(caret) caret.textContent = open ? '+' : '–';
+}
+
+// ============ SPARKLINE ============
+// Micro-gráfico del tamaño de una palabra. La serie completa va en el aria-label
+// y en el texto que acompaña la cifra: nunca es el único portador del dato.
+// La serie, escrita: el sparkline nunca es el único portador del dato.
+function serieTexto(key){
+  const s = SERIES[key]; if(!s) return '';
+  return s.puntos.map(p=>p.anio+': '+p.display).join(' · ');
+}
+function sparkline(key){
+  const s = SERIES[key]; if(!s) return '';
+  const p = s.puntos, w = 44, h = 13, pad = 2;
+  const vs = p.map(x=>x.valor);
+  const min = Math.min(...vs), max = Math.max(...vs), rango = (max-min)||1;
+  const pts = p.map((x,i)=>{
+    const px = pad + i*((w-pad*2)/(p.length-1||1));
+    const py = pad + (max-x.valor)/rango*(h-pad*2);
+    return [px,py];
+  });
+  const d = pts.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' ');
+  const fin = pts[pts.length-1];
+  const lab = s.etiqueta+': '+p.map(x=>x.anio+', '+x.display).join('; ')+'.';
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${lab}" focusable="false">
+    <path d="${d}" fill="none" stroke="#1c1c1c" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${fin[0].toFixed(1)}" cy="${fin[1].toFixed(1)}" r="2" fill="#1c1c1c"/></svg>`;
+}
+
+// ============ ESTIMACIÓN INTEGRADA A LA NARRATIVA ============
+// Tres pasajes del documento piden al lector estimar antes de revelar la cifra.
+// La respuesta se usa como marco de lectura: no hay puntaje ni corrección.
+const ESTIMACIONES = {
+  11:{
+    bounds:[-8,32],
+    conocido:{lab:'Ingresos 2025 vs 2024', v:-2.4},
+    incognita:{lab:'Utilidad neta 2025 vs 2024', v:29.5},
+    intro:`Los ingresos de SMU totalizaron ${V('ingresos_2025')} en 2025, un 2,4% menos que en 2024, reflejando la definición estratégica de priorizar la rentabilidad. Antes de seguir: <span class="ask">¿qué pasó con la utilidad neta ese mismo año?</span>`,
+    opciones:[
+      {k:'cayo', t:'Cayó también', r:'Es la lectura intuitiva: menos ventas, menos utilidad. La memoria dedica buena parte de su capítulo financiero a explicar por qué no ocurrió así.'},
+      {k:'mantuvo', t:'Se mantuvo', r:'Casi nadie espera que la utilidad se mueva mucho cuando las ventas bajan. El movimiento fue bastante mayor.'},
+      {k:'subioAlgo', t:'Subió algo', r:'Acertaste la dirección. La magnitud es mayor de lo que la mayoría estima.'},
+      {k:'subioMucho', t:'Subió mucho', r:'Acertaste. Y no fue un año favorable: fue el resultado de una decisión estratégica declarada.'},
+    ],
+    revelacion:`La utilidad neta del año 2025 alcanzó ${V('utilidad_neta_2025')}, un aumento de 29,5% con respecto al año 2024, principalmente explicado por el mejor resultado no operacional.`,
+    cifrasTitulo:'Lo que explica la cifra',
+    cifras:[
+      {v:()=>V('margen_bruto_2025'), l:()=>'Margen bruto, ampliado en 150 puntos base'},
+      {v:()=>D('ganancia_bruta_2025').comparacion.variacion, l:()=>'Ganancia bruta — '+V('ganancia_bruta_2025')},
+      {v:()=>fmtPct(SSS.filas[1].anio), l:()=>'Ventas de locales equivalentes del segmento mayorista: eliminación de volumen de bajo margen'},
+    ],
+    enlaces:[1,2],
+    cierre:'El argumento continúa en la Carta de la Presidenta y en el capítulo de estrategia.'
+  },
+  10:{
+    bounds:[-22,4],
+    incognita:{lab:'Emisiones de GEI 2025 vs 2024', v:-16.2},
+    intro:`Durante 2025 SMU abrió y reconvirtió ${V('aperturas_2025')} tiendas: más metros cuadrados operando, más refrigeración, más transporte. Con ese dato a la vista, <span class="ask">¿qué pasó con la huella de carbono de la Compañía?</span>`,
+    opciones:[
+      {k:'subieron', t:'Subieron', r:'Es la suposición razonable: más locales operando, más emisiones. El documento registra el movimiento contrario.'},
+      {k:'mantuvieron', t:'Se mantuvieron', r:'Sería el resultado de compensar el crecimiento con eficiencia. La reducción fue mayor.'},
+      {k:'bajaronAlgo', t:'Bajaron algo', r:'Acertaste la dirección. La magnitud es mayor de lo que suele estimarse.'},
+      {k:'bajaronMucho', t:'Bajaron mucho', r:'Acertaste. Y la fuente principal de la huella no es la que suele suponerse.'},
+    ],
+    revelacion:`Las emisiones generadas y cuantificadas de gases de efecto invernadero suman ${V('emisiones_2025')} ton CO₂e, menores en un 16,2% con respecto a 2024.`,
+    cifrasTitulo:'Lo que el documento registra',
+    cifras:[
+      {v:()=>'Alcance 1', l:()=>'El alcance que genera mayor impacto en la huella'},
+      {v:()=>'Refrigerantes', l:()=>'La principal fuente es la recarga de gases refrigerantes, no el transporte ni la electricidad'},
+      {v:()=>V('led'), l:()=>L('led')},
+    ],
+    enlaces:[2,12],
+    cierre:'La red que explica el crecimiento está en el capítulo 2; la verificación de estos indicadores, en el 12.'
+  },
+  6:{
+    bounds:[-8,4],
+    incognita:{lab:'Dotación 2025 vs 2024', v:-5.0},
+    intro:`La red de locales creció durante 2025: ${V('aperturas_2025')} aperturas y reconversiones de tiendas. Antes de mirar el indicador, <span class="ask">¿qué pasó con la dotación de la Compañía?</span>`,
+    opciones:[
+      {k:'crecio', t:'Creció', r:'Es la lectura habitual: más locales, más gente. El documento registra el movimiento contrario.'},
+      {k:'mantuvo', t:'Se mantuvo', r:'Sería lo esperable si el crecimiento se cubriera con la dotación existente. El movimiento fue algo mayor.'},
+      {k:'bajoAlgo', t:'Bajó algo', r:'Acertaste la dirección, y también el orden de magnitud.'},
+      {k:'bajoBastante', t:'Bajó bastante', r:'Acertaste la dirección. La caída es real, aunque más contenida de lo que sugiere esa lectura.'},
+    ],
+    revelacion:`La dotación cerró 2025 en ${V('dotacion_2025')} colaboradores, cerca de un 5% menos que los ${V('dotacion_2024')} de 2024.`,
+    cifrasTitulo:'Cómo se compone',
+    cifras:[
+      {v:()=>V('dotacion_chile')+' / '+V('dotacion_peru'), l:()=>'Colaboradores en Chile y en Perú'},
+      {v:()=>pctMujeres()+'%', l:()=>'Mujeres — '+V('mujeres_dotacion')+' de la dotación'},
+      {v:()=>V('discapacidad'), l:()=>L('discapacidad')},
+    ],
+    enlaces:[2,5],
+    cierre:'La red de locales está en el capítulo 2; la formación de esas personas, en el 5.'
+  },
+};
+const estElegida = {};
+
+function pctMujeres(){ return (D('mujeres_dotacion').valor / D('dotacion_2025').valor * 100).toFixed(1).replace('.',','); }
+
+function _estGeo(e, v){
+  const span = e.bounds[1]-e.bounds[0];
+  const zero = e.bounds[1]/span*100;
+  const alto = Math.abs(v)/span*100;
+  return {zero, alto, top: v>=0 ? zero-alto : zero};
+}
+function _estVal(v, g){
+  return v>=0 ? `top:calc(${g.top}% - 20px)` : `top:calc(${g.top+g.alto}% + 6px)`;
+}
+function estimacionHtml(n){
+  const e = ESTIMACIONES[n]; if(!e) return '';
+  const ch = chapters.find(c=>c.n===n);
+  const col = inkOn(ch.color);
+  const gi = _estGeo(e, e.incognita.v);
+  const elegida = estElegida[n];
+  let cols = '', labs = '';
+  if(e.conocido){
+    const gk = _estGeo(e, e.conocido.v);
+    cols += `<div class="est-col">
+      <div class="est-zero" style="top:${gk.zero}%"></div>
+      <div class="est-bar" style="top:${gk.top}%;height:${gk.alto}%;background:${col}"></div>
+      <div class="est-val" style="${_estVal(e.conocido.v,gk)};color:${col}">${fmtPct(e.conocido.v)}</div>
+    </div>`;
+    labs += `<div class="est-lab">${e.conocido.lab}</div>`;
+  }
+  cols += `<div class="est-col">
+    <div class="est-zero" style="top:${gi.zero}%"></div>
+    <div class="est-ph" id="est-ph-${n}"${elegida?' hidden':''}>?</div>
+    <div class="est-bar" id="est-bar-${n}" style="top:${elegida?gi.top:gi.zero}%;height:${elegida?gi.alto:0}%;background:${col}"></div>
+    <div class="est-val" id="est-val-${n}" style="${_estVal(e.incognita.v,gi)};color:${col};opacity:${elegida?1:0}">${fmtPct(e.incognita.v)}</div>
+  </div>`;
+  labs += `<div class="est-lab">${e.incognita.lab}</div>`;
+
+  const opts = e.opciones.map(o=>
+    `<button type="button" class="est-opt" data-k="${o.k}" aria-pressed="${elegida===o.k}" onclick="estResponder(${n},'${o.k}')">${o.t}</button>`
+  ).join('');
+
+  return `<p class="est-p">${gl(e.intro)}</p>
+    <div class="est-opts${elegida?' answered':''}" id="est-opts-${n}" role="group" aria-label="Estimación del lector — no hay respuesta correcta ni puntaje">${opts}</div>
+    <div class="est-chart" id="est-chart-${n}" role="img" aria-label="${estAria(n)}">${cols}</div>
+    <div class="est-labels">${labs}</div>
+    <div class="est-after" id="est-after-${n}" aria-live="polite">${elegida?estRevelacionHtml(n,elegida):''}</div>`;
+}
+function estAria(n){
+  const e = ESTIMACIONES[n];
+  const base = e.conocido ? `${e.conocido.lab}: ${fmtPct(e.conocido.v)}. ` : '';
+  return estElegida[n]
+    ? base+`${e.incognita.lab}: ${fmtPct(e.incognita.v)}.`
+    : base+`${e.incognita.lab}: sin revelar hasta que respondas.`;
+}
+function estRevelacionHtml(n, k){
+  const e = ESTIMACIONES[n];
+  const ch = chapters.find(c=>c.n===n);
+  const o = e.opciones.find(x=>x.k===k);
+  const cifras = e.cifras.map(c=>`<div class="est-cif"><div class="ec-v" style="color:${inkOn(ch.color)}">${c.v()}</div><div class="ec-l">${c.l()}</div></div>`).join('');
+  const enlaces = e.enlaces.map(m=>{
+    const c = chapters.find(x=>x.n===m);
+    return `<button type="button" class="est-link" onclick="selectChapter(${m})"><span class="dot" style="background:${c.color}"></span>Cap. ${c.n} — ${c.title}</button>`;
+  }).join('');
+  return `<p>${gl(o.r)}</p><p>${gl(e.revelacion)}</p>
+    <div class="sec-k" style="color:${inkOn(ch.color)}">${e.cifrasTitulo}</div>
+    <div class="est-cifras">${cifras}</div>
+    <p>${gl(e.cierre)}</p>
+    <div class="est-links">${enlaces}</div>`;
+}
+function estResponder(n, k){
+  if(estElegida[n]) return;
+  estElegida[n] = k;
+  const e = ESTIMACIONES[n];
+  const g = _estGeo(e, e.incognita.v);
+  const ph = document.getElementById('est-ph-'+n); if(ph) ph.hidden = true;
+  const bar = document.getElementById('est-bar-'+n);
+  if(bar){ bar.style.top = g.top+'%'; bar.style.height = g.alto+'%'; }
+  const val = document.getElementById('est-val-'+n); if(val) val.style.opacity = 1;
+  const chart = document.getElementById('est-chart-'+n); if(chart) chart.setAttribute('aria-label', estAria(n));
+  const opts = document.getElementById('est-opts-'+n);
+  if(opts){
+    opts.classList.add('answered');
+    opts.querySelectorAll('.est-opt').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.k===k)));
+  }
+  const after = document.getElementById('est-after-'+n);
+  if(after) after.innerHTML = estRevelacionHtml(n, k);
+}
+
+// ============ GRÁFICO SSS (capítulo 11) ============
+let sssVista = 'anio';
+function sssHtml(color){
+  const c = inkOn(color);
+  const barras = SSS.filas.map(f=>{
+    const v = f[sssVista];
+    return `<div class="sss-row" data-k="${f.k}" onmouseenter="sssHl('${f.k}',true)" onmouseleave="sssHl('${f.k}',false)">
+      <div class="sss-neg"><i style="width:${v<0?(Math.abs(v)/SSS.escala.neg*100):0}%;background:${f.total?'#1c1c1c':c}"></i></div>
+      <div class="sss-pos"><i style="width:${v>0?(v/SSS.escala.pos*100):0}%;background:${f.total?'#1c1c1c':c}"></i></div>
+    </div>`;
+  }).join('');
+  const leyenda = SSS.filas.map(f=>
+    `<button type="button" class="sss-leg${f.total?' tot':''}" data-k="${f.k}"
+      onmouseenter="sssHl('${f.k}',true)" onmouseleave="sssHl('${f.k}',false)"
+      onfocus="sssHl('${f.k}',true)" onblur="sssHl('${f.k}',false)">
+      <span>${f.nombre}</span><b data-v="${f.k}">${fmtPct(f[sssVista])}</b></button>`
+  ).join('');
+  const ctrl = SSS.vistas.map(v=>
+    `<button type="button" aria-pressed="${sssVista===v.k}" onclick="sssSet('${v.k}')">${v.lab}</button>`
+  ).join('');
+  return `<div class="sss-controls" role="group" aria-label="Métrica del gráfico de ventas de locales equivalentes">${ctrl}</div>
+    <div class="sss-wrap">
+      <div class="sss-chart" id="sss-chart" aria-hidden="true">${barras}</div>
+      <div class="sss-legend" id="sss-legend" role="group" aria-label="Ventas de locales equivalentes por segmento — los valores se leen aquí">${leyenda}</div>
+    </div>`;
+}
+function sssSet(k){
+  sssVista = k;
+  document.querySelectorAll('.sss-controls button').forEach(b=>b.setAttribute('aria-pressed', String(b.textContent.trim()===(SSS.vistas.find(v=>v.k===k)||{}).lab)));
+  SSS.filas.forEach(f=>{
+    const v = f[k];
+    const row = document.querySelector('.sss-row[data-k="'+f.k+'"]');
+    if(row){
+      row.querySelector('.sss-neg i').style.width = (v<0?(Math.abs(v)/SSS.escala.neg*100):0)+'%';
+      row.querySelector('.sss-pos i').style.width = (v>0?(v/SSS.escala.pos*100):0)+'%';
+    }
+    const val = document.querySelector('.sss-leg b[data-v="'+f.k+'"]');
+    if(val) val.textContent = fmtPct(v);
+  });
+}
+function sssHl(k, on){
+  const row = document.querySelector('.sss-row[data-k="'+k+'"]');
+  const leg = document.querySelector('.sss-leg[data-k="'+k+'"]');
+  if(row) row.classList.toggle('hl', on);
+  if(leg) leg.classList.toggle('hl', on);
+}
+
+// ============ CUADRÍCULA UNITARIA (capítulo 6) ============
+const UG_COLOR = {m:'#B81E15', h:'#5a5a5a'};
+function ugHtml(){
+  const pm = D('mujeres_dotacion').valor / D('dotacion_2025').valor * 100;
+  const nm = Math.round(pm), nh = 100 - nm;
+  const porPunto = Math.round(D('dotacion_2025').valor / 100);
+  const puntos = Array.from({length:100},(_,i)=>{
+    const g = i < nm ? 'm' : 'h';
+    return `<i class="ug-dot" data-g="${g}" style="background:${UG_COLOR[g]}"></i>`;
+  }).join('');
+  return `<div class="ug" id="ug" aria-hidden="true">${puntos}</div>
+    <div class="ug-legend" role="group" aria-label="Composición de la dotación por género">
+      <button type="button" class="ug-leg" data-g="m" onmouseenter="ugHl('m',true)" onmouseleave="ugHl('m',false)" onfocus="ugHl('m',true)" onblur="ugHl('m',false)">
+        <span class="sw" style="background:${UG_COLOR.m}"></span>Mujeres · ${V('mujeres_dotacion')} · ${pm.toFixed(1).replace('.',',')}%</button>
+      <button type="button" class="ug-leg" data-g="h" onmouseenter="ugHl('h',true)" onmouseleave="ugHl('h',false)" onfocus="ugHl('h',true)" onblur="ugHl('h',false)">
+        <span class="sw" style="background:${UG_COLOR.h}"></span>Hombres · ${V('hombres_dotacion')} · ${(100-pm).toFixed(1).replace('.',',')}%</button>
+    </div>
+    <div class="ug-note">Cada punto representa ${porPunto.toLocaleString('es-CL')} personas. La cuadrícula redondea la proporción a ${nm} y ${nh} puntos sobre ${V('dotacion_2025')} colaboradores.</div>`;
+}
+function ugHl(g, on){
+  const grid = document.getElementById('ug');
+  if(grid){
+    grid.classList.toggle('focus', on);
+    grid.querySelectorAll('.ug-dot').forEach(d=>d.classList.toggle('on', on && d.dataset.g===g));
+  }
+  const btn = document.querySelector('.ug-leg[data-g="'+g+'"]');
+  if(btn) btn.classList.toggle('hl', on);
+}
+
+// ============ ENTRADA POR PERFIL DE LECTOR ============
+// Un solo documento, cuatro recorridos: cambia qué cifras se destacan, no la navegación.
+const PERFILES = {
+  inversionista:{lab:'Inversionista', ids:['utilidad_neta_2025','margen_bruto_2025','controlador_2025']},
+  colaborador:{lab:'Colaborador', ids:['dotacion_2025','accidentabilidad_2025','horas_etica']},
+  proveedor:{lab:'Proveedor', ids:['proveedores_total','plazo_pequenos','proveedores_100n']},
+  vecino:{lab:'Vecino', ids:['organizaciones_sociales','beneficiarios_alimentos','beneficiarios_descubreme']},
+};
+let perfilActivo = null;
+
+const cartaPresidenta = [
+  "Tengo el agrado de presentarles nuestra Memoria Integrada del año 2025. En este documento damos cuenta de nuestra gestión en materia económica, ambiental y social, pero no sólo se circunscribe a los avances y resultados de un año específico, sino que describe nuestras prácticas y forma de trabajar para la generación de valor a largo plazo.",
+  "Durante 2025, finalizamos la ejecución del plan estratégico trienal en curso y, además, diseñamos y lanzamos la hoja de ruta para los próximos tres años, incluyendo la inauguración de más de 50 tiendas nuevas en tres años y la aceleración de las conversiones del formato Mayorista 10, consolidando a Alvi como la cadena mayorista más grande de Chile.",
+  "Ahora miramos con convicción nuestro plan estratégico 2026-2028, que considera una inversión de CLP 370 mil millones para profundizar nuestro crecimiento y fortalecer la eficiencia y competitividad.",
+  "Nos sentimos orgullosos de haber alcanzado en 2025, por segundo año consecutivo, el mayor puntaje de nuestra industria en Chile en el Corporate Sustainability Assessment de S&P Global."
+];
+
+const infografia21 = {
+  red: ['locales_unimarc','locales_alvi','locales_super10','locales_maxiahorro','locales_mayorsa'],
+  total: 'locales_total',
+  stats: ['aperturas_2025','clientes','participacion_mercado','posicion_industria'],
+  // Desgloses que se revelan dentro de la propia tarjeta.
+  desgloses: {
+    locales_total: ()=>rvRows(infografia21.red.map(id=>[L(id), V(id)])),
+    aperturas_2025: ()=>rvRows([[L('tiendas_nuevas_trienio'), V('tiendas_nuevas_trienio')],['Infraestructura nueva','Centro de distribución en Piura, Perú']]),
+    clientes: ()=>rvRows([[L('nps_2025'), V('nps_2025')],[L('respuesta_reclamos'), V('respuesta_reclamos')],['Programas de lealtad','Club Unimarc, Club Alvi y Club 10']]),
+    participacion_mercado: ()=>rvRows([[L('posicion_industria'), V('posicion_industria')],[L('ingresos_2025'), V('ingresos_2025')]]),
+    posicion_industria: ()=>rvRows([[L('participacion_mercado'), V('participacion_mercado')],[L('locales_total'), V('locales_total')]]),
+  }
+};
+
+const materialidad3 = [
+  {pillar:"Cliente al centro", color:"#89225A", rows:[
+    {theme:"Mejor experiencia / Consumo responsable", adv:["Campañas promocionales que ayudan a optimizar el presupuesto familiar de los clientes"], ods:["2.1","12.5"]},
+    {theme:"Marcas propias", adv:["200 lanzamientos de productos y 42% del surtido permanente con packaging ecoamigable (31% en 2024)"], ods:["2.1","12.5"]},
+  ]},
+  {pillar:"Abastecimiento responsable", color:"#6B2FA0", rows:[
+    {theme:"Gestión de riesgos en cadena de abastecimiento", adv:["Programa de mentorías a 30 proveedores 100% Nuestro (alianza con Simón de Cirene)","Renovación del Sello Mi Compromiso PYME de EY y Unión Emprendedora"], ods:["2.3","2.4","6.4"]},
+    {theme:"Desarrollo de proveedores locales", adv:["Charlas de uso eficiente de agua y energía para proveedores de frutas y verduras (alianza INDAP)","NPS proveedores 100% Nuestro: 72,6%"], ods:["8.3","17.17"]},
+  ]},
+  {pillar:"Compromiso con la sociedad", color:"#0A9345", rows:[
+    {theme:"Desarrollo regional / Ser buen vecino", adv:["Campaña Unidos 2025: apoyo a Fundación Las Rosas y Club de Leones Cruz del Sur, $13 millones para cada una"], ods:["2.1","10.2"]},
+    {theme:"RSE y aportes sociales", adv:["Campaña Teletón 2025: aporte de $1.440 millones","Fondo Descúbreme 2025: financia 11 proyectos para personas con discapacidad cognitiva (272 beneficiarios)"], ods:["17.17"]},
+  ]},
+];
+
+const directorio4 = {
+  nota:"El Directorio está compuesto por nueve miembros titulares elegidos en abril de 2024. Tras la renuncia del director Raúl Sotomayor Valenzuela en mayo de 2025, la Compañía cuenta con ocho directores al 31 de diciembre de 2025. Antigüedad promedio: 9,3 años.",
+  board:[
+    {name:"Pilar Dañobeitía Estades", role:"Presidenta del Directorio", bio:"Contador Auditor U. de Chile, MBA Universidad de Chicago. En el Directorio de SMU desde 2008.", own:"0,23% de participación"},
+    {name:"M. Francisca Saieh Guzmán", role:"Vicepresidenta del Directorio", bio:"Diseñadora PUC, MA Exhibition Design (SUNY). Directora de SMU desde 2020. Fundadora de CorpImagen.", own:"Sin participación directa"},
+    {name:"Alejandro Álvarez Aravena", role:"Director Titular", bio:"Abogado U. de Chile, LLM U. de Würzburg, Doctorado U. de Gotinga. En el Directorio desde 2013.", own:"0,04% de participación"},
+    {name:"Abel Bouchon Silva", role:"Director Titular", bio:"Ingeniero Comercial U. de Chile, MBA Wharton School. Ex Gerente General de Embotelladora Andina. En el Directorio desde 2014.", own:"0,02% de participación"},
+    {name:"Alejandro Danús Chirighin", role:"Director Titular", bio:"Ingeniero Comercial U. de Chile, MBA University of Chicago. Ex Gerente General Corporativo de Empresas Banmedica. En el Directorio desde 2024.", own:"0% de participación"},
+    {name:"Fernando Del Solar Concha", role:"Director Titular", bio:"Administrador de Empresas U. de Chile. 38 años en Nestlé, llegando a Presidente Ejecutivo para Chile, Argentina, Uruguay, Paraguay, Perú y Bolivia. En el Directorio desde 2013.", own:"0,01% de participación"},
+    {name:"Enrique Gundermann Wylie", role:"Director Titular", bio:"Ingeniero Civil Industrial y MBA PUC. Ex Gerente General Corporativo de Sodimac para América Latina. Director de Entel. En el Directorio desde 2024.", own:"0% de participación"},
+    {name:"Andrés Olivos Bambach", role:"Director Titular", bio:"Ingeniero Comercial U. de Chile. Ex CFO de Embotelladora Andina y ex CEO de Parque Arauco. En el Directorio desde 2015.", own:"0% de participación"},
+  ],
+  comites:["Comité de Directores","Comité de Auditoría y Riesgos","Comité de Personas y Sostenibilidad","Comité de Inversiones","Comité de Estrategia"],
+  gerente:"Marcelo Gálvez Saldías, Ingeniero Comercial, Gerente General desde el 8 de mayo de 2013.",
+  ownership:[
+    ["Grupo controlador (Familia Saieh Guzmán, vía CorpGroup)",39.8,"#4A1371"],
+    ["Fondos de pensiones",26.4,"#F0A400"],
+    ["Otros fondos, extranjeros y accionistas minoritarios",33.8,"#d9d4c8"],
+  ]
+};
+
+const historia2 = [
+  ["2007","Unimarc es adquirido por el accionista controlador, el economista Álvaro Saieh y su familia. La cadena contaba con 40 tiendas a nivel nacional."],
+  ["2008","Nace SMU (22 de febrero). Se adquieren las cadenas Bryc (48 supermercados) y Mayorista 10, ingresando al mercado mayorista."],
+  ["2009–2011","Se adquieren más de 40 cadenas regionales, incluyendo Alvi y las operaciones peruanas Mayorsa y MaxiBodega. La fusión con Supermercados del Sur agrega 111 salas."],
+  ["2014–2016","Turnaround basado en tres pilares: fortalecimiento comercial, eficiencia operacional y fortalecimiento financiero."],
+  ["2017–2019","Apertura en bolsa por ~US$200 millones, más dos aumentos de capital (US$150 MM y US$122 MM). Venta de Construmart para enfocarse en supermercados."],
+  ["2020–2022","Lanzamiento del formato soft discount Super10 y de Unimarc.cl y Alvi.cl. Venta de OK Market. Clasificación de riesgo mejora a A+."],
+  ["2023–2025","54 tiendas nuevas (43 Chile, 11 Perú) y nuevo centro de distribución en Piura. Ingreso al Dow Jones Sustainability Index Chile y MILA (2024). Clasificación AA- (2023)."],
+];
+const estrategia2 = {
+  cards:['inversion_plan_2628','inversion_crecimiento','inversion_eficiencia','innovacion_2025'],
+  nota:"En noviembre de 2025 el Directorio aprobó el plan estratégico 2026-2028. Las inversiones de 2025 alcanzaron $113 mil millones, financiadas con flujos operacionales. El programa de innovación colaborativa Tu Idea La Lleva premió en 2025 a la iniciativa Patente Roll, de la División Logística, que incorpora trazabilidad a los carros roll."
+};
+
+const denuncias5 = [
+  ["Acoso laboral","124","40","164"],
+  ["Acoso sexual","24","5","29"],
+  ["Violencia en el trabajo","10","1","11"],
+];
+const capacitacionAcoso5 = ["21.770","94%"];
+
+const diversidad6 = {
+  cards:['discapacidad','gestores_inclusion','accidentabilidad_2025','accidentes_fatales'],
+  // La tasa de accidentabilidad lleva su serie 2023-2025 dentro de la propia línea.
+  extras:{accidentabilidad_2025:()=>sparkline('accidentabilidad')+serieTexto('accidentabilidad')},
+};
+
+const calidad7 = {
+  cards:['fiscalizaciones_sumario','establecimientos_muestreo','formulaciones','sumarios_inocuidad'],
+};
+
+const local8 = {
+  cards:['compras_nacionales','proveedores_100n','exhibicion_100n','recomendacion_100n'],
+  nota:"El programa 100% Nuestro de Unimarc nace en 2012 en la región de Aysén, incorporando productos de micro, pequeñas y medianas empresas al surtido de la cadena. Del total de compras a proveedores nacionales, el 81% corresponde a proveedores de Santiago y el 19% a otras regiones."
+};
+
+const energia10 = {
+  cards:['renovable_2025','meta_renovable_2028'],
+  // Certificaciones: no son cifras, se declaran aparte.
+  sellos:[["ISO 50.001","Sistema de Gestión de Energía recertificado en 2025"],["Certificado Azul","CD Lo Aguirre — Nivel 1 Avanzado, por cuantificación de huella de agua (APL)"]],
+};
+
+const etica5 = {
+  stats:[["2M+","Horas de capacitación totales en 2025"],[()=>V('horas_etica'),"Horas en ética y cumplimiento"],["99%","Realización en el grupo de mayor riesgo"]],
+  valores:["Cercanía","Excelencia","Respeto","Colaboración","Agilidad"],
+  tabla:[["Código de Ética y Conducta de Negocios","8.590","4.279"],["Derechos Fundamentales, Acoso y Ley Karin 2025","46.674","20.331"],["Gestión de Clientes","8.626","4.294"],["Libre Competencia","11.557","4.291"],["Prevención de Delitos","8.666","4.315"],["Prevención de Riesgos","213.960","17.222"],["Seguridad de la Información y Datos","8.526","4.253"],["Sostenibilidad","8.906","4.312"],["Programa Normativa Perú","1.703","367"]],
+  total:["Total general","317.208","20.788"]
+};
+
+const personas6 = {
+  total:23039, mujeres:14880, hombres:8159,
+  cargos:[["Alta Gerencia","5","9","14"],["Gerencia","87","157","244"],["Jefatura","301","516","817"],["Operario","6.552","3.500","10.052"],["Fuerza de Venta","5.326","2.041","7.367"],["Administrativo","486","229","715"],["Otros Profesionales","361","414","785"],["Otros Técnicos","1.762","1.293","3.045"]]
+};
+
+const cliente7 = {
+  palancas:[["Limpieza","+1,3 pp"],["Tiempo en Cajas","+1,2 pp"],["Atención","+1,0 pp"]],
+  clubs:["Club Unimarc","Club Alvi","Club 10"]
+};
+
+const proveedores8 = {
+  stats:['proveedores_total','criticos_retail','criticos_no_retail','nps_proveedores'],
+  pagos:[["Hasta 30 días","540.737"],["31-60 días","2.111.382"],["Más de 60 días","714.385"]],
+  pagosTotal:"3.366.504",
+  nota:"Todos los proveedores pequeños se pagan en un plazo máximo de 30 días, en cumplimiento de las disposiciones legales en Chile. Durante 2025 y 2024 la Compañía no pagó intereses por mora."
+};
+
+const sociedad9 = {
+  cards:['organizaciones_sociales','beneficiarios_alimentos','teleton_total_c9','unidos_por_institucion','proyectos_descubreme','beneficiarios_descubreme']
+};
+
+const ambiente10 = {
+  cards:['rescatados','evitados','donados','led']
+};
+
+const financiero11 = {
+  cards:['ingresos_2025','ganancia_bruta_2025','margen_bruto_2025','ebitda_2025','utilidad_neta_2025']
+};
+
+const anexo12 = {
+  docs:[
+    ["MS","Malla societaria","Estructura completa de sociedades del grupo (p.295)"],
+    ["EY","Informe de aseguramiento externo","Verificación independiente de indicadores GRI y NCG 461, emitido por EY (p.340-348)"],
+    ["M","Metodología","Criterios de elaboración y cobertura del reporte (p.351)"],
+  ]
+};
+
+const prosa = {
+  3:["SMU desarrolla su gestión de sostenibilidad sobre la base de su Modelo Corporativo de Sostenibilidad, y durante 2025 impulsó avances en cada uno de sus pilares, vinculados a los Objetivos de Desarrollo Sostenible de la ONU."],
+  4:["Con respecto a las juntas de accionistas, el Directorio cuenta con herramientas que permiten a los accionistas participar y ejercer su derecho a voto por medios remotos. Durante el año 2025, las Juntas Ordinaria y Extraordinaria de Accionistas se realizaron de forma 100% presencial.","Durante el año 2025, el accionista controlador redujo su porcentaje de participación de un 45,2% a un 39,8%, manteniendo el control de la Sociedad. El accionista mayoritario Southern Cross Group vendió su participación de 11,25% con fecha 30 de mayo de 2025, y los fondos de pensiones aumentaron su participación desde aproximadamente un 14,8% hasta un 26,4%."],
+  5:["SMU cuenta con un Comité de Ética y Conducta de Negocios, conformado por los gerentes corporativos y la Oficial de Cumplimiento y Prevención de Delitos, que sesiona por lo menos bimensualmente. Las materias relevantes son reportadas trimestralmente al Directorio a través del Comité de Auditoría y Riesgos.","En la medición 2025 del Barómetro de Valores y Ética Empresarial, se destacó el aumento de 8 puntos porcentuales en el número de colaboradores que declara tener claridad respecto de la existencia y efectividad de las medidas anticorrupción."],
+  6:["El desarrollo de personas considera la evaluación de desempeño como una etapa central. Durante 2025, SMU participó nuevamente en el estudio Merco Talento, ubicándose por tercera vez consecutiva dentro de las 100 mejores empresas para atraer y retener talento, en el puesto 56."],
+  7:["El NPS de SMU en 2025 alcanzó un 73,0%, superando la meta de 66,5% en 6,5 puntos porcentuales. Este sobrecumplimiento se debe principalmente a mejoras en las palancas Limpieza, Tiempo en Cajas y Atención. El NPS se incluye como parte de los incentivos, buscando poner la experiencia del cliente al centro de la gestión.","Los productos de marcas propias y exclusivas alcanzaron una participación de 13% en el año, y los programas de lealtad — Club Unimarc, Club Alvi y Club 10 — facilitan el ahorro y la entrega de beneficios por formato."],
+  8:["A nivel consolidado, SMU trabajó con 3.355 proveedores en 2025, ninguno de los cuales concentra más del 10% de los ingresos. La Compañía cuenta con un Defensor del Proveedor y manuales diferenciados para proveedores retail y no retail.","SMU lleva a cabo sus procesos de pago en base a las Normas Generales de Aprovisionamiento. Todos los proveedores pequeños se pagan en un plazo máximo de 30 días, y durante 2025 y 2024 no se pagaron intereses por mora."],
+  9:["La donación de alimentos forma parte del compromiso de SMU con el hambre cero y el no desperdicio: durante 2025 la Compañía trabajó con 316 organizaciones sociales, disponibilizando productos para más de 146 mil beneficiarios.","Desde 2011 Unimarc es el supermercado oficial de la Teletón. La contribución total alcanzó los $1.434 millones, incluyendo el aporte de la Compañía, la campaña GiftCard Teletón y el aporte de los colaboradores."],
+  10:["Durante 2025, las emisiones generadas y cuantificadas de GEI suman 300.050 Ton CO₂e, menor en un 16,2% con respecto a 2024. El alcance 1 es el que genera mayor impacto, y la principal fuente corresponde a la recarga de gases refrigerantes.","SMU recibió el Sello de Reducción del programa Huella Chile por quinto año consecutivo, en reconocimiento a proyectos de reducción asociados al cambio de iluminación a tecnología LED en locales Unimarc, que permitieron una disminución de 918 ton CO₂e."],
+  11:["Los ingresos de SMU totalizaron CLP 2.819.055 millones en 2025, menores en 2,4% frente al año 2024, reflejando la definición estratégica de priorizar la rentabilidad. La ganancia bruta aumentó 2,5% y el margen bruto se expandió 150 puntos base hasta 32,2%.","La utilidad neta del año 2025 alcanzó CLP 63.123 millones, un aumento de 29,5% con respecto al año 2024, principalmente explicado por el mejor resultado no operacional. Durante el primer semestre se pagaron vencimientos de bonos por aproximadamente CLP 145 mil millones, y la Compañía no tiene vencimientos relevantes durante 2026."],
+};
+
+// ============ COMPONENTES DE PRESENTACIÓN ============
+// El signo ▲▼ acompaña siempre al color: el chip no depende de la tinta para leerse.
+function deltaChip(text, dir, favorable){
+  const glifo = dir==='up'?'▲':dir==='down'?'▼':'=';
+  const tono = favorable===true?'good':favorable===false?'bad':'flat';
+  const lectura = dir==='up'?'al alza':dir==='down'?'a la baja':'sin variación';
+  return `<span class="delta ${tono}"><span aria-hidden="true">${glifo}</span> ${text}<span class="sr-only"> (${lectura})</span></span>`;
+}
+function depthToggleHtml(n){
+  if(!prosa[n]) return '';
+  return `<div class="depth-toggle" role="group" aria-label="Profundidad de lectura del capítulo">
+    <button type="button" class="on" aria-pressed="true" onclick="setDepth(${n},'esencial',this)">Esencial</button>
+    <button type="button" aria-pressed="false" onclick="setDepth(${n},'completo',this)">Completo</button></div>`;
+}
+function prosaHtml(n){
+  if(!prosa[n]) return '';
+  return `<div class="prose-block" id="prosa-${n}">${prosa[n].map(p=>`<p>${gl(p)}</p>`).join('')}</div>`;
+}
+function setDepth(n, mode, btn){
+  const block = document.getElementById('prosa-'+n);
+  if(!block) return;
+  block.classList.toggle('show', mode==='completo');
+  btn.parentElement.querySelectorAll('button').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-pressed','false');});
+  btn.classList.add('on'); btn.setAttribute('aria-pressed','true');
+}
+
+// Tarjetas de cifra: leen la capa de datos, nunca valores incrustados.
+function socCards(ids, color, extras){
+  const c = inkOn(color);
+  return `<div class="soc-grid">${ids.map(id=>{
+    const d = D(id);
+    const extra = extras && extras[id] ? `<div class="rv-note">${extras[id]()}</div>` : '';
+    return `<div class="soc"><div class="sv" style="color:${c}">${d.display}</div>
+      <div class="sl">${d.etiqueta}${d.comparacion?' '+chipDe(id):''}</div>${extra}</div>`;
+  }).join('')}</div>`;
+}
+function notasDe(ids){
+  return ids.filter(id=>D(id).nota).map(id=>`<div class="nota-fuente">${D(id).nota}</div>`).join('');
+}
+
+function bodyHtmlFor(ch){
+  const c = ch.color;
+  const ink = inkOn(c);
+  const toggle = depthToggleHtml(ch.n);
+
+  if(ch.kind==='letter'){
+    return `<div class="sec-k" style="color:${ink}">Carta de la Presidenta — A nuestros grupos de interés</div>
+      <div class="letter">${cartaPresidenta.map(p=>`<p>${gl(p)}</p>`).join('')}<div class="sig">— Memoria Integrada SMU 2025</div></div>`;
+  }
+
+  if(ch.kind==='infographic'){
+    const filas = infografia21.red.map(id=>`<div class="brand-row"><span>${L(id)}</span><b>${V(id)}</b></div>`).join('');
+    const totalId = infografia21.total;
+    const total = rvCard('stat wide',
+      `<div class="lab">${L(totalId)}</div><div class="big" style="color:inherit">${V(totalId)}</div>`,
+      infografia21.desgloses[totalId]());
+    const stats = infografia21.stats.map(id=>rvCard('stat',
+      `<div class="big">${V(id)}</div><div class="lab">${L(id)}</div>`,
+      infografia21.desgloses[id]())).join('');
+    return `<div class="sec-k" style="color:${ink}">2.1 SMU en una mirada</div>
+      ${filas}
+      <div class="stat-grid">${total}${stats}</div>
+      <div class="sec-k" style="color:${ink};margin-top:22px">2.4 Nuestra historia</div>
+      ${historia2.map(([y,t])=>`<div class="mat-row" style="border-bottom:1px solid #f0eee8;padding:10px 0;"><div class="theme" style="width:76px;font-family:'Archivo Black';color:${ink}">${y}</div><div class="adv">${gl(t)}</div></div>`).join('')}
+      <div class="sec-k" style="color:${ink};margin-top:22px">2.6 Estrategia — plan 2026-2028</div>
+      ${socCards(estrategia2.cards, c)}
+      <div class="gov-note" style="margin-top:12px">${gl(estrategia2.nota)}</div>`;
+  }
+
+  if(ch.kind==='materiality'){
+    return `${toggle}<div class="sec-k" style="color:${ink}">3.1 Gestión de sostenibilidad — avances 2025</div>
+      ${materialidad3.map(p=>`<div class="mat-pillar"><div class="mp-head" style="background:${bgFor(p.color)};color:${textOn(bgFor(p.color))}">${p.pillar}</div>
+        ${p.rows.map(r=>`<div class="mat-row"><div class="theme">${r.theme}</div><div class="adv"><ul>${r.adv.map(a=>`<li>${gl(a)}</li>`).join('')}</ul><div class="ods-tags">${r.ods.map(o=>`<span class="ods-tag">ODS ${o}</span>`).join('')}</div></div></div>`).join('')}
+      </div>`).join('')}
+      ${notasDe(['teleton_aporte_c3'])}${prosaHtml(ch.n)}`;
+  }
+
+  if(ch.kind==='governance'){
+    let acc=0;
+    const stops = directorio4.ownership.map(([l,pct,col])=>{const s=acc;acc+=pct;return `${col} ${s}% ${acc}%`;}).join(', ');
+    const board = directorio4.board.map((m,i)=>{
+      const id = 'bio'+i;
+      return `<div class="board-card">
+        <div class="role">${m.role}</div>
+        <button type="button" class="board-toggle" aria-expanded="false" aria-controls="${id}" onclick="toggleBio(this)">
+          <span class="name">${m.name}</span><span class="caret" aria-hidden="true">+</span></button>
+        <div id="${id}" hidden><div class="bio">${gl(m.bio)}</div><div class="own">${m.own}</div></div>
+      </div>`;
+    }).join('');
+    return `${toggle}<div class="sec-k" style="color:${ink}">4.2 Directorio — ocho directores al 31.12.2025</div>
+      <div class="gov-note">${gl(directorio4.nota)}</div>
+      <div class="board-grid">${board}</div>
+      <div class="sec-k" style="color:${ink}">Comités del Directorio</div>
+      <div class="clubs" style="margin-bottom:18px">${directorio4.comites.map(cm=>`<span class="club">${cm}</span>`).join('')}</div>
+      <div class="gov-note">Administración: ${directorio4.gerente}</div>
+      <div class="sec-k" style="color:${ink}">4.5 Estructura accionaria</div>
+      <div class="donut-wrap">
+        <div aria-hidden="true" style="flex:none;width:96px;height:96px;border-radius:50%;background:conic-gradient(${stops});position:relative;"><div style="position:absolute;inset:20px;background:#fff;border-radius:50%;"></div></div>
+        <div class="donut-legend">${directorio4.ownership.map(([l,pct,col])=>`<div class="dl-row"><span><span aria-hidden="true" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${col};margin-right:6px;"></span>${l}</span><b>${pct.toFixed(1).replace('.',',')}%</b></div>`).join('')}</div>
+      </div>
+      <div class="gov-note">Participación del grupo controlador ${sparkline('controlador')} ${serieTexto('controlador')} — redujo su participación manteniendo el control de la Sociedad.</div>
+      <div class="gov-note">5.763.205.697 acciones suscritas y pagadas, 143 accionistas al 31 de diciembre de 2025.</div>${prosaHtml(ch.n)}`;
+  }
+
+  if(ch.kind==='ethics'){
+    return `${toggle}<div class="sec-k" style="color:${ink}">5.1 Gestión de la ética — capacitación 2025</div>
+      <div class="eth-stat-row">${etica5.stats.map(([b,l])=>`<div class="eth-stat"><div class="big">${val(b)}</div><div class="lab">${l}</div></div>`).join('')}</div>
+      <div class="values-row">${etica5.valores.map(v=>`<span class="value-chip" style="background:${bgFor('#D46A2A')};color:${textOn(bgFor('#D46A2A'))}">${v}</span>`).join('')}</div>
+      <table class="dtable"><caption class="sr-only">Horas y personas capacitadas por curso durante 2025</caption>
+      <thead><tr><th scope="col">Curso</th><th scope="col" style="text-align:right">Horas</th><th scope="col" style="text-align:right">Personas</th></tr></thead>
+      <tbody>${etica5.tabla.map(([cu,h,p])=>`<tr><td>${gl(cu)}</td><td class="num">${h}</td><td class="num">${p}</td></tr>`).join('')}
+      <tr class="total"><td>${etica5.total[0]}</td><td class="num">${etica5.total[1]}</td><td class="num">${etica5.total[2]}</td></tr></tbody></table>
+      <div class="sec-k" style="color:${ink};margin-top:22px">5.2 Denuncias año 2025 (Compañía + Dirección del Trabajo)</div>
+      <table class="dtable"><caption class="sr-only">Denuncias recibidas en 2025 por tipo y género</caption>
+      <thead><tr><th scope="col">Tipo</th><th scope="col" style="text-align:right">Mujeres</th><th scope="col" style="text-align:right">Hombres</th><th scope="col" style="text-align:right">Total</th></tr></thead>
+      <tbody>${denuncias5.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td></tr>`).join('')}</tbody></table>
+      <div class="gov-note" style="margin-top:10px">${V('capacitados_acoso')} personas capacitadas para prevenir acoso laboral, sexual y violencia en el trabajo (${V('cobertura_acoso')} de la dotación).</div>${prosaHtml(ch.n)}`;
+  }
+
+  if(ch.kind==='people'){
+    return `${toggle}<div class="sec-k" style="color:${ink}">6.7 Nuestra gente: indicadores</div>
+      ${estimacionHtml(6)}
+      <div class="sec-k" style="color:${ink};margin-top:22px">Composición de la dotación</div>
+      ${ugHtml()}
+      <table class="dtable" style="margin-top:18px"><caption class="sr-only">Dotación por cargo y género al 31 de diciembre de 2025</caption>
+      <thead><tr><th scope="col">Cargo</th><th scope="col" style="text-align:right">Mujeres</th><th scope="col" style="text-align:right">Hombres</th><th scope="col" style="text-align:right">Total</th></tr></thead>
+      <tbody>${personas6.cargos.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td></tr>`).join('')}</tbody></table>
+      <div class="sec-k" style="color:${ink};margin-top:22px">6.3 y 6.6 — Inclusión y seguridad</div>
+      ${socCards(diversidad6.cards, c, diversidad6.extras)}${prosaHtml(ch.n)}`;
+  }
+
+  if(ch.kind==='customer'){
+    return `${toggle}<div class="sec-k" style="color:${ink}">7.1 Experiencia del cliente</div>
+      <div class="hero-num"><span class="hn" style="color:${ink}">${V('nps_2025')}</span>${chipDe('nps_2025')}</div>
+      <div class="hero-sub">${L('nps_2025')} ${sparkline('nps_clientes')} ${serieTexto('nps_clientes')} — meta de ${V('meta_nps')} superada en 6,5 puntos porcentuales</div>
+      <div class="palancas">${cliente7.palancas.map(([p,d])=>`<div class="palanca">${p} ${d}</div>`).join('')}</div>
+      <div class="sec-k" style="color:${ink};margin-top:8px">Programas de lealtad</div>
+      <div class="clubs">${cliente7.clubs.map(cl=>`<span class="club">${cl}</span>`).join('')}</div>
+      <div class="eth-stat-row" style="margin-top:16px">
+        <div class="eth-stat" style="background:#f7edf3"><div class="big" style="color:${ink}">${V('marcas_propias_part')}</div><div class="lab" style="color:#6b2545">${L('marcas_propias_part')}</div></div>
+        <div class="eth-stat" style="background:#f7edf3"><div class="big" style="color:${ink}">${V('respuesta_reclamos')}</div><div class="lab" style="color:#6b2545">${L('respuesta_reclamos')}</div></div>
+      </div>
+      <div class="sec-k" style="color:${ink};margin-top:8px">7.2 Aseguramiento de la calidad e inocuidad</div>
+      ${socCards(calidad7.cards, c)}${prosaHtml(ch.n)}`;
+  }
+
+  if(ch.kind==='suppliers'){
+    return `${toggle}<div class="sec-k" style="color:${ink}">8.1 Gestión de proveedores</div>
+      <div class="eth-stat-row">${proveedores8.stats.map(id=>`<div class="eth-stat" style="background:#f1ecf8"><div class="big" style="color:${ink}">${V(id)}</div><div class="lab" style="color:#463061">${gl(L(id))}</div></div>`).join('')}</div>
+      <div class="sec-k" style="color:${ink}">8.3 Pagos a proveedores nacionales 2025 (N° facturas)</div>
+      <table class="dtable"><caption class="sr-only">Facturas pagadas a proveedores nacionales según plazo</caption>
+      <thead><tr><th scope="col">Plazo</th><th scope="col" style="text-align:right">Facturas</th></tr></thead>
+      <tbody>${proveedores8.pagos.map(([p,f])=>`<tr><td>${p}</td><td class="num">${f}</td></tr>`).join('')}
+      <tr class="total"><td>Total</td><td class="num">${V('facturas_total')}</td></tr></tbody></table>
+      <div class="gov-note" style="margin-top:10px">${gl(proveedores8.nota)}</div>
+      <div class="sec-k" style="color:${ink};margin-top:14px">8.2 Desarrollo de proveedores locales — programa 100% Nuestro</div>
+      ${socCards(local8.cards, c)}
+      <div class="gov-note" style="margin-top:10px">${gl(local8.nota)}</div>${prosaHtml(ch.n)}`;
+  }
+
+  if(ch.kind==='society'){
+    return `${toggle}<div class="sec-k" style="color:${ink}">9.2 Trabajo colaborativo con organizaciones</div>
+      ${socCards(sociedad9.cards, c)}
+      ${notasDe(sociedad9.cards)}${prosaHtml(ch.n)}`;
+  }
+
+  if(ch.kind==='environment'){
+    return `${toggle}<div class="sec-k" style="color:${ink}">10.3 Huella de carbono</div>
+      ${estimacionHtml(10)}
+      <div class="sec-k" style="color:${ink};margin-top:22px">10.1 Residuos y rescate de alimentos</div>
+      ${socCards(ambiente10.cards, c)}
+      <div class="sec-k" style="color:${ink};margin-top:22px">10.2 y 10.4 — Energía y agua</div>
+      ${socCards(energia10.cards, c)}
+      <div class="soc-grid" style="margin-top:8px">${energia10.sellos.map(([v,l])=>`<div class="soc"><div class="sv" style="color:${ink}">${v}</div><div class="sl">${l}</div></div>`).join('')}</div>${prosaHtml(ch.n)}`;
+  }
+
+  if(ch.kind==='financial'){
+    return `${toggle}<div class="sec-k" style="color:${ink}">11. Desempeño financiero 2025</div>
+      ${estimacionHtml(11)}
+      <div class="sec-k" style="color:${ink};margin-top:22px">Resultados del año</div>
+      ${socCards(financiero11.cards, c)}
+      <div class="sec-k" style="color:${ink};margin-top:18px">Ventas de locales equivalentes (SSS)</div>
+      ${sssHtml(c)}${prosaHtml(ch.n)}`;
+  }
+
+  if(ch.kind==='annex'){
+    return `<div class="sec-k" style="color:${ink}">12. Información adicional</div>
+      <div class="doc-map">${anexo12.docs.map(([ic,t,d])=>`<div class="dm"><div class="ic" aria-hidden="true">${ic}</div><div><div class="dt">${t}</div><div class="dd">${gl(d)}</div></div></div>`).join('')}</div>`;
+  }
+  return '';
+}
+
+// ============ NAVEGACIÓN ============
+const idxList=document.getElementById('idx-list');
+const appView=document.getElementById('app-view');
+const appEl=document.getElementById('app');
+const rail=document.getElementById('rail');
+const railLabel=document.getElementById('rail-label');
+
+chapters.forEach(ch=>{
+  const row=document.createElement('button');
+  row.type='button'; row.className='row'; row.dataset.n=ch.n;
+  row.innerHTML=`<span class="dot" aria-hidden="true" style="background:${ch.color}"></span><span class="n">${ch.n}</span><span class="t">${ch.title}</span><span class="p">p.${ch.page}</span>`;
+  row.addEventListener('click',()=>selectChapter(ch.n));
+  idxList.appendChild(row);
+
+  const seg=document.createElement('button');
+  seg.type='button'; seg.className='seg'; seg.dataset.n=ch.n;
+  seg.style.background=bgFor(ch.color); seg.style.color=textOn(bgFor(ch.color));
+  seg.textContent=ch.n;
+  seg.setAttribute('aria-label',`Capítulo ${ch.n} — ${ch.title}`);
+  seg.addEventListener('click',()=>selectChapter(ch.n));
+  rail.appendChild(seg);
+});
+
+function highlightNav(n){
+  idxList.querySelectorAll('.row').forEach(r=>{
+    const on = Number(r.dataset.n)===n;
+    r.classList.toggle('active',on);
+    if(on) r.setAttribute('aria-current','true'); else r.removeAttribute('aria-current');
+  });
+  rail.querySelectorAll('.seg').forEach(s=>{
+    const on = Number(s.dataset.n)===n;
+    s.classList.toggle('active',on);
+    if(on) s.setAttribute('aria-current','true'); else s.removeAttribute('aria-current');
+  });
+}
+
+function selectChapter(n){
+  const ch=chapters.find(c=>c.n===n);
+  glHide(); glReset();
+  const bg = bgFor(ch.color);
+  appView.innerHTML=`<div class="ch-head" style="background:${bg};color:${textOn(bg)}"><div class="n">${ch.n}</div><div class="t">${ch.title}</div></div>
+    <div class="ch-body">${bodyHtmlFor(ch)}${fuenteCap(ch)}</div>`;
+  highlightNav(n);
+  railLabel.textContent=`Cap. ${n} de 12`;
+  appEl.classList.remove('mode-list');
+  appEl.classList.add('mode-view');
+  appView.scrollTop=0;
+  appView.focus({preventScroll:true});
+}
+
+// ---- Portada ----
+function kpiCard(id){
+  const d=D(id);
+  const pie = d.comparacion ? chipDe(id) : (d.nota && !d.nota.startsWith('El capítulo') ? `<span class="kd-note">${d.nota}</span>` : '');
+  return `<button type="button" class="kpi" onclick="selectChapter(${d.capitulo})">
+    <span class="kv">${d.display}</span>
+    <span class="kl">${d.etiqueta}</span>
+    ${pie?`<span class="kd">${pie}</span>`:''}
+    <span class="sr-only">Ir al capítulo ${d.capitulo}</span></button>`;
+}
+function kpisHtml(){
+  if(perfilActivo){
+    const p = PERFILES[perfilActivo];
+    return `<div class="ck-label">Cifras para un lector ${p.lab.toLowerCase()}</div>
+      <div class="kpi-strip p3">${p.ids.map(kpiCard).join('')}</div>`;
+  }
+  return `<div class="ck-label">El año en seis cifras</div>
+    <div class="kpi-strip">${KPIS_PORTADA.map(kpiCard).join('')}</div>`;
+}
+function setPerfil(k){
+  perfilActivo = (perfilActivo===k) ? null : k;
+  const cont = document.getElementById('cover-kpis');
+  if(cont) cont.innerHTML = kpisHtml();
+  document.querySelectorAll('.perfil-opt').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.p===perfilActivo)));
+}
+
+function showCover(){
+  glHide(); glReset();
+  const stripesHtml = chapters.map(ch=>{
+    const bg = bgFor(ch.color);
+    return `<button type="button" class="stripe" data-n="${ch.n}" aria-label="Capítulo ${ch.n} — ${ch.title}"
+      onclick="selectChapter(${ch.n})" onmouseenter="capUpdate(${ch.n})" onmouseleave="capReset()"
+      onfocus="capUpdate(${ch.n})" onblur="capReset()">
+      <span class="bar" aria-hidden="true" style="background:${bg}"></span>
+      <span class="sn" style="color:${textOn(bg)}">${ch.n}</span>
+    </button>`;
+  }).join('');
+  const perfiles = Object.entries(PERFILES).map(([k,p])=>
+    `<button type="button" class="perfil-opt" data-p="${k}" aria-pressed="${perfilActivo===k}" onclick="setPerfil('${k}')">${p.lab}</button>`
+  ).join('');
+  appView.innerHTML=`<div class="cover-screen">
+    <div class="cover-top">
+      <img src="${LOGO}" alt="SMU">
+      <h1 class="cover-title">Memoria integrada<b>2025</b></h1>
+    </div>
+    <div class="perfil">
+      <div class="perfil-lab" id="perfil-lab">Entrar como</div>
+      <div class="perfil-opts" role="group" aria-labelledby="perfil-lab">${perfiles}</div>
+    </div>
+    <div class="cover-stripes" role="group" aria-label="Los doce capítulos">${stripesHtml}</div>
+    <div class="stripe-caption" id="stripe-caption" aria-live="polite">
+      <span class="cap-hint">12 capítulos — recorre las franjas para ver cada título, toca para entrar. Dentro, los términos subrayados llevan su definición y las cifras destacadas abren su desglose.</span>
+    </div>
+    <div class="cover-kpis" id="cover-kpis">${kpisHtml()}</div>
+  </div>`;
+  highlightNav(0);
+  railLabel.textContent='Portada';
+  appEl.classList.remove('mode-list');
+  appEl.classList.add('mode-view');
+  appView.scrollTop=0;
+}
+
+function capUpdate(n){
+  const ch = chapters.find(c=>c.n===n);
+  const cap = document.getElementById('stripe-caption');
+  if(!cap) return;
+  cap.innerHTML = `<span class="cap-n" style="color:${inkOn(ch.color)}">${ch.n}</span><span class="cap-t">${ch.title}</span>`;
+}
+function capReset(){
+  const cap = document.getElementById('stripe-caption');
+  if(!cap) return;
+  cap.innerHTML = `<span class="cap-hint">12 capítulos — recorre las franjas para ver cada título, toca para entrar</span>`;
+}
+
+function openList(){
+  appEl.classList.remove('mode-view');
+  appEl.classList.add('mode-list');
+  const primera = idxList.querySelector('.row');
+  if(primera) primera.focus();
+}
+
+// ---- Teclado: Escape cierra cualquier elemento desplegado ----
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  if(glOpen){ const b=glOpen; glHide(); b.focus(); return; }
+  cerrarExpandidos();
+});
+// El glosario flota sobre la página: se cierra al desplazar.
+appView.addEventListener('scroll',()=>{ if(glOpen) glHide(); },{passive:true});
+window.addEventListener('resize',()=>{ if(glOpen) glHide(); });
+
+showCover();
+</script>
+</body>
+</html>
