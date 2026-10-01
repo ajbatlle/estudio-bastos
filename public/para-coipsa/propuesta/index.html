@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es" data-textura="medio">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Se comparte por enlace, no se busca: lleva precios. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../marca/favicon.svg">
+<!-- Es también el nombre que el navegador le pone al PDF. -->
+<title>Propuesta Bastos para Coipsa</title>
+
+<style>
+/* ──────────────────────────────────────────────────────────────────────────
+   Bastos × Coipsa — propuesta económica
+   Registro: MARCA, como la presentación de la que sale. Los tokens son los
+   mismos y están copiados, no importados: la página tiene que abrirse sola,
+   desde el sitio o desde un disco.
+
+   A diferencia de la presentación, esto se lee de corrido y se imprime: es un
+   documento con scroll, no una baraja de pantallas. La versión PDF sale de la
+   hoja de impresión del final, sobre blanco.
+   ────────────────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../fuentes/PlusJakartaSans-Variable.woff2') format('woff2-variations');
+}
+
+:root {
+  --blue-100: oklch(43% 0.21 262deg);
+  --blue-90:  oklch(37% 0.19 262deg);
+  --white: #ffffff;
+  --black: #0a0a0a;
+  --gray-60: #666666;
+  --gray-20: #cccccc;
+  --gray-5:  #f2f2f2;
+
+  --surface-brand: var(--blue-100);
+  --text-on-brand: var(--white);
+
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --tracking-tight: -0.02em;
+  --leading-tight: 1.1;
+  --leading-normal: 1.5;
+
+  --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-normal: 0.45s var(--ease);
+  --radius-md: 8px;
+  --radius-pill: 9999px;
+
+  --aire-cabecera-arriba: clamp(1.5rem, 4.2vw, 5rem);
+  --alto-logo:            clamp(18px, 1.78vw, 36px);
+  --aire-seccion:         clamp(3.5rem, 9vw, 8rem);
+
+  --cursor-blanco: url('../marca/cursor-blanco.svg') 16 16, url('../marca/cursor-blanco.png') 16 16, auto;
+  --cursor-azul:   url('../marca/cursor-azul.svg')   16 16, url('../marca/cursor-azul.png')   16 16, auto;
+  --cursor: var(--cursor-blanco);
+
+  --mesh:
+    radial-gradient(75% 55% at 12% 8%, oklch(48% 0.2 262 / 0.55), transparent 62%),
+    radial-gradient(65% 60% at 88% 18%, oklch(40% 0.2 262 / 0.5), transparent 60%),
+    radial-gradient(85% 75% at 78% 100%, oklch(17% 0.07 262 / 0.72), transparent 66%),
+    radial-gradient(70% 65% at 2% 96%, oklch(21% 0.09 262 / 0.6), transparent 62%);
+
+  --grano-medio: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncG type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncB type='linear' slope='3' intercept='-1.194'/%3E%3CfeFuncA type='linear' slope='0' intercept='0.22'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grano: var(--grano-medio);
+
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; }
+
+/* El mesh va en el fondo del propio body para que la fusión `difference` lo
+   alcance. Fijo, porque la página es larga: estirado a todo el documento, el
+   azul claro de arriba se volvía una franja y el negro quedaba al final. */
+body {
+  font-family: var(--font-sans);
+  font-size: clamp(0.95rem, 0.55rem + 0.62vw, 1.12rem);
+  line-height: var(--leading-normal);
+  color: var(--text-on-brand);
+  background-color: var(--surface-brand);
+  background-image: var(--grano), var(--mesh);
+  background-size: 160px 160px, auto, auto, auto, auto;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-blend-mode: overlay, normal, normal, normal, normal;
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  cursor: var(--cursor);
+}
+
+/* Se invierte en la variable y no en la propiedad: así lo heredan los
+   controles de dentro de cada lámina. */
+.lamina { --cursor: var(--cursor-azul); cursor: var(--cursor); }
+
+a { color: inherit; cursor: var(--cursor); }
+
+:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+.oculto-visual {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+.contenedor { width: min(86%, 1280px); margin-inline: auto; }
+@media (min-width: 48rem) { .contenedor { width: min(76%, 1280px); } }
+@media (min-width: 64rem) { .contenedor { width: min(64%, 1280px); } }
+
+/* ——— Tipografía de marca ——— */
+
+.titulo {
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  font-size: clamp(1.3rem, 1rem + 1.5vw, 2rem);
+  max-width: 26ch;
+  margin-bottom: clamp(1rem, 2.4vw, 1.8rem);
+}
+
+.titulo-portada {
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  font-size: clamp(1.8rem, 1.2rem + 2.6vw, 3rem);
+  max-width: 18ch;
+}
+
+.parrafo {
+  font-size: clamp(1.05rem, 0.85rem + 0.8vw, 1.45rem);
+  font-weight: 300;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  max-width: 46ch;
+}
+.parrafo + .parrafo { margin-top: 0.9em; }
+
+/* Lo que un párrafo destaca no lleva color pintado: lo produce el fondo. */
+.fusion { font-weight: 700; mix-blend-mode: difference; }
+
+.cifra { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.nota {
+  font-size: clamp(0.8rem, 0.72rem + 0.25vw, 0.95rem);
+  opacity: 0.75;
+  margin-top: clamp(0.9rem, 2vw, 1.4rem);
+  max-width: 60ch;
+}
+
+/* ——— Cabecera ——— */
+
+.cabecera { padding-top: var(--aire-cabecera-arriba); }
+.cabecera .contenedor {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.marca-logo { height: var(--alto-logo); width: auto; }
+.solo-impresion { display: none; }
+
+.elementos { display: flex; align-items: center; gap: 0.9rem; }
+.elementos img {
+  width: clamp(16px, 1.8vw, 22px);
+  height: auto;
+  animation: giro 7s linear infinite;
+}
+.elementos img:nth-child(2) { animation-duration: 5.5s; animation-direction: reverse; }
+.elementos img:nth-child(3) { animation-duration: 9s; }
+.elementos img:nth-child(4) { animation-duration: 6.5s; animation-direction: reverse; }
+@keyframes giro { to { rotate: 360deg; } }
+
+/* ——— Secciones ——— */
+
+.seccion { padding-block: var(--aire-seccion) 0; }
+.seccion:last-of-type { padding-bottom: var(--aire-seccion); }
+
+.portada { padding-top: clamp(4rem, 14vh, 10rem); }
+.portada-pie {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0.8rem 1.6rem; margin-top: clamp(1.4rem, 3vw, 2.4rem);
+}
+.fecha { font-weight: 300; opacity: 0.8; }
+
+/* ——— Píldora ——— */
+
+.pildora {
+  all: unset;
+  box-sizing: border-box;
+  position: relative;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  border-radius: var(--radius-pill);
+  padding: 0.6em 1.35em;
+  font-size: clamp(0.8rem, 0.7rem + 0.2vw, 0.95rem);
+  cursor: var(--cursor);
+  transition: background var(--transition-normal), color var(--transition-normal),
+              border-color var(--transition-normal);
+}
+.pildora:hover { background: var(--white); color: var(--blue-100); border-color: var(--white); --cursor: var(--cursor-azul); }
+.pildora:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
+
+/* ——— Láminas blancas ———
+   Lo que no aguanta el mesh —tablas, cifras, listas largas— va sobre blanco.
+   Plano y sin radio; entre láminas, una regla de 1px. */
+
+.rejilla {
+  display: grid;
+  gap: 1px;
+  background: rgb(255 255 255 / 0.25);
+}
+@media (min-width: 52rem) {
+  .rejilla-2 { grid-template-columns: 1fr 1fr; }
+  .rejilla-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+.lamina {
+  background: var(--white);
+  color: var(--black);
+  padding: clamp(1.1rem, 2.4vw, 1.9rem);
+}
+
+.lamina h3 {
+  font-size: clamp(1rem, 0.88rem + 0.45vw, 1.25rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.lamina p, .lamina li {
+  font-size: clamp(0.85rem, 0.76rem + 0.28vw, 0.98rem);
+  line-height: 1.6;
+  color: #2b2b2b;
+}
+.lamina p + p { margin-top: 0.6rem; }
+
+/* ——— Nuestro trabajo ———
+   Dos capas que pasan a la vez: arriba, el foco del método en cada trimestre;
+   abajo, las partes del trabajo, que corren todas desde el primer mes. Van en
+   rejillas separadas a propósito: puestas en filas por trimestre se leían
+   como una secuencia, y el trabajo no lo es. */
+
+.subtitulo {
+  font-size: clamp(1rem, 0.9rem + 0.4vw, 1.2rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: clamp(1.6rem, 3.6vw, 2.6rem) 0 clamp(0.7rem, 1.6vw, 1rem);
+}
+
+.etapa { display: grid; gap: 0.5rem; align-content: start; }
+
+@media (min-width: 52rem) { .rejilla-4 { grid-template-columns: repeat(4, 1fr); } }
+
+/* ——— Indicadores ——— */
+
+.tabla-envoltura { overflow-x: auto; }
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: clamp(0.82rem, 0.74rem + 0.25vw, 0.95rem);
+  line-height: 1.5;
+}
+.tabla th, .tabla td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.85rem 1rem 0.85rem 0;
+  border-bottom: 1px solid var(--gray-20);
+}
+.tabla thead th { font-weight: 700; color: var(--blue-100); border-bottom-color: var(--black); }
+.tabla tbody th { font-weight: 700; white-space: nowrap; }
+.tabla tr:last-child > * { border-bottom: 0; }
+
+/* ——— Planes ———
+   Los precios van al pie de cada lámina, alineados entre los tres planes:
+   la lista de lo que incluye crece y los años quedan a la misma altura. */
+
+.plan { display: grid; gap: 0.8rem; grid-template-rows: auto auto 1fr auto; }
+.plan ul { padding-left: 1.1rem; }
+
+.plan-precios { display: grid; gap: 0.9rem; padding-top: 0.9rem; border-top: 1px solid var(--gray-20); }
+.plan-precios dt { font-size: 0.82rem; color: var(--gray-60); }
+.plan-precios dd { display: grid; }
+.plan-precios .mensual {
+  font-size: clamp(1.1rem, 0.95rem + 0.6vw, 1.45rem);
+  font-weight: 700;
+  color: var(--blue-100);
+  letter-spacing: var(--tracking-tight);
+}
+.plan-precios .anual { font-size: 0.85rem; color: #2b2b2b; }
+
+/* ——— Condiciones ——— */
+
+.condiciones { list-style: none; display: grid; gap: 0; }
+.condiciones li { padding: 0.8rem 0; border-bottom: 1px solid var(--gray-20); }
+.condiciones li:first-child { padding-top: 0; }
+.condiciones li:last-child { border-bottom: 0; padding-bottom: 0; }
+
+/* ——— Cierre ——— */
+
+.correo-cierre {
+  font-size: clamp(1.1rem, 0.9rem + 1vw, 1.8rem);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  text-decoration: none;
+}
+.correo-cierre:hover { opacity: 0.75; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .elementos img { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   IMPRESIÓN · la versión PDF
+   Sobre blanco y en tinta azul: el mesh en papel es un bloque de tóner, y en
+   un PDF la fusión `difference` sale como un rectángulo.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@page { size: A4; margin: 16mm 16mm 18mm; }
+
+@media print {
+  body {
+    background: var(--white);
+    color: var(--black);
+    font-size: 10pt;
+  }
+  .contenedor { width: 100%; }
+  .solo-pantalla, .elementos, .pildora { display: none !important; }
+  .solo-impresion { display: block; }
+  .fusion { mix-blend-mode: normal; }
+  .titulo, .titulo-portada { color: var(--blue-100); }
+  .titulo-portada { font-size: 26pt; }
+  .titulo { font-size: 16pt; }
+  .parrafo { font-size: 12pt; max-width: none; }
+  .nota { opacity: 1; color: var(--gray-60); }
+
+  .seccion { padding-top: 10mm; }
+  .portada { padding-top: 40mm; min-height: 240mm; }
+  .cabecera { padding-top: 0; }
+
+  .rejilla { background: none; gap: 4mm; }
+  .lamina { border: 1px solid var(--gray-20); padding: 5mm; }
+  .lamina, .tabla tr { break-inside: avoid; }
+  .titulo { break-after: avoid; }
+
+  /* En papel las columnas se mantienen: A4 da ancho de sobra y así cada
+     sección cabe en su página. */
+  .rejilla-2 { grid-template-columns: 1fr 1fr; }
+  .rejilla-3 { grid-template-columns: repeat(3, 1fr); }
+  .rejilla-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .salto { break-before: page; }
+}
+</style>
+</head>
+
+<body>
+
+<a class="oculto-visual" href="#contenido">Ir al contenido</a>
+
+<header class="cabecera">
+  <div class="contenedor">
+    <img class="marca-logo solo-pantalla" src="../marca/Logo-blanco.svg" alt="Bastos" width="401" height="74">
+    <img class="marca-logo solo-impresion" src="../marca/Logo-azul.svg" alt="Bastos" width="401" height="74">
+
+    <div class="elementos" aria-hidden="true">
+      <img src="../marca/element1-blanco.svg" alt="" width="256" height="256">
+      <img src="../marca/element2-blanco.svg" alt="" width="256" height="256">
+      <img src="../marca/element3-blanco.svg" alt="" width="256" height="256">
+      <img src="../marca/element4-blanco.svg" alt="" width="256" height="256">
+    </div>
+  </div>
+</header>
+
+<main id="contenido">
+
+  <!-- ══ PORTADA ═══════════════════════════════════════════════════════════ -->
+  <section class="seccion portada" aria-label="Portada">
+    <div class="contenedor">
+      <h1 class="titulo-portada">Propuesta para la comunicación de Coipsa en 2027</h1>
+      <div class="portada-pie">
+        <p class="fecha">Estudio Bastos · 2 de octubre de 2026</p>
+        <!-- Aparece solo si hay guion: sin él, el botón no haría nada. -->
+        <button class="pildora" type="button" data-imprimir hidden>Descargar PDF</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ NUESTRA PROPUESTA ═════════════════════════════════════════════════ -->
+  <section class="seccion salto" aria-labelledby="t-propuesta">
+    <div class="contenedor">
+      <h2 class="titulo" id="t-propuesta">Nuestra propuesta</h2>
+      <p class="parrafo">
+        Un servicio de comunicaciones hecho por un estudio de diseño. Ordenamos
+        la estrategia, el sistema gráfico y los canales, y construimos las
+        herramientas con que el equipo produce cada pieza.
+      </p>
+      <p class="parrafo">
+        Está pensado para que <strong class="fusion">cada año necesite menos
+        horas.</strong> El primer año lo construimos junto al equipo de
+        comunicaciones de Coipsa. Desde el segundo, el equipo produce con ese
+        sistema y nuestro trabajo baja a la mitad.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ NUESTRO TRABAJO ═══════════════════════════════════════════════════ -->
+  <section class="seccion salto" aria-labelledby="t-trabajo">
+    <div class="contenedor">
+      <h2 class="titulo" id="t-trabajo">Nuestro trabajo</h2>
+      <p class="parrafo">
+        Trabajamos en todo a la vez desde el primer mes. El método de Bastos
+        marca el foco de cada trimestre, y cada parte del trabajo avanza en
+        paralelo.
+      </p>
+
+      <h3 class="subtitulo">El foco de cada trimestre</h3>
+      <div class="rejilla rejilla-4">
+        <article class="lamina etapa">
+          <h3>Primer trimestre · Escuchar</h3>
+          <p>Cómo se produce hoy la comunicación y qué sabe Coipsa.</p>
+        </article>
+        <article class="lamina etapa">
+          <h3>Segundo trimestre · Ordenar</h3>
+          <p>Estrategia, pilares de contenido y metas.</p>
+        </article>
+        <article class="lamina etapa">
+          <h3>Tercer trimestre · Diseñar</h3>
+          <p>El sistema gráfico y las herramientas, ajustados con lo aprendido.</p>
+        </article>
+        <article class="lamina etapa">
+          <h3>Cuarto trimestre · Entregar</h3>
+          <p>Todo en uso, y el reporte del año contra la línea base.</p>
+        </article>
+      </div>
+
+      <h3 class="subtitulo">Lo que avanza todo el año</h3>
+      <div class="rejilla rejilla-2">
+        <article class="lamina etapa">
+          <h3>Redes</h3>
+          <p>LinkedIn e Instagram desde el primer mes, con plantillas iniciales. El sistema gráfico se afina con lo que muestran los indicadores.</p>
+        </article>
+        <article class="lamina etapa">
+          <h3>Trabajo mensual</h3>
+          <p>Una sesión al mes con el equipo de comunicaciones, las piezas del mes y el reporte de indicadores.</p>
+        </article>
+        <article class="lamina etapa">
+          <h3>Herramientas a medida</h3>
+          <p>Las elegimos mirando el trabajo diario del equipo y las construimos por partes. Cada parte se usa apenas está lista.</p>
+        </article>
+        <article class="lamina etapa">
+          <h3>Sección de conocimiento</h3>
+          <p>Parte con lo que Coipsa ya publica y crece durante el año.</p>
+        </article>
+      </div>
+      <p class="nota">Las herramientas van en los planes Redes y herramientas, y Completo. La sección de conocimiento, en el plan Completo.</p>
+    </div>
+  </section>
+
+  <!-- ══ CÓMO MEDIMOS ══════════════════════════════════════════════════════ -->
+  <section class="seccion salto" aria-labelledby="t-medimos">
+    <div class="contenedor">
+      <h2 class="titulo" id="t-medimos">Cómo medimos</h2>
+      <p class="parrafo">
+        Cada parte del trabajo tiene un indicador principal. En el primer
+        trimestre medimos cómo están hoy, y al cerrarlo fijamos las metas con
+        esa línea base.
+      </p>
+
+      <div class="lamina tabla-envoltura" style="margin-top: clamp(1.4rem, 3vw, 2.2rem)">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th scope="col">Parte</th>
+              <th scope="col">Indicador principal</th>
+              <th scope="col">También medimos</th>
+              <th scope="col">Línea base</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Redes</th>
+              <td>Rendimiento por formato: interacciones de columnas, noticias y videos</td>
+              <td>Tasa de interacción en LinkedIn · crecimiento y alcance en Instagram</td>
+              <td>Estadísticas actuales de LinkedIn. Instagram parte en cero</td>
+            </tr>
+            <tr>
+              <th scope="row">Sección de conocimiento</th>
+              <td>Lectores que vuelven</td>
+              <td>Visitas que llegan desde LinkedIn · consultas y contactos</td>
+              <td>Google Analytics del sitio actual</td>
+            </tr>
+            <tr>
+              <th scope="row">Herramientas a medida</th>
+              <td>Horas de producción por pieza</td>
+              <td>Piezas hechas por el equipo</td>
+              <td>Registro de tiempos durante el primer mes</td>
+            </tr>
+            <tr>
+              <th scope="row">Trabajo mensual</th>
+              <td>Publicaciones del calendario cumplidas</td>
+              <td>Horas usadas</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="nota">Cada mes entregamos un reporte con los indicadores, lo hecho y las horas usadas.</p>
+    </div>
+  </section>
+
+  <!-- ══ PLANES ════════════════════════════════════════════════════════════ -->
+  <section class="seccion salto" aria-labelledby="t-planes">
+    <div class="contenedor">
+      <h2 class="titulo" id="t-planes">Planes</h2>
+      <p class="parrafo">
+        Los tres planes siguen el mismo año de trabajo. Desde el segundo año el
+        equipo ya trabaja con el sistema. Dedicamos la mitad de las horas, y
+        <strong class="fusion">el valor baja a la mitad.</strong>
+      </p>
+
+      <div class="rejilla rejilla-3" style="margin-top: clamp(1.4rem, 3vw, 2.2rem)">
+        <article class="lamina plan">
+          <h3>Redes</h3>
+          <p>Ordena LinkedIn, abre Instagram y empieza a medir.</p>
+          <ul>
+            <li>Estrategia y calendario editorial</li>
+            <li>Sistema gráfico y plantillas para LinkedIn e Instagram</li>
+            <li>Trabajo mensual y reporte de indicadores</li>
+          </ul>
+          <dl class="plan-precios">
+            <div><dt>Año 1</dt><dd><span class="mensual cifra">$950.000 al mes</span><span class="anual cifra">$11.400.000 al año</span></dd></div>
+            <div><dt>Año 2</dt><dd><span class="mensual cifra">$475.000 al mes</span><span class="anual cifra">$5.700.000 al año</span></dd></div>
+          </dl>
+        </article>
+
+        <article class="lamina plan">
+          <h3>Redes y herramientas</h3>
+          <p>Suma herramientas que aceleran el trabajo diario del equipo.</p>
+          <ul>
+            <li>Estrategia y calendario editorial</li>
+            <li>Sistema gráfico y plantillas para LinkedIn e Instagram</li>
+            <li>Herramientas a medida</li>
+            <li>Trabajo mensual y reporte de indicadores</li>
+          </ul>
+          <dl class="plan-precios">
+            <div><dt>Año 1</dt><dd><span class="mensual cifra">$1.250.000 al mes</span><span class="anual cifra">$15.000.000 al año</span></dd></div>
+            <div><dt>Año 2</dt><dd><span class="mensual cifra">$625.000 al mes</span><span class="anual cifra">$7.500.000 al año</span></dd></div>
+          </dl>
+        </article>
+
+        <article class="lamina plan">
+          <h3>Completo</h3>
+          <p>Suma un lugar en coipsa.cl donde vive lo que Coipsa sabe.</p>
+          <ul>
+            <li>Estrategia y calendario editorial</li>
+            <li>Sistema gráfico y plantillas para LinkedIn e Instagram</li>
+            <li>Herramientas a medida</li>
+            <li>Sección de conocimiento en coipsa.cl</li>
+            <li>Trabajo mensual y reporte de indicadores</li>
+          </ul>
+          <dl class="plan-precios">
+            <div><dt>Año 1</dt><dd><span class="mensual cifra">$1.650.000 al mes</span><span class="anual cifra">$19.800.000 al año</span></dd></div>
+            <div><dt>Año 2</dt><dd><span class="mensual cifra">$825.000 al mes</span><span class="anual cifra">$9.900.000 al año</span></dd></div>
+          </dl>
+        </article>
+      </div>
+
+      <p class="nota">Valores netos, más IVA.</p>
+    </div>
+  </section>
+
+  <!-- ══ CONDICIONES ═══════════════════════════════════════════════════════ -->
+  <section class="seccion salto" aria-labelledby="t-condiciones">
+    <div class="contenedor">
+      <h2 class="titulo" id="t-condiciones">Condiciones</h2>
+
+      <div class="lamina">
+        <ul class="condiciones">
+          <li>El primer año es un contrato de doce meses. Los valores son netos, más IVA, y se mantienen fijos durante el contrato.</li>
+          <li>El segundo año se contrata al terminar el primero, con el valor de esta propuesta reajustado por IPC. En los planes con herramientas incluye su mantención.</li>
+          <li>Se factura una cuota al mes, por adelantado.</li>
+          <li>Si el contrato termina antes de los doce meses, se paga completo el trimestre en curso.</li>
+          <li>Si la herramienta que se necesita supera lo previsto en el plan, la diferencia se cotiza aparte.</li>
+          <li>La sección de conocimiento se hace en español. La versión en inglés se cotiza aparte.</li>
+          <li>Para partir necesitamos acceso a Google Analytics, a las estadísticas de la página de LinkedIn y al administrador del sitio.</li>
+          <li>Quedan fuera de esta propuesta la redacción de columnas y noticias, la gestión diaria de las redes, la producción de video y fotografía, la publicidad pagada, la relación con prensa, las comunicaciones internas y las cuentas propias de cada marca.</li>
+          <li>Esta propuesta es válida por 30 días.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ CIERRE ════════════════════════════════════════════════════════════ -->
+  <section class="seccion" aria-labelledby="t-cierre">
+    <div class="contenedor">
+      <h2 class="titulo" id="t-cierre">Sigamos conversando</h2>
+      <a class="correo-cierre" href="mailto:hola@estudiobastos.com">hola@estudiobastos.com</a>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  // El botón nace oculto: sin guion no imprimiría nada, y un botón que no
+  // responde es peor que ninguno.
+  const imprimir = document.querySelector('[data-imprimir]');
+  if (imprimir) {
+    imprimir.hidden = false;
+    imprimir.addEventListener('click', () => window.print());
+  }
+})();
+</script>
+
+</body>
+</html>
