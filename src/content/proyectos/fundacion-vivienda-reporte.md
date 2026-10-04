@@ -1,18 +1,21 @@
 ---
-titulo: Reporte Anual 2017 – Fundación Vivienda
+titulo: Coordinación de marca – Fundación Vivienda
 descripcion: >-
-  Memoria del año: programas, cifras y territorio, con los datos pasados a
-  diagramas y tablas que se leen de un vistazo
-tipo: Memoria anual / publicación institucional
-rol: Diseño editorial e infografía
-anio: 2017
-serie: fundacion-vivienda-reporte
+  Coordinación de marca de la fundación. En el video, Cuarentena en
+  hacinamiento: infografías sobre el problema de pasar la cuarentena en un
+  espacio reducido habitado por familias numerosas
+tipo: Coordinación de marca
+rol: Coordinación de marca
+anio: 2020
+media: fundacion-vivienda.mp4
+pieza: publicacion
 mediaAlt: >-
-  Página de ejes estratégicos: tres círculos que se cruzan en «Ciudades
-  Sostenibles».
+  Recorrido por las infografías de Cuarentena en hacinamiento: la misma
+  vivienda vista en dos casos, violencia intrafamiliar y hacinamiento crítico,
+  con un acercamiento a cada situación.
 logo: vivienda
-orden: 3
+orden: 5
 ---
 
-<!-- Por confirmar: rol, enlace y si el año va por el reporte (2017) o por el
-     año en que se diseñó. -->
+<!-- Por confirmar con Antonio: texto de la ficha, enlace y año. 2020 es el de
+     Cuarentena en hacinamiento. -->

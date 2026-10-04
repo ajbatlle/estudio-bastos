@@ -41,6 +41,17 @@ const proyectos = defineCollection({
        * Generar con: npm run media
        */
       serie: z.string().optional(),
+      /**
+       * Cómo se muestra la pieza dentro del recuadro. Cada clase de trabajo se
+       * enseña como se mira de verdad:
+       * - publicacion: una doble página a la vez, sobre paspartú, con folio.
+       * - catalogo: igual, pero a sangre; la foto manda sobre el papel.
+       * - herramienta: la grabación dentro de una ventana mínima.
+       * - identidad: las aplicaciones de la marca en grilla, de cuatro en cuatro.
+       */
+      pieza: z
+        .enum(['publicacion', 'catalogo', 'herramienta', 'identidad'])
+        .default('publicacion'),
       mediaAlt: z.string().optional(),
       /**
        * Logo del cliente: nombre del archivo en public/media/logos/, sin

@@ -186,11 +186,11 @@ html[data-luz-efectiva='noche'] {
  * contra ella. */
 :root {
   --baraja-paso: 0.62s;
-  /* Los dos mandos de la tira de páginas: cuánto tarda en pasar cada página y
-     cuánto aire queda entre una y la siguiente. El tiempo va por página, no por
-     documento, para que todos los proyectos caigan al mismo ritmo. */
-  --tira-ritmo: 1.5s;
-  --tira-aire: 8cqh;
+  /* Los dos mandos del pase de hojas dentro del recuadro: cuánto se queda
+     cada hoja a la vista y cuánto dura el fundido a la siguiente. El ritmo lo
+     lee también el guion, que es quien cambia de hoja. */
+  --pase-ritmo: 3.2s;
+  --pase-fundido: 0.5s;
 
   /* Lo que tarda un logo en caer dentro de la pestaña y el anterior en salir
      por abajo. Un pelo más corto que el relevo de la baraja: el logo dice de

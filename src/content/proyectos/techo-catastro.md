@@ -1,18 +1,21 @@
 ---
 titulo: Catastro Nacional de Campamentos – Techo
 descripcion: >-
-  El catastro convertido en publicación: series históricas, tablas por región y
-  la cartografía de los campamentos ciudad por ciudad
+  Diagramación del catastro y diseño de los mapas. Los campamentos van en
+  amarillo sobre azul claro y oscuro, un contraste alto que facilita la lectura
+  de los mapas
 tipo: Informe de datos / publicación institucional
-rol: Diseño editorial e infografía
+rol: Diagramación y diseño de mapas
 anio: 2021
-serie: techo-catastro
+media: techo-catastro.mp4
+pieza: publicacion
 mediaAlt: >-
-  Mapa del Gran Valparaíso: los campamentos marcados en amarillo sobre la trama
-  de la ciudad en azul.
+  Fotografías del libro impreso: la portada, el índice, dobles páginas de datos
+  y los mapas de Tarapacá y de la Región Metropolitana con los campamentos
+  marcados en amarillo.
 logo: techo
-orden: 2
+orden: 4
 ---
 
-<!-- Por confirmar con Antonio: rol exacto y enlace público del catastro. El año
+<!-- Por confirmar con Antonio: enlace público del catastro. El año
      sale del propio informe, que cubre 2020-2021. -->

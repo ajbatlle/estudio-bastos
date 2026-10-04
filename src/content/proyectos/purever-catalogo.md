@@ -1,17 +1,19 @@
 ---
-titulo: Catálogo técnico Quantec – Purever
+titulo: Catálogo de venta – Purever
 descripcion: >-
-  Documentación de producto para paneles de aislamiento, con prestaciones,
-  certificaciones y tablas de carga, sin que el dato tape la lectura
-tipo: Catálogo técnico
-rol: Diseño editorial
+  Apoyo a la agencia Aspid, de Barcelona, en un proyecto en desarrollo: llevar
+  la marca de Purever a su material de venta, un catálogo A4 de unas 36 páginas
+  maquetado a partir de la identidad existente
+tipo: Catálogo de venta / para Aspid, Barcelona
+rol: Adaptación de marca y maquetación
 anio: 2023
-serie: purever-catalogo
+media: purever-catalogo.mp4
+pieza: catalogo
 mediaAlt: >-
-  Doble página con la línea de producción y dos bloques de texto sobre garantía
-  de calidad y protección frente al fuego.
+  Mosaico de dobles páginas del catálogo y su portada: paneles de aislamiento,
+  la planta de producción y las fichas técnicas de la línea Quantec.
 logo: purever
-orden: 8
+orden: 10
 ---
 
-<!-- Por confirmar: rol y enlace. -->
+<!-- Por confirmar: enlace. -->

@@ -1,5 +1,5 @@
 ---
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { getCollection } from 'astro:content';
 import sharp from 'sharp';
 import Base from '../layouts/Base.astro';
@@ -25,6 +25,29 @@ const laminasDeLaSerie = (prefijo: string) =>
 // tendrían que encogerse hasta caber en el hueco de aquella.
 const piezas = new Map<string, { archivo: string; proporcion: number }[]>();
 
+const esVideo = (archivo: string) => /\.(mp4|webm)$/.test(archivo);
+
+// Un video que se rehace conserva su nombre, y el navegador seguiría sirviendo
+// el de la caché. La fecha del archivo en la dirección obliga a pedirlo de nuevo.
+const version = (archivo: string) =>
+  Math.round(statSync(`public/media/${archivo}`).mtimeMs).toString(36);
+
+// sharp no lee video, así que la proporción se saca de la cabecera del MP4: la
+// caja `tkhd` guarda el ancho y el alto de la pista en sus últimos ocho bytes,
+// en coma fija 16.16. Basta para no tener que escribirla a mano en el .md.
+const proporcionDelVideo = (archivo: string) => {
+  const datos = readFileSync(`public/media/${archivo}`);
+  let inicio = datos.indexOf('tkhd');
+  while (inicio > 0) {
+    const fin = inicio - 4 + datos.readUInt32BE(inicio - 4);
+    const ancho = datos.readUInt32BE(fin - 8) / 65536;
+    const alto = datos.readUInt32BE(fin - 4) / 65536;
+    if (ancho && alto) return ancho / alto;
+    inicio = datos.indexOf('tkhd', inicio + 4);
+  }
+  return 16 / 9;
+};
+
 for (const proyecto of proyectos) {
   const { media, serie } = proyecto.data;
   const archivos = serie
@@ -37,6 +60,7 @@ for (const proyecto of proyectos) {
 
   const medidas = await Promise.all(
     archivos.map(async (archivo) => {
+      if (esVideo(archivo)) return { archivo, proporcion: proporcionDelVideo(archivo) };
       const { width, height } = await sharp(`public/media/${archivo}`).metadata();
       return { archivo, proporcion: width && height ? width / height : 1.6 };
     }),
@@ -44,6 +68,88 @@ for (const proyecto of proyectos) {
 
   if (medidas.length) piezas.set(proyecto.id, medidas);
 }
+
+// Los logos se igualan por peso, no por ancho: todos ocupan la misma superficie.
+// A igual ancho, uno casi cuadrado como el de Mano y Aguja se veía diminuto al
+// lado del de Tisvol, que mide ocho veces más de ancho que de alto. El alto
+// tiene un tope —la pestaña no crece hacia abajo, que de ella cuelga la ficha—
+// y la pestaña toma el ancho de su logo más un margen a cada lado.
+const SUPERFICIE = 2300, ALTO_MAXIMO = 42, MARGEN = 22;
+const logos = new Map<string, { ancho: number; alto: number; pestana: number }>();
+
+for (const proyecto of proyectos) {
+  if (!proyecto.data.logo) continue;
+  const { width, height } = await sharp(`public/media/logos/${proyecto.data.logo}.webp`).metadata();
+  const proporcion = width && height ? width / height : 3;
+  const alto = Math.min(ALTO_MAXIMO, Math.sqrt(SUPERFICIE / proporcion));
+  const ancho = alto * proporcion;
+  logos.set(proyecto.id, {
+    ancho: Math.round(ancho),
+    alto: Math.round(alto),
+    pestana: Math.round(ancho + MARGEN * 2),
+  });
+}
+
+type Lamina = { archivo: string; proporcion: number; numero: number };
+type Hoja = { laminas: Lamina[]; proporcion: number; ajuste: 'cubre' | 'contiene' };
+
+// Una página suelta mide menos de 1,15 de ancho por alto; una doble página, más.
+const SUELTA = 1.15;
+
+// Las hojas son lo que se ve de una vez en el recuadro. Una publicación se mira
+// abierta, así que las páginas sueltas se casan de dos en dos —salvo la
+// portada, que va sola como en el libro—. Una identidad se enseña en grilla de
+// cuatro. Una herramienta es una sola grabación.
+const hojasDe = (pieza: string, laminas: Lamina[]): Hoja[] => {
+  const juntar = (grupo: Lamina[]): Hoja => {
+    const proporcion = grupo.reduce((suma, l) => suma + l.proporcion, 0);
+    return {
+      laminas: grupo,
+      proporcion,
+      // A sangre solo lo que ya es apaisado: una portada vertical recortada a
+      // 16/10 perdería más de la mitad, así que esa se queda entera.
+      // Un video que no es una grabación de pantalla es una pieza ya montada
+      // —fotos del impreso— y también va a sangre.
+      ajuste:
+        (pieza === 'catalogo' && proporcion >= SUELTA) ||
+        (pieza !== 'herramienta' && grupo.some((l) => esVideo(l.archivo)))
+          ? 'cubre'
+          : 'contiene',
+    };
+  };
+
+  if (pieza === 'identidad') {
+    const hojas: Hoja[] = [];
+    for (let i = 0; i < laminas.length; i += 4) {
+      hojas.push({ ...juntar(laminas.slice(i, i + 4)), ajuste: 'cubre' });
+    }
+    return hojas;
+  }
+
+  if (pieza === 'herramienta') return laminas.map((l) => juntar([l]));
+
+  const hojas: Hoja[] = [];
+  let pendiente: Lamina | null = null;
+  for (const [i, lamina] of laminas.entries()) {
+    const suelta = lamina.proporcion < SUELTA;
+    // La contraportada también va sola, si no le queda pareja.
+    if (!suelta || i === 0 || (i === laminas.length - 1 && !pendiente)) {
+      if (pendiente) hojas.push(juntar([pendiente]));
+      pendiente = null;
+      hojas.push(juntar([lamina]));
+    } else if (pendiente) {
+      hojas.push(juntar([pendiente, lamina]));
+      pendiente = null;
+    } else {
+      pendiente = lamina;
+    }
+  }
+  if (pendiente) hojas.push(juntar([pendiente]));
+  return hojas;
+};
+
+// Folio con dos cifras: «03 / 24».
+const folio = (n: number) => String(n).padStart(2, '0');
 ---
 
 <Base
@@ -61,10 +167,13 @@ for (const proyecto of proyectos) {
   <div class="escenario" data-baraja aria-roledescription="carrusel">
     {
       proyectos.map((proyecto, indice) => {
-        const { titulo, descripcion, tipo, rol, anio, enlace, enlaceTexto, mediaAlt, logo } =
+        const { titulo, descripcion, tipo, rol, anio, enlace, enlaceTexto, mediaAlt, pieza } =
           proyecto.data;
 
-        const laminas = piezas.get(proyecto.id) ?? [];
+        const hojas = hojasDe(
+          pieza,
+          (piezas.get(proyecto.id) ?? []).map((l, numero) => ({ ...l, numero })),
+        );
 
         return (
           <article
@@ -75,13 +184,18 @@ for (const proyecto of proyectos) {
           >
             <div class="ficha">
               <h2>{titulo}</h2>
-              <p class="descripcion">{descripcion}</p>
+              {descripcion && <p class="descripcion">{descripcion}</p>}
 
               <dl class="meta">
                 <dt class="visually-hidden">Tipo</dt>
                 <dd>{tipo}</dd>
-                <dt class="visually-hidden">Rol</dt>
-                <dd>{rol}</dd>
+                {/* Si el rol dice lo mismo que el tipo, o no está, la línea sobra. */}
+                {rol && rol !== tipo && (
+                  <>
+                    <dt class="visually-hidden">Rol</dt>
+                    <dd>{rol}</dd>
+                  </>
+                )}
                 <dt class="visually-hidden">Año</dt>
                 <dd>{anio}</dd>
               </dl>
@@ -122,47 +236,80 @@ for (const proyecto of proyectos) {
               )}
             </div>
 
-            {/* Sin imagen se muestra el marcador blanco de los mockups.
-                La pieza va contenida, no recortada: son grabaciones de pantalla
-                mucho más apaisadas que el recuadro, y recortarlas se comería la
-                interfaz por los costados. */}
-            {/* El recuadro es una ventana y las páginas van cayendo por ella,
-                cada una en su tamaño. La tira lleva el juego dos veces: al
-                desplazarla justo la mitad, el segundo juego queda donde estaba
-                el primero y el bucle no tiene costura —el mismo recurso que la
-                tira de logos del manifiesto—. */}
-            <div class="media">
-              {laminas.length > 0 && (
+            {/* El recuadro mide lo mismo en todos los proyectos; lo que cambia
+                es cómo se enseña la pieza dentro, según `data-pieza`. Las hojas
+                se pasan de una en una, con fundido: una doble página se mira
+                abierta y quieta, no cayendo. */}
+            <div
+              class="media"
+              data-pieza={pieza}
+              data-sangre={hojas.some((h) => h.ajuste === 'cubre') ? '' : undefined}
+            >
+              {hojas.length > 0 && (
                 <span class="pantalla">
-                  <span
-                    class="tira"
-                    data-tira={laminas.length > 1 ? '' : undefined}
-                    style={`--paginas: ${laminas.length}`}
-                  >
-                    {/* Solo la primera lámina trae `src`: es la que se ve al
-                        llegar. Las demás esperan en `data-src` hasta que el
-                        proyecto sube a la baraja. Sin esto se descargarían las
-                        283 de golpe: la carga diferida no sirve aquí, porque
-                        todas las capas están dentro del viewport aunque estén
-                        apagadas. Las copias comparten URL, así que no pesan. */}
-                    {[...laminas, ...(laminas.length > 1 ? laminas : [])].map(
-                      ({ archivo, proporcion }, turno) => (
-                        <img
-                          src={turno === 0 ? `${base}media/${archivo}` : undefined}
-                          data-src={turno === 0 ? undefined : `${base}media/${archivo}`}
-                          alt={turno === 0 ? (mediaAlt ?? '') : ''}
-                          style={`--proporcion: ${proporcion.toFixed(4)}`}
-                          data-lamina={turno % laminas.length}
-                          data-copia={turno >= laminas.length ? '' : undefined}
-                          loading={indice < 3 ? 'eager' : 'lazy'}
-                          decoding="async"
-                        />
-                      ),
-                    )}
-                  </span>
+                  {hojas.map((hoja, turno) => (
+                    <span
+                      class="hoja"
+                      data-hoja
+                      data-vista={turno === 0 ? '' : undefined}
+                      data-ajuste={hoja.ajuste}
+                      style={`--proporcion: ${hoja.proporcion.toFixed(4)}`}
+                    >
+                      <span class="pliego">
+                        {pieza === 'herramienta' && (
+                          <span class="barra" aria-hidden="true">
+                            <i />
+                            <i />
+                            <i />
+                          </span>
+                        )}
+                        {/* Solo la primera hoja trae `src`: es la que se ve al
+                            llegar. Las demás esperan en `data-src` y se piden
+                            cuando les toca. Sin esto se descargarían las 283
+                            de golpe: la carga diferida no sirve aquí, porque
+                            todas las capas están dentro del viewport aunque
+                            estén apagadas. */}
+                        {hoja.laminas.map(({ archivo, proporcion, numero }) =>
+                          esVideo(archivo) ? (
+                            // Un video real y no un WebP animado: a igual
+                            // nitidez pesa varias veces menos. Lo arranca y lo
+                            // para el guion según el proyecto esté arriba o no.
+                            <video
+                              src={turno === 0 ? `${base}media/${archivo}?v=${version(archivo)}` : undefined}
+                              data-src={turno === 0 ? undefined : `${base}media/${archivo}?v=${version(archivo)}`}
+                              style={`--proporcion: ${proporcion.toFixed(4)}`}
+                              aria-label={mediaAlt}
+                              muted
+                              loop
+                              playsinline
+                              preload={indice === 0 ? 'auto' : 'none'}
+                            />
+                          ) : (
+                          <img
+                            src={turno === 0 ? `${base}media/${archivo}` : undefined}
+                            data-src={turno === 0 ? undefined : `${base}media/${archivo}`}
+                            alt={numero === 0 ? (mediaAlt ?? '') : ''}
+                            style={`--proporcion: ${proporcion.toFixed(4)}`}
+                            data-lamina={numero}
+                            loading={indice < 3 ? 'eager' : 'lazy'}
+                            decoding="async"
+                          />
+                          ),
+                        )}
+                      </span>
+                    </span>
+                  ))}
                 </span>
               )}
             </div>
+
+            {/* El folio va en la línea del índice, a la derecha: a la
+                izquierda, en qué proyecto estás; aquí, en qué hoja. */}
+            {hojas.length > 1 && (
+              <p class="folio" aria-hidden="true">
+                <span data-folio>01</span> / {folio(hojas.length)}
+              </p>
+            )}
           </article>
         );
       })
@@ -174,17 +321,25 @@ for (const proyecto of proyectos) {
         único punto que no se mueve cuando cambia el alto de una ficha o el de
         una lámina. */}
     <div class="capa-pestana container" aria-hidden="true">
-      <span class="pestana" data-pestana>
-        {proyectos.map((proyecto, indice) =>
-          proyecto.data.logo ? (
+      <span
+        class="pestana"
+        data-pestana
+        style={`--pestana-ancho: ${logos.get(proyectos[0]?.id)?.pestana ?? 150}px`}
+      >
+        {proyectos.map((proyecto, indice) => {
+          const medida = logos.get(proyecto.id);
+          return medida ? (
             <img
               src={`${base}media/logos/${proyecto.data.logo}.webp`}
               alt=""
+              width={medida.ancho}
+              height={medida.alto}
               data-logo={indice}
+              data-pestana-ancho={medida.pestana}
               data-sitio={indice === 0 ? 'centro' : 'arriba'}
             />
-          ) : null,
-        )}
+          ) : null;
+        })}
       </span>
     </div>
 
@@ -243,7 +398,7 @@ for (const proyecto of proyectos) {
        índice abajo. Van en variables porque quien las respeta es el `inset` de
        cada carta —el relleno del escenario no les vale, ya que una caja
        absoluta se mide contra la caja de relleno, no contra la de contenido—. */
-    --pestana-alto: 46px;
+    --pestana-alto: 60px;
     --pestana-aire: clamp(1rem, 2.6vw, 2.25rem);
     --indice-hueco: clamp(2.25rem, 4.5vw, 3.5rem);
   }
@@ -293,24 +448,26 @@ for (const proyecto of proyectos) {
     translate: 0 var(--arrastre, 0px);
   }
 
+  /* Sin cartas asomando por detrás: el siguiente espera invisible, un poco
+     más abajo, y entra con un fundido al pasar. */
   .proyecto[data-estado='siguiente'] {
     z-index: 2;
-    translate: 0 calc(4.5% + var(--arrastre, 0px) * 0.6);
-    scale: 0.94;
-    opacity: 0.45;
+    translate: 0 calc(4% + var(--arrastre, 0px) * 0.6);
+    scale: none;
+    opacity: 0;
   }
 
   .proyecto[data-estado='fondo'] {
     z-index: 1;
-    translate: 0 calc(8.5% + var(--arrastre, 0px) * 0.3);
-    scale: 0.88;
-    opacity: 0.2;
+    translate: 0 4%;
+    scale: none;
+    opacity: 0;
   }
 
   .proyecto[data-estado='oculto'] {
     z-index: 0;
-    translate: 0 11%;
-    scale: 0.84;
+    translate: 0 4%;
+    scale: none;
     opacity: 0;
   }
 
@@ -318,8 +475,8 @@ for (const proyecto of proyectos) {
      baraja avanza en un sentido. */
   .proyecto[data-estado='pasado'] {
     z-index: 0;
-    translate: 0 -9%;
-    scale: 1.03;
+    translate: 0 -4%;
+    scale: none;
     opacity: 0;
   }
 
@@ -361,8 +518,8 @@ for (const proyecto of proyectos) {
     pointer-events: none;
   }
 
-  /* Tamaño fijo: es lo único que no cambia al pasar de proyecto, así que no
-     puede encogerse ni crecer con el logo que le toque. Mismo recuadro blanco
+  /* El alto es fijo —de él cuelga la ficha, y el texto no puede moverse al
+     pasar de proyecto—; el ancho se ajusta a cada logo. Mismo recuadro blanco
      que la tira de logos del manifiesto, porque los logos están hechos para
      fondo claro: sobre el azul varios se desvanecen. */
   /* `--pestana-y` la mide el guion: es el borde superior del recuadro, que
@@ -373,9 +530,12 @@ for (const proyecto of proyectos) {
     position: absolute;
     top: var(--pestana-y, 0px);
     left: 0;
-    width: 150px;
+    width: var(--pestana-ancho, 150px);
     height: var(--pestana-alto);
     overflow: hidden;
+    transition:
+      width var(--pestana-paso) var(--ease),
+      opacity var(--pestana-paso) var(--ease);
     background: var(--white);
     border-radius: 8px;
     box-shadow:
@@ -384,19 +544,18 @@ for (const proyecto of proyectos) {
       0 6px 16px rgb(0 0 0 / 0.1);
   }
 
+  .pestana[data-vacia] {
+    opacity: 0;
+  }
+
   /* Los logos van apilados en el mismo sitio y solo cambia dónde está cada uno:
      el que se va baja, el que llega cae desde arriba. `inset` con `margin: auto`
-     los centra sin tocar su tamaño, y los topes por los dos lados evitan que se
-     deforme ninguno —el de Tisvol mide ocho veces más de ancho que de alto—. */
+     los centra; el tamaño de cada uno viene calculado del build. */
   .pestana img {
     position: absolute;
     inset: 0;
     margin: auto;
     display: block;
-    width: auto;
-    height: auto;
-    max-width: 118px;
-    max-height: 20px;
     object-fit: contain;
     transition:
       translate var(--pestana-paso) var(--ease),
@@ -463,114 +622,172 @@ for (const proyecto of proyectos) {
     flex: none;
   }
 
+  /* Plano: ni bisel hundido ni sombras bajo las láminas. El recuadro es un
+     papel gris claro y la pieza se apoya en él sin levantarse. */
   .media {
+    position: relative;
     aspect-ratio: 16 / 10;
-    /* El recuadro se declara contenedor de consulta para que el marco de la
-       pieza pueda medirse contra él —`cqw` y `cqh` son su caja interior, ya
-       descontado el paspartú— y calcular por sí mismo cuánto tiene que
-       encoger para caber entero. */
+    /* El recuadro se declara contenedor de consulta para que cada hoja pueda
+       medirse contra él —`cqw` y `cqh` son su caja interior, ya descontado el
+       paspartú— y calcular por sí misma cuánto tiene que encoger. */
     container-type: size;
-    /* Gris muy claro en vez de blanco puro. Además de bajar el contraste
-       contra el azul, es lo que deja sitio para la luz del canto inferior:
-       sobre blanco no se puede iluminar nada. */
     background: var(--surface-subtle);
     border-radius: 8px;
     /* La pieza no toca el borde: el recuadro actúa de paspartú. En porcentaje
        para que el aire crezca con él. */
-    padding: clamp(8px, 1.8%, 20px);
-    display: grid;
-    place-items: center;
-    /* Biselado hundido: sombra difusa arriba y luz abajo, al revés que un canto
-       realzado. Lee como un rebaje tallado en la página. Solo bordes internos,
-       sin sombra proyectada, para no sumar una segunda elevación a la que ya
-       tiene la pantalla dentro. */
-    box-shadow:
-      inset 0 3px 5px -2px rgb(0 0 0 / 0.22),
-      inset 0 -1px 0 rgb(255 255 255 / 0.9),
-      inset 0 0 0 1px rgb(0 0 0 / 0.06);
+    padding: clamp(10px, 4%, 40px);
   }
 
-  /* La pantalla se ajusta al tamaño real de la pieza en vez de estirarse a la
-     caja. Es lo que permite que el bisel y la sombra abracen la imagen y no
-     las bandas vacías que deja una grabación más apaisada que el recuadro. */
-  /* La ventana: ocupa el recuadro entero y recorta lo que sobresale. */
+  /* A sangre, sin paspartú: la foto llega al borde del recuadro. */
+  .media[data-sangre] {
+    padding: 0;
+  }
+
+  /* La ventana: ocupa el recuadro entero y recorta lo que sobresale. Hereda el
+     radio para que, a sangre, la foto no asome por las esquinas. */
   .pantalla {
     position: relative;
+    display: block;
     width: 100cqw;
     height: 100cqh;
     overflow: hidden;
+    border-radius: inherit;
   }
 
-  /* La tira cae de arriba abajo, sin fin. La duración va por página para que
-     todos los proyectos se muevan al mismo ritmo: uno de 11 páginas y otro de
-     106 pasan igual de rápido, solo que el segundo tarda más en dar la vuelta. */
-  /* Sin `bottom`: así la tira mide lo que mide su contenido y no lo que mide
-     la ventana. De eso depende el bucle, porque el desplazamiento de media
-     tira tiene que caer justo en el arranque del juego duplicado. */
-  .tira {
+  .media[data-sangre] .pantalla {
+    border-radius: 8px;
+  }
+
+  /* Las hojas van apiladas en el mismo sitio y solo se ve una. El pase es un
+     fundido: una publicación se hojea, no se desliza. */
+  .hoja {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    transition: opacity var(--pase-fundido) var(--ease);
+  }
+
+  .hoja[data-vista] {
+    opacity: 1;
+  }
+
+  /* El pliego mide lo que mide la hoja abierta —una página, dos o una
+     grabación— encajada entera en el recuadro. Las páginas van juntas, sin
+     canal entre medio: así se ve una doble página y no dos sueltas. */
+  .pliego {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    width: min(100cqw, calc(100cqh * var(--proporcion)));
+    height: min(100cqh, calc(100cqw / var(--proporcion)));
   }
 
-  .tira[data-tira] {
-    animation: caer calc(var(--paginas) * var(--tira-ritmo)) linear infinite;
-  }
-
-  @keyframes caer {
-    from {
-      transform: translateY(-50%);
-    }
-    to {
-      transform: translateY(0);
-    }
-  }
-
-  /* El aire entre páginas va en el margen y no en `gap`: con `gap` el juego
-     duplicado no mide exactamente el doble y la costura del bucle se vería. */
-  .tira img {
-    flex: none;
+  .pliego :is(img, video) {
     display: block;
-    width: min(100cqw, calc(100cqh * var(--proporcion, 1.6)));
-    height: min(100cqh, calc(100cqw / var(--proporcion, 1.6)));
-    margin-bottom: var(--tira-aire);
-    /* Por si alguna lámina llegara con otra proporción que la declarada. */
+    flex: var(--proporcion) 1 0;
+    min-width: 0;
+    height: 100%;
     object-fit: contain;
-    border-radius: 5px;
-    /* La sombra levanta la pieza del papel. Va en capas —una línea de contacto,
-       un apoyo corto y una caída larga y difusa— porque una sombra sola se ve
-       artificial. Al ir en la lámina, abraza a cada una con su tamaño. */
-    box-shadow:
-      0 0 0 1px rgb(0 0 0 / 0.07),
-      0 1px 2px rgb(0 0 0 / 0.06),
-      0 6px 16px rgb(0 0 0 / 0.1),
-      0 20px 40px rgb(0 0 0 / 0.07);
+    /* Un filete y no una sombra: marca dónde acaba el papel sin levantarlo. */
+    outline: 1px solid rgb(0 0 0 / 0.06);
+    outline-offset: -1px;
   }
 
-  /* Con el visor abierto la tira se para: lo que está tapado no se anima. */
-  :global(html[data-visor-abierto]) .tira {
-    animation-play-state: paused;
+  /* A sangre la hoja llena el recuadro y recorta lo que sobra por arriba y
+     por abajo, nunca por los lados: el lomo queda en su sitio. */
+  .hoja[data-ajuste='cubre'] .pliego {
+    width: 100cqw;
+    height: 100cqh;
   }
 
-  /* Una sola pieza —las grabaciones— no cae: se queda centrada. */
-  .tira:not([data-tira]) {
-    justify-content: center;
+  .hoja[data-ajuste='cubre'] .pliego :is(img, video) {
+    object-fit: cover;
+    outline: none;
   }
 
-  .tira:not([data-tira]) img {
-    margin-bottom: 0;
+  /* ——— Herramienta ———
+     La grabación dentro de una ventana mínima: una barra con tres puntos y
+     nada más. Basta para que se lea como pantalla y no como foto. */
+  /* Sin paspartú: la ventana se apoya directo sobre el fondo. Va arriba del
+     recuadro y no centrada, para que su borde quede a ras de la pestaña. */
+  .media[data-pieza='herramienta'] {
+    padding: 0;
+    background: none;
   }
 
-  /* Con movimiento reducido la tira se detiene arriba del todo. */
-  @media (prefers-reduced-motion: reduce) {
-    .tira[data-tira] {
-      animation: none;
-      transform: translateY(-50%);
-    }
+  .media[data-pieza='herramienta'] .hoja {
+    align-items: start;
+  }
+
+  .media[data-pieza='herramienta'] .pliego {
+    --barra: clamp(14px, 4.5cqh, 22px);
+    flex-direction: column;
+    width: min(100cqw, calc((100cqh - var(--barra)) * var(--proporcion)));
+    height: auto;
+    border: 1px solid rgb(0 0 0 / 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--white);
+  }
+
+  .barra {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--barra) * 0.28);
+    height: var(--barra);
+    padding-inline: calc(var(--barra) * 0.5);
+    border-bottom: 1px solid rgb(0 0 0 / 0.08);
+    background: var(--surface-subtle);
+  }
+
+  .barra i {
+    width: calc(var(--barra) * 0.32);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgb(0 0 0 / 0.14);
+  }
+
+  .media[data-pieza='herramienta'] .pliego :is(img, video) {
+    flex: none;
+    width: 100%;
+    height: auto;
+    aspect-ratio: var(--proporcion);
+    outline: none;
+  }
+
+  /* ——— Identidad ———
+     Las aplicaciones de la marca de cuatro en cuatro, en una grilla que llena
+     el paspartú. Cada celda recorta: lo que se enseña es la marca puesta en
+     uso, no la página entera. La grilla solo se arma con varias láminas: una
+     animación de la marca ya es una pieza entera y va a sangre. */
+  .media[data-pieza='identidad'] .pliego:has(> img + img) {
+    display: grid;
+    grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
+    gap: clamp(6px, 2.5cqw, 16px);
+    width: 100cqw;
+    height: 100cqh;
+  }
+
+  .media[data-pieza='identidad'] .pliego:has(> img + img) img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* El folio de la hoja, en la línea del índice y a ras del borde derecho del
+     recuadro. Sale con su proyecto porque vive dentro de la capa. */
+  .folio {
+    position: absolute;
+    inset: auto 0 calc(-1 * var(--indice-hueco)) 0;
+    text-align: right;
+    font-size: var(--text-body-sm);
+    letter-spacing: var(--tracking-wider);
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+  }
+
+  .folio span {
+    font-weight: var(--weight-bold);
   }
 
   /* El índice es lo único que dice cuántos hay y por dónde vas. Sin él, y sin
@@ -782,32 +999,31 @@ for (const proyecto of proyectos) {
       /* La lámina toma lo que sobre y la ficha lo que necesite. `minmax(0, 1fr)`
          y no `1fr` a secas: sin el mínimo en cero, la fila se niega a encoger
          por debajo del contenido y la baraja acaba desbordando la pantalla. */
-      grid-template-rows: minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1fr);
       gap: var(--spacing-05);
       align-content: stretch;
     }
 
-    /* En vertical la lámina manda y la ficha se apoya debajo: al revés, el texto
-       empuja la pieza fuera de la pantalla. */
+    /* La ficha va justo debajo de la pestaña y la lámina después. Con la lámina
+       en medio, una ficha larga la encogía y la subía, y el texto quedaba a una
+       distancia distinta de su logo en cada proyecto. Así la distancia es
+       siempre la misma y lo que cambia es el alto de la lámina. */
     .ficha {
-      order: 2;
+      order: 1;
     }
 
     /* Aquí la altura no puede salir de la proporción: la impone el sitio que
        queda una vez puesta la ficha. */
     .media {
-      order: 1;
+      order: 2;
       aspect-ratio: auto;
       min-height: 0;
       height: 100%;
     }
 
-    .proyecto[data-estado='siguiente'] {
-      translate: 0 3.5%;
-    }
-
+    .proyecto[data-estado='siguiente'],
     .proyecto[data-estado='fondo'] {
-      translate: 0 6.5%;
+      translate: 0 3%;
     }
   }
 
@@ -863,9 +1079,10 @@ for (const proyecto of proyectos) {
       height: 100%;
     }
 
-    /* La ficha no se estira: se queda centrada en su columna. */
+    /* La ficha no se estira y no se centra: se queda colgando de la pestaña,
+       a la misma distancia del logo en todos los proyectos. */
     .ficha {
-      align-self: center;
+      align-self: start;
     }
   }
 </style>
@@ -905,27 +1122,82 @@ for (const proyecto of proyectos) {
         // Lo que no se ve tampoco se lee ni se tabula.
         capa.toggleAttribute('inert', estado !== 'activo');
 
-        // El proyecto que llega arriba pide sus láminas. Las de los demás
-        // esperan: un documento de cien páginas no se descarga por si acaso.
-        //
-        // Y las pide en firme. La carga diferida no vale aquí: la tira mide
-        // decenas de miles de píxeles, así que casi ninguna lámina llega nunca
-        // a acercarse al viewport y el navegador no las pediría jamás —pasaban
-        // por delante en blanco—. El orden importa: primero se levanta el
-        // diferido, después se pone la dirección.
-        if (estado === 'activo') {
-          capa.querySelectorAll<HTMLImageElement>('.tira img').forEach((img) => {
-            img.loading = 'eager';
-            if (img.dataset.src) {
-              img.src = img.dataset.src;
-              img.removeAttribute('data-src');
+        // Una grabación solo corre arriba: las de las capas apagadas no gastan
+        // ni batería ni datos. Con movimiento reducido no arranca sola.
+        capa.querySelectorAll('video').forEach((video) => {
+          if (estado === 'activo' && !sinMovimiento()) {
+            if (video.dataset.src) {
+              video.src = video.dataset.src;
+              video.removeAttribute('data-src');
             }
-          });
-        }
+            video.preload = 'auto';
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
       });
 
       const marcador = document.querySelector('[data-indice]');
       if (marcador) marcador.textContent = String(activo + 1);
+
+      // El proyecto que llega arriba empieza por su primera hoja. Las demás
+      // capas se quedan como estaban: van apagadas, nadie ve en qué hoja quedan.
+      const capa = lista[activo];
+      if (capa) mostrarHoja(capa, 0);
+      programarPase();
+    };
+
+    // ——— El pase de hojas ———
+    // Una hoja cada `--pase-ritmo`, solo en el proyecto de arriba. Las hojas se
+    // piden de una en una, la que se ve y la que viene: un documento de cien
+    // páginas no se descarga por si acaso. Se piden en firme porque la carga
+    // diferida no sirve aquí: todas las capas están dentro del viewport aunque
+    // estén apagadas. El orden importa: primero se levanta el diferido, después
+    // se pone la dirección.
+    let pase: number | undefined;
+
+    const cargar = (hoja?: Element) => {
+      hoja?.querySelectorAll<HTMLImageElement>('img[data-src]').forEach((img) => {
+        img.loading = 'eager';
+        img.src = img.dataset.src!;
+        img.removeAttribute('data-src');
+      });
+    };
+
+    const mostrarHoja = (capa: HTMLElement, n: number) => {
+      const hojas = [...capa.querySelectorAll('[data-hoja]')];
+      if (!hojas.length) return;
+      hojas.forEach((hoja, i) => hoja.toggleAttribute('data-vista', i === n));
+      cargar(hojas[n]);
+      cargar(hojas[(n + 1) % hojas.length]);
+      capa.dataset.hojaVista = String(n);
+
+      const folio = capa.querySelector('[data-folio]');
+      if (folio) folio.textContent = String(n + 1).padStart(2, '0');
+    };
+
+    const ritmo = () =>
+      parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pase-ritmo')) *
+        1000 || 3200;
+
+    // Con movimiento reducido no hay pase: la primera hoja se queda quieta y
+    // el resto se ve en el visor, pasándolas a mano.
+    const sinMovimiento = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const programarPase = () => {
+      clearTimeout(pase);
+      const capa = capas()[activo];
+      const total = capa?.querySelectorAll('[data-hoja]').length ?? 0;
+      if (!capa || total < 2 || sinMovimiento()) return;
+
+      pase = window.setTimeout(() => {
+        // Con el visor abierto el pase espera: lo de detrás está tapado.
+        if (!visorAbierto() && capa.dataset.estado === 'activo') {
+          mostrarHoja(capa, (Number(capa.dataset.hojaVista ?? 0) + 1) % total);
+        }
+        programarPase();
+      }, ritmo());
     };
 
     // El logo del cliente. La pestaña no se mueve; lo que se releva es lo de
@@ -935,10 +1207,18 @@ for (const proyecto of proyectos) {
     // que primero se le devuelve arriba sin transición —de un salto, que nadie
     // ve— y solo entonces se le deja caer. Sin ese paso subiría desde abajo.
     const relevarLogo = (indice: number) => {
+      const pestana = document.querySelector<HTMLElement>('[data-pestana]');
       const logos = [...document.querySelectorAll<HTMLElement>('[data-pestana] [data-logo]')];
+      // Un proyecto sin logo no deja una pestaña blanca vacía: se apaga.
+      pestana?.toggleAttribute(
+        'data-vacia',
+        !logos.some((logo) => logo.dataset.logo === String(indice)),
+      );
 
-      logos.forEach((logo, i) => {
-        if (i === indice) {
+      logos.forEach((logo) => {
+        if (logo.dataset.logo === String(indice)) {
+          // La pestaña se estira o se encoge hasta el ancho del logo que llega.
+          pestana?.style.setProperty('--pestana-ancho', `${logo.dataset.pestanaAncho}px`);
           if (logo.dataset.sitio !== 'arriba') {
             logo.style.transition = 'none';
             logo.dataset.sitio = 'arriba';
@@ -992,15 +1272,14 @@ for (const proyecto of proyectos) {
       caja.toggleAttribute('data-unica', laminasDelVisor.length < 2);
     };
 
-    // `desde` es la lámina que se pulsó. La tira está en marcha, así que abrir
-    // siempre por la primera sería abrir otra distinta de la que se señaló.
+    // `desde` es la lámina que se pulsó. El pase está en marcha, así que abrir
+    // siempre por la primera sería abrir otra distinta de la que se señaló. Sin
+    // lámina pulsada —desde el teclado— se abre por la hoja que está a la vista.
     const abrirVisor = (desde?: HTMLImageElement | null) => {
       const caja = visor();
       const carta = document.querySelector('[data-proyecto][data-estado="activo"]');
-      // Solo el juego original: el duplicado de la tira es el mismo material.
-      const laminas = [
-        ...(carta?.querySelectorAll<HTMLImageElement>('[data-lamina]:not([data-copia])') ?? []),
-      ];
+      const laminas = [...(carta?.querySelectorAll<HTMLImageElement>('img[data-lamina]') ?? [])];
+      desde ??= carta?.querySelector<HTMLImageElement>('[data-hoja][data-vista] img[data-lamina]');
       if (!caja || !laminas.length) return;
 
       laminasDelVisor = laminas.map((l) => l.src || l.dataset.src || '');
@@ -1011,7 +1290,7 @@ for (const proyecto of proyectos) {
 
       pintarVisor();
       caja.showModal();
-      // La tira se detiene detrás: no hay por qué animar lo que está tapado.
+      // Marca en <html> que hay una pieza ampliada encima de todo.
       document.documentElement.dataset.visorAbierto = 'si';
     };
 
@@ -1099,7 +1378,7 @@ for (const proyecto of proyectos) {
     // cada vez que Astro reemplaza el <body>.
     // Todo cierre pasa por aquí. El evento `close` del <dialog> se despacha en
     // una tarea aparte y hay entornos donde no llega; colgar de él la limpieza
-    // dejaba la tira detenida para siempre. Se mantiene enganchado igualmente,
+    // dejaba la marca puesta para siempre. Se mantiene enganchado igualmente,
     // por si el cierre viene del navegador y no de nosotros, y como la función
     // tiene nombre, engancharla dos veces no la ejecuta dos veces.
     const alCerrarVisor = () => {

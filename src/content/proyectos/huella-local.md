@@ -1,18 +1,20 @@
 ---
-titulo: Editor gráfico – Huella Local
+titulo: Diseño y comunicaciones – Huella Local
 descripcion: >-
-  Editor gráfico para componer piezas de comunicación de la Fundación Huella
-  Local: plantillas, formato, recursos gráficos, búsqueda de comunas y socios,
-  y exportación a PDF o PNG
-tipo: Herramienta interna / editor gráfico
-rol: Desarrollo del editor
+  Servicio completo de diseño y comunicaciones: la definición y el manejo de los
+  criterios gráficos en todos los materiales que salen de la fundación, la
+  generación de nuevos recursos gráficos para enriquecer la marca y el
+  desarrollo de herramientas a medida de las distintas áreas
+tipo: Servicio de diseño y comunicaciones
+rol: Gestión completa de diseño y comunicaciones
 anio: 2026
-enlace: https://www.huellalocal.cl
-enlaceTexto: www.huellalocal.cl
-media: huella-local-editor.webp
+enlace: https://www.huellalocal.cl/kit-dialogo/
+enlaceTexto: www.huellalocal.cl/kit-dialogo
+media: huella-local-kit.mp4
+pieza: herramienta
 mediaAlt: >-
-  Grabación del editor en uso: se elige una plantilla, se ajustan los recursos
-  gráficos y se exporta la pieza.
+  Recorrido por el Kit de Diálogo Territorial: el tablero de inicio, la búsqueda
+  de actividades y las 24 herramientas del kit.
 logo: huella
-orden: 1
+orden: 3
 ---

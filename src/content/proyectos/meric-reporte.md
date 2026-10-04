@@ -1,19 +1,21 @@
 ---
 titulo: Reporte de ocho años – MERIC
 descripcion: >-
-  Ocho años de investigación en energía marina puestos en orden, con los
-  resultados del centro, las tecnologías que se probaron y lo que viene para
-  Chile
+  Organización de la información de las distintas áreas del centro, que
+  trabajaban poco comunicadas entre sí: resolución de contradicciones y
+  consolidación del contenido definitivo del informe. Además, diseño editorial,
+  maquetación, portadas, retoque de imágenes y gráficos
 tipo: Publicación institucional / informe técnico
-rol: Diseño editorial
+rol: Coordinación de contenidos y diseño editorial
 anio: 2023
-serie: meric-reporte
+media: meric-reporte.mp4
+pieza: publicacion
 mediaAlt: >-
-  Doble página del reporte con un dispositivo de energía marina fotografiado
-  desde el aire.
+  Mosaico de dobles páginas del reporte y su portada: las aperturas de capítulo
+  con números grandes sobre fotos del mar, las cifras del centro y los mapas.
 logo: meric
-orden: 4
+orden: 6
 ---
 
-<!-- Por confirmar: rol y enlace. El año sale de los ocho años que cumple el
+<!-- Por confirmar: enlace. El año sale de los ocho años que cumple el
      centro, fundado en 2015. -->

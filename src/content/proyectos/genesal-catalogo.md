@@ -1,17 +1,19 @@
 ---
-titulo: Catálogo corporativo – Genesal Energy
+titulo: Catálogo de venta – Genesal Energy
 descripcion: >-
-  Toda la gama de grupos electrógenos de la empresa, con la tecnología que
-  llevan dentro y el servicio que los acompaña
-tipo: Catálogo corporativo
-rol: Diseño editorial
+  Apoyo a la agencia Aspid, de Barcelona, en un proyecto en desarrollo: llevar
+  la marca de Genesal Energy a su material de venta, un catálogo A4 de unas 36
+  páginas maquetado a partir de la identidad existente
+tipo: Catálogo de venta / para Aspid, Barcelona
+rol: Adaptación de marca y maquetación
 anio: 2023
-serie: genesal-catalogo
+media: genesal-catalogo.mp4
+pieza: catalogo
 mediaAlt: >-
-  Doble página «Una energía global», con la Tierra de noche y el detalle de
-  operaciones por continente.
+  Mosaico de dobles páginas del catálogo y su portada: grupos electrógenos en
+  paisajes, la energía global y los productos de la gama.
 logo: genesal
-orden: 6
+orden: 8
 ---
 
-<!-- Por confirmar: rol y enlace. -->
+<!-- Por confirmar: enlace. -->

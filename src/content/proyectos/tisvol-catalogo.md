@@ -1,17 +1,19 @@
 ---
-titulo: Catálogo de producto – Tisvol
+titulo: Catálogo de venta – Tisvol
 descripcion: >-
-  Catálogo de semirremolques donde una sola idea, la superioridad, atraviesa los
-  procesos, los materiales y el producto
-tipo: Catálogo de producto
-rol: Diseño editorial
+  Apoyo a la agencia Aspid, de Barcelona, en un proyecto en desarrollo: llevar
+  la marca de Tisvol a su material de venta, un catálogo A4 de unas 36 páginas
+  maquetado a partir de la identidad existente
+tipo: Catálogo de venta / para Aspid, Barcelona
+rol: Adaptación de marca y maquetación
 anio: 2023
-serie: tisvol-catalogo
+media: tisvol-catalogo.mp4
+pieza: catalogo
 mediaAlt: >-
-  Doble página con un semirremolque basculante en un paisaje árido y el titular
-  «El resultado de nuestra superioridad».
+  Mosaico de dobles páginas del catálogo y su portada: semirremolques,
+  procesos de fábrica y los titulares de la serie «Superiores».
 logo: tisvol
-orden: 7
+orden: 9
 ---
 
-<!-- Por confirmar: rol y enlace. -->
+<!-- Por confirmar: enlace. -->

@@ -1,17 +1,21 @@
 ---
 titulo: Naming e identidad – wift
 descripcion: >-
-  El nombre, el logotipo y las primeras directrices para usar la marca, en un
-  trabajo hecho junto a Juan Croxatto
+  El naming y la identidad responden a una idea: ligereza. Wift hace la vida más
+  fácil, aliviana la mochila de ser dueño de un auto. Una palabra de una sílaba,
+  de sonido suave, fácil de pronunciar en distintos idiomas y cercana a swift,
+  escrita en minúscula junto a un isotipo de dos figuras que forman algo así como
+  una rueda y un ala: siempre el vuelo, la liviandad
 tipo: Identidad / naming
 rol: Naming, logotipo y directrices, con Juan Croxatto
 anio: 2021
-serie: wift-manual
+media: wift.mp4
+pieza: identidad
 mediaAlt: >-
-  Página de las directrices con el logotipo de wift sobre seis fondos de color
-  distintos.
+  El isotipo de wift se eleva y aparece la palabra; luego las exploraciones de
+  color y tipografía, la web y la marca sobre fotos de autos y carreteras.
 logo: wift
-orden: 9
+orden: 11
 ---
 
 <!-- Por confirmar: enlace. -->

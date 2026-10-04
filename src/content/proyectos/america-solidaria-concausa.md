@@ -1,18 +1,22 @@
 ---
-titulo: Kit CONCAUSA – América Solidaria
+titulo: Kit Concausa – América Solidaria
 descripcion: >-
-  Material de trabajo del programa: un cuaderno de actividades y una baraja de
-  cartas para usar en terreno con adolescentes
-tipo: Material educativo / piezas impresas
-rol: Diseño gráfico
+  Kit físico para el Encuentro Concausa, que reunió a adolescentes de
+  Latinoamérica de manera virtual durante el covid-19: objetos para que vivieran
+  un momento especial aunque estuvieran en sus casas. El guion de las escenas de
+  las cartas, las preguntas, el marco y el reverso del mazo, y el diseño
+  editorial de la bitácora donde llevar sus registros. Las ilustraciones de las
+  cartas son de Karin Watson
+tipo: Kit impreso / material educativo
+rol: Guion, diseño gráfico y diseño editorial
 anio: 2021
-serie: america-solidaria-concausa
+media: america-solidaria.mp4
+pieza: catalogo
 mediaAlt: >-
-  Tres cartas del kit, con ilustraciones y los títulos «Cuidar», «Habitar» y
-  «Creatividad».
+  El mazo de cartas Concausa, su caja y cartas ilustradas como «Confianza» y
+  «Creatividad», y la bitácora anillada con sus páginas de notas.
 logo: america-solidaria
-orden: 5
+orden: 7
 ---
 
-<!-- Por confirmar: rol, en particular si la ilustración es del estudio, y
-     enlace. El año viene en el nombre del material. -->
+<!-- Por confirmar: enlace. -->
