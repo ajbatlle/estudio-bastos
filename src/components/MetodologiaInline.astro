@@ -1,8 +1,5 @@
 ---
-// Las cuatro semanas del manifiesto abren la metodología: cuatro fases unidas,
-// cada una de una semana como mínimo. Ahí está el porqué del plazo —no es una
-// cifra puesta a ojo, es la suma de las fases—, así que el dato se explica solo
-// en vez de pedir que se crea.
+// Las cuatro semanas del manifiesto abren la metodología: cuatro fases unidas.
 //
 // Mismo recuadro blanco y mismo gesto que la tira de logos y el panel del
 // equipo: puntero, toque y teclado.
@@ -11,16 +8,7 @@
 // hace, no una etapa numerada. Ordenar y Diseñar son los dos verbos del propio
 // manifiesto; Escuchar dice de dónde sale la información dispersa y Entregar
 // dónde termina.
-//
-// `hito` marca las fases que además entregan algo. Ordenar cierra con una
-// entrega intermedia: es donde el cliente ve el trabajo antes de que tome forma
-// definitiva, y decirlo aquí explica que el plazo no es una caja negra.
-const fases = [
-  { nombre: 'Escuchar' },
-  { nombre: 'Ordenar', hito: 'Entrega intermedia' },
-  { nombre: 'Diseñar' },
-  { nombre: 'Entregar' },
-];
+const fases = ['Escuchar', 'Ordenar', 'Diseñar', 'Entregar'];
 ---
 
 <span class="metodo" data-metodo>
@@ -43,9 +31,7 @@ const fases = [
         fases.map((fase, indice) => (
           <span class="fase" style={`--indice: ${indice}`}>
             <span class="punto" aria-hidden="true" />
-            <strong>{fase.nombre}</strong>
-            <span class="duracion">mínimo 1 semana</span>
-            {fase.hito && <span class="hito">{fase.hito}</span>}
+            <strong>{fase}</strong>
           </span>
         ))
       }
@@ -171,21 +157,6 @@ const fases = [
     font-weight: var(--weight-semibold);
   }
 
-  .duracion {
-    color: rgb(0 0 0 / 0.55);
-    font-size: 0.75rem;
-  }
-
-  /* El hito no es más metadato: es algo que se entrega. Por eso va en el azul
-     de marca y no en el gris, y se pega a la duración en vez de flotar suelto
-     a la distancia del resto. */
-  .hito {
-    margin-top: -0.3rem;
-    color: var(--color-brand);
-    font-size: 0.75rem;
-    font-weight: var(--weight-semibold);
-  }
-
   /* ——— Abierto con puntero o teclado ———
      En táctil el hover se queda pegado tras el toque, así que ahí manda el
      atributo que pone el guion. */
@@ -242,10 +213,6 @@ const fases = [
 
     .fase strong {
       font-size: 0.8125rem;
-    }
-
-    .duracion {
-      font-size: 0.6875rem;
     }
   }
 </style>
