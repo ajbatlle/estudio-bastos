@@ -1130,6 +1130,10 @@ const folio = (n: number) => String(n).padStart(2, '0');
               video.src = video.dataset.src;
               video.removeAttribute('data-src');
             }
+            // Al llegar sin recarga, Astro arma la página en un documento aparte
+            // y la grabación que ya traía `src` intenta cargar ahí, falla y no
+            // vuelve a intentarlo al entrar en la página. Se le pide de nuevo.
+            if (video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) video.load();
             video.preload = 'auto';
             video.play().catch(() => {});
           } else {
