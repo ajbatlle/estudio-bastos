@@ -54,6 +54,12 @@ const proyectos = defineCollection({
         .default('publicacion'),
       mediaAlt: z.string().optional(),
       /**
+       * Segundo del video que se muestra como miniatura en la vista de grilla.
+       * Sin él se usa el primer cuadro, que en una animación de marca suele
+       * estar todavía en blanco.
+       */
+      miniatura: z.number().optional(),
+      /**
        * Logo del cliente: nombre del archivo en public/media/logos/, sin
        * extensión. Se muestra en una pestaña blanca sobre la ficha, que es el
        * fondo para el que están hechos —sobre el azul varios se desvanecen—.

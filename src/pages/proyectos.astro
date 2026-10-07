@@ -343,8 +343,61 @@ const folio = (n: number) => String(n).padStart(2, '0');
       </span>
     </div>
 
+    {/* La otra vista: todos los proyectos de una vez, en grilla. Pulsar uno
+        vuelve a la baraja, abierta en ese. Las miniaturas no traen `src`: se
+        piden recién al abrir la grilla, que la mayoría de las visitas no abre. */}
+    <div class="grilla container" data-grilla inert>
+      <ul>
+        {proyectos.map((proyecto, indice) => {
+          const primera = piezas.get(proyecto.id)?.[0];
+          const ruta = primera && `${base}media/${primera.archivo}`;
+          return (
+            <li>
+              <button type="button" class="miniatura" data-ir={indice}>
+                <span class="mini-media">
+                  {primera &&
+                    (esVideo(primera.archivo) ? (
+                      // Sin reproducir: basta un cuadro, y `#t` lo pide.
+                      <video
+                        data-src={`${ruta}?v=${version(primera.archivo)}#t=${proyecto.data.miniatura ?? 0.1}`}
+                        muted
+                        playsinline
+                        preload="metadata"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <img data-src={ruta} alt="" decoding="async" />
+                    ))}
+                </span>
+                <span class="mini-titulo">{proyecto.data.titulo}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+
     <p class="indice container">
       <span data-indice>1</span> / {proyectos.length}
+      <button
+        type="button"
+        class="vista"
+        data-vista-cambiar
+        aria-pressed="false"
+        aria-label="Ver todos los proyectos"
+      >
+        {/* Cuatro cuadros en la baraja; uno solo en la grilla, que es a donde
+            lleva el botón en cada caso. */}
+        <svg class="icono-grilla" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+          <rect x="2" y="2" width="5" height="5" rx="1" />
+          <rect x="9" y="2" width="5" height="5" rx="1" />
+          <rect x="2" y="9" width="5" height="5" rx="1" />
+          <rect x="9" y="9" width="5" height="5" rx="1" />
+        </svg>
+        <svg class="icono-baraja" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+          <rect x="2" y="3" width="12" height="10" rx="1.5" />
+        </svg>
+      </button>
     </p>
 
     {/* La seña: dice que se avanza bajando, que es lo único que la baraja no
@@ -813,6 +866,141 @@ const folio = (n: number) => String(n).padStart(2, '0');
     z-index: 5;
   }
 
+  /* ——— El botón de vista ———
+     Al lado del índice y con su misma opacidad: es parte de la línea, no un
+     mando más. Se aclara entera al pasar por encima. */
+  .vista {
+    all: unset;
+    display: inline-flex;
+    vertical-align: -0.15em;
+    margin-left: 0.8em;
+    padding: 0.2em;
+    border-radius: 4px;
+    cursor: var(--cursor);
+  }
+
+  .vista svg {
+    width: 1.05em;
+    height: 1.05em;
+  }
+
+  .vista:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 2px;
+  }
+
+  .indice:has(.vista:hover, .vista:focus-visible) {
+    opacity: 1;
+  }
+
+  .vista .icono-baraja,
+  .vista[aria-pressed='true'] .icono-grilla {
+    display: none;
+  }
+
+  .vista[aria-pressed='true'] .icono-baraja {
+    display: block;
+  }
+
+  /* ——— La grilla ———
+     Ocupa el escenario menos la línea del índice y, si no cabe, se desplaza
+     por dentro: la página sigue sin scroll. Al abrirla la baraja se desvanece
+     con su mismo paso. */
+  .grilla {
+    position: absolute;
+    inset: 0 0 var(--indice-hueco) 0;
+    z-index: 6;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--baraja-paso) var(--ease),
+      visibility var(--baraja-paso) var(--ease);
+  }
+
+  .escenario[data-vista='grilla'] .grilla {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .escenario[data-vista='grilla'] :is(.proyecto, .capa-pestana, .sena) {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .grilla ul {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1.25rem, 3vh, 2rem) clamp(0.75rem, 1.6vw, 1.5rem);
+    align-content: center;
+    min-height: 100%;
+    padding-block: clamp(1rem, 3vh, 2rem);
+  }
+
+  .miniatura {
+    all: unset;
+    display: grid;
+    gap: 0.6em;
+    width: 100%;
+    cursor: var(--cursor);
+  }
+
+  /* El mismo papel gris del recuadro, a sangre: aquí se reconoce el proyecto,
+     no se mira la pieza. */
+  .mini-media {
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--surface-subtle);
+  }
+
+  .mini-media :is(img, video) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition:
+      scale var(--transition-normal),
+      opacity var(--transition-normal);
+  }
+
+  .miniatura:hover .mini-media :is(img, video) {
+    scale: 1.03;
+  }
+
+  .mini-titulo {
+    font-size: var(--text-body-sm);
+    line-height: 1.4;
+    opacity: 0.8;
+    transition: opacity var(--transition-normal);
+  }
+
+  .miniatura:hover .mini-titulo,
+  .miniatura[data-actual] .mini-titulo {
+    opacity: 1;
+  }
+
+  .miniatura[data-actual] .mini-titulo {
+    font-weight: var(--weight-bold);
+  }
+
+  .miniatura:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 4px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 48rem) {
+    .grilla ul {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-content: start;
+    }
+  }
+
   /* ——— El visor ———
      La pieza a pantalla casi completa sobre un fondo oscuro. Nada de recuadro
      ni bisel aquí: eso era el paspartú del listado, y ampliar es justo quitarlo
@@ -1256,6 +1444,65 @@ const folio = (n: number) => String(n).padStart(2, '0');
 
     const hayBaraja = () => !!document.querySelector('[data-baraja]');
 
+    // ——— La grilla ———
+    // Mientras está abierta, la baraja no se mueve: la rueda desplaza la grilla
+    // y las teclas recorren las miniaturas. Pulsar una cierra la grilla y deja
+    // la baraja en ese proyecto.
+    const grilla = () => document.querySelector<HTMLElement>('[data-grilla]');
+    const enGrilla = () => escenario()?.dataset.vista === 'grilla';
+
+    const abrirGrilla = () => {
+      const caja = escenario();
+      const lista = grilla();
+      if (!caja || !lista) return;
+
+      lista.querySelectorAll<HTMLImageElement | HTMLVideoElement>('[data-src]').forEach((m) => {
+        m.src = m.dataset.src!;
+        m.removeAttribute('data-src');
+      });
+      lista.querySelectorAll<HTMLElement>('[data-ir]').forEach((mini) => {
+        mini.toggleAttribute('data-actual', mini.dataset.ir === String(activo));
+      });
+
+      clearTimeout(pase);
+      capas().forEach((capa) => {
+        capa.inert = true;
+        capa.querySelectorAll('video').forEach((video) => video.pause());
+      });
+
+      caja.dataset.vista = 'grilla';
+      lista.inert = false;
+      const boton = document.querySelector('[data-vista-cambiar]');
+      boton?.setAttribute('aria-pressed', 'true');
+      boton?.setAttribute('aria-label', 'Volver a la vista de proyecto');
+
+      // Se abre mostrando el proyecto en que se estaba. Se mueve solo la grilla:
+      // `scrollIntoView` correría también la página, que no tiene scroll pero
+      // igual se deja empujar, y se llevaría el encabezado.
+      const actual = lista.querySelector<HTMLElement>(`[data-ir="${activo}"]`);
+      if (actual) {
+        lista.scrollTop = actual.offsetTop - (lista.clientHeight - actual.offsetHeight) / 2;
+      }
+    };
+
+    const cerrarGrilla = (destino = activo) => {
+      const caja = escenario();
+      const lista = grilla();
+      if (!caja || !lista) return;
+
+      delete caja.dataset.vista;
+      lista.inert = true;
+      const boton = document.querySelector('[data-vista-cambiar]');
+      boton?.setAttribute('aria-pressed', 'false');
+      boton?.setAttribute('aria-label', 'Ver todos los proyectos');
+
+      // Un salto, no un paso: va directo al elegido, sin el cerrojo del gesto.
+      const cambia = destino !== activo;
+      activo = destino;
+      pintar();
+      if (cambia) relevarLogo(activo);
+    };
+
     // ——— El visor ———
     // Mientras está abierto, la baraja no se mueve: ni rueda, ni teclas, ni
     // arrastre. Se está mirando una pieza, no recorriendo el portafolio.
@@ -1308,7 +1555,7 @@ const folio = (n: number) => String(n).padStart(2, '0');
     document.addEventListener(
       'wheel',
       (evento) => {
-        if (!hayBaraja() || visorAbierto()) return;
+        if (!hayBaraja() || visorAbierto() || enGrilla()) return;
         evento.preventDefault(); // La página no tiene scroll: la rueda es para esto.
 
         // El trackpad manda decenas de eventos por gesto y con inercia. Se suman
@@ -1346,6 +1593,16 @@ const folio = (n: number) => String(n).padStart(2, '0');
         return;
       }
 
+      // En la grilla las teclas son las de siempre —tabular, Enter, espacio—;
+      // solo Esc se aparta, y vuelve a la baraja sin cambiar de proyecto.
+      if (enGrilla()) {
+        if (evento.key === 'Escape') {
+          evento.preventDefault();
+          cerrarGrilla();
+        }
+        return;
+      }
+
       const avanza = ['ArrowDown', 'ArrowRight', 'PageDown', ' '];
       const retrocede = ['ArrowUp', 'ArrowLeft', 'PageUp'];
 
@@ -1371,6 +1628,10 @@ const folio = (n: number) => String(n).padStart(2, '0');
       if (objetivo.closest('[data-visor-cerrar]')) return cerrarVisor();
       // Clic en el fondo del visor —fuera de la pieza— también cierra.
       if (caja?.open && objetivo === caja) return cerrarVisor();
+
+      if (objetivo.closest('[data-vista-cambiar]')) return enGrilla() ? cerrarGrilla() : abrirGrilla();
+      const miniatura = objetivo.closest<HTMLElement>('[data-ir]');
+      if (miniatura) return cerrarGrilla(Number(miniatura.dataset.ir));
 
       if (objetivo.closest('[data-ampliar]')) return abrirVisor(null);
       if (objetivo.closest('[data-siguiente]')) ir(activo + 1);
@@ -1413,7 +1674,7 @@ const folio = (n: number) => String(n).padStart(2, '0');
 
     document.addEventListener('pointerdown', (evento) => {
       const caja = escenario();
-      if (!caja || visorAbierto()) return;
+      if (!caja || visorAbierto() || enGrilla()) return;
       if (!(evento.target as HTMLElement).closest('[data-baraja]')) return;
       // Los enlaces y los botones se pulsan, no se arrastran.
       if ((evento.target as HTMLElement).closest('a, button')) return;

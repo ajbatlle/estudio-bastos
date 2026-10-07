@@ -11,6 +11,7 @@ rol: Naming, logotipo y directrices, con Juan Croxatto
 anio: 2021
 media: wift.mp4
 pieza: identidad
+miniatura: 3
 mediaAlt: >-
   El isotipo de wift se eleva y aparece la palabra; luego las exploraciones de
   color y tipografía, la web y la marca sobre fotos de autos y carreteras.

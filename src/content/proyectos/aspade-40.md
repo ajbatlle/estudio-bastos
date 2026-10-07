@@ -11,6 +11,7 @@ rol: Diseño del logo
 anio: 2026
 media: aspade.mp4
 pieza: identidad
+miniatura: 6
 mediaAlt: >-
   Animación del logo: cuatro cuadrados rojos y verdes forman el 40, la A y la
   figura; luego el eslogan, las barras del módulo, las versiones del logo y sus
