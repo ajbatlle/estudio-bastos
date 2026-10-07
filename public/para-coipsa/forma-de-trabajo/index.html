@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Se comparte por enlace desde el PDF de la propuesta, no se busca. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="media/coipsa-simbolo-color.svg">
+<title>Forma de trabajo · Coipsa</title>
+
+<style>
+/* ──────────────────────────────────────────────────────────────────────────
+   Coipsa — forma de trabajo
+   Anexo del PDF de la propuesta. Va con la marca de Coipsa y ordenado como
+   marca-coipsa.html: una caja de cajones, uno abierto cada vez, y dentro de
+   la base de marca los mismos bloques que la herramienta (logos, colores,
+   probador, fotos), en chico.
+
+   Sin JavaScript no hay cajones ni probador: todo se lee seguido.
+   ────────────────────────────────────────────────────────────────────────── */
+
+@font-face { font-family: 'Poppins'; font-weight: 400; font-display: swap; src: url('../fuentes/Poppins-400.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 600; font-display: swap; src: url('../fuentes/Poppins-600.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 700; font-display: swap; src: url('../fuentes/Poppins-700.woff2') format('woff2'); }
+
+:root {
+  color-scheme: light;
+  /* Los siete colores de la propuesta de identidad. */
+  --verde-oscuro: #014C31;
+  --verde:        #006A45;
+  --lima:         #B2D000;
+  --naranja:      #FE5000;
+  --hueso:        #F3F0EE;
+  --blanco:       #FFFFFF;
+  --carbon:       #1E1E1E;
+  /* Grises tibios para la interfaz, que conviven con el hueso. */
+  --tinta-media:  #5B5B5B;
+  --tinta-tenue:  #7d7a77;
+  --linea:        #E4E0DC;
+  --verde-claro:  #88BBA9;
+
+  --radio:        18px;
+  --radio-chico:  12px;
+  --curva:        cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+* { box-sizing: border-box; }
+h1, h2, h3, p, ul, figure { margin: 0; }
+img { display: block; max-width: 100%; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--hueso); color: var(--carbon);
+  font: 400 15px/1.55 'Poppins', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--verde); outline-offset: 2px; }
+
+.oculto-visual {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ——— Caja de cajones ———
+   Con guion, la caja ocupa la pantalla y se desplaza el cajón abierto: la
+   barra con los tiradores nunca se pierde. La clase la pone el guion; sin
+   él, la página se desplaza entera. */
+html.cajones, html.cajones body { height: 100%; overflow: hidden; }
+html.cajones body { display: grid; grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
+
+.barra {
+  background: var(--verde-oscuro); color: var(--blanco);
+  display: flex; align-items: center; gap: 14px 28px; flex-wrap: wrap;
+  padding: 16px 28px;
+}
+.barra .logo { height: 22px; width: auto; }
+.barra .nombre { display: grid; line-height: 1.3; }
+.barra .nombre b { font-weight: 600; font-size: 15px; }
+.barra .nombre span { font-size: 12px; opacity: 0.75; }
+
+/* Sin guion no hay tiradores: no abrirían nada. */
+.tiradores { display: none; }
+html.cajones .tiradores {
+  position: relative;
+  display: flex; gap: 4px; margin-left: auto;
+  background: rgb(255 255 255 / 0.1); padding: 4px; border-radius: 999px;
+  overflow-x: auto; max-width: 100%; scrollbar-width: none;
+}
+.tirador {
+  border: 0; background: transparent; padding: 7px 15px; border-radius: 999px;
+  font-weight: 600; font-size: 13px; color: rgb(255 255 255 / 0.8);
+  display: flex; gap: 8px; align-items: baseline; white-space: nowrap;
+  transition: background 150ms var(--curva), color 150ms var(--curva);
+}
+/* El número de la tecla va en el tirador: el atajo se enseña. */
+.tirador kbd { font: 500 11px/1 inherit; font-variant-numeric: tabular-nums; opacity: 0.65; }
+.tirador:hover { color: var(--blanco); }
+.tirador[aria-selected="true"] { background: var(--lima); color: var(--verde-oscuro); }
+.tirador:focus-visible { outline: 2px solid var(--lima); outline-offset: 2px; }
+
+.cajon { padding: 36px 28px 72px; }
+/* El main es la celda que se encoge; el cajón abierto la llena y es lo único
+   que se desplaza. Sin el min-height: 0, el main crece con su contenido y
+   empuja la barra fuera de la pantalla. */
+html.cajones main { min-height: 0; display: grid; overflow: hidden; }
+html.cajones .cajon { overflow: auto; min-height: 0; }
+.cajon + .cajon { border-top: 1px solid var(--linea); }
+html.cajones .cajon + .cajon { border-top: 0; }
+.ancho-lectura { max-width: 1120px; margin-inline: auto; }
+
+.intro { max-width: 60ch; margin-bottom: 24px; }
+.intro h2 { font-size: clamp(1.4rem, 1.2rem + 0.8vw, 1.8rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--verde-oscuro); }
+.intro p { color: var(--tinta-media); margin-top: 6px; }
+
+.grupo { margin-bottom: 36px; }
+.grupo > h3 { font-size: 1.05rem; font-weight: 700; color: var(--verde-oscuro); }
+.grupo > .nota { color: var(--tinta-media); font-size: 13.5px; margin: 2px 0 14px; max-width: 70ch; }
+
+.fichas { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.ficha { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); padding: 18px 20px; display: grid; gap: 6px; align-content: start; }
+.ficha h3 { font-size: 15.5px; font-weight: 600; line-height: 1.3; }
+.ficha p { font-size: 14px; color: var(--tinta-media); }
+.ficha .meta { font-size: 12.5px; color: var(--tinta-tenue); }
+
+.boton {
+  justify-self: start; display: inline-block;
+  border: 1px solid var(--linea); background: var(--blanco); color: var(--carbon);
+  border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 600; text-decoration: none;
+  transition: border-color 150ms var(--curva), color 150ms var(--curva);
+}
+.boton:hover { border-color: var(--verde-oscuro); color: var(--verde-oscuro); }
+.boton.principal { background: var(--verde-oscuro); border-color: var(--verde-oscuro); color: var(--blanco); padding: 6px 14px; }
+.boton.principal:hover { background: var(--verde); }
+
+/* ——— Método ——— */
+
+.trimestre .numero {
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--hueso); color: var(--verde-oscuro); font-weight: 700; font-size: 14px;
+}
+.trimestre.actual { box-shadow: inset 0 0 0 1px var(--verde-oscuro); border-color: var(--verde-oscuro); }
+.trimestre.actual .numero { background: var(--lima); }
+
+/* ——— Meses 1 a 3 ———
+   Una tabla y no un dibujo: el lector de pantalla oye las semanas que en
+   pantalla dice la posición de la barra. La pista es una sola celda de doce
+   semanas; las barras se ubican en porcentaje. */
+
+.gantt-ficha { overflow-x: auto; padding: 20px 22px; }
+.gantt { width: 100%; min-width: 620px; border-collapse: collapse; table-layout: fixed; font-size: 13.5px; line-height: 1.35; }
+.gantt col.tarea { width: 40%; }
+.gantt th, .gantt td { padding: 0; text-align: left; }
+.gantt thead th { font-weight: 600; font-size: 12.5px; color: var(--tinta-media); padding: 0 0 8px 8px; border-bottom: 1px solid var(--carbon); }
+.gantt thead th + th { border-left: 1px solid var(--linea); }
+.gantt tbody th { font-weight: 400; padding: 6px 16px 6px 0; vertical-align: middle; }
+.gantt tbody tr { border-bottom: 1px solid #f0ede9; }
+.gantt tr.grupo-g { border-bottom: 0; }
+.gantt tr.grupo-g th { font-weight: 700; color: var(--verde-oscuro); padding-top: 16px; }
+.gantt .plan { color: var(--tinta-tenue); font-size: 12px; }
+.pista {
+  position: relative;
+  background-image: linear-gradient(to right, var(--linea) 1px, transparent 1px);
+  background-size: calc(100% / 3) 100%;
+}
+.barra-g { position: absolute; top: 50%; height: 11px; translate: 0 -50%; background: var(--verde-oscuro); border-radius: 999px; }
+.barra-g.segun-plan { background: var(--verde-claro); }
+.hito { position: absolute; top: 50%; width: 11px; height: 11px; translate: -50% -50%; rotate: 45deg; background: var(--naranja); }
+
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 14px; font-size: 12.5px; color: var(--tinta-media); }
+.leyenda span { display: inline-flex; align-items: center; gap: 8px; }
+.leyenda i { width: 22px; height: 9px; border-radius: 999px; background: var(--verde-oscuro); }
+.leyenda i.segun-plan { background: var(--verde-claro); }
+.leyenda i.hito { position: static; width: 9px; height: 9px; border-radius: 0; translate: none; background: var(--naranja); }
+
+.oportunidad { border-top: 4px solid var(--c, var(--verde-oscuro)); }
+
+/* ——— Base de marca ——— */
+
+/* Los bloques de la base de marca, como los cajones de la herramienta pero
+   dentro de uno: un segmento elige cuál se ve. Sin guion se ven todos. */
+.segmento { display: none; }
+html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: 2px; background: var(--blanco); border: 1px solid var(--linea); padding: 3px; border-radius: 999px; margin-bottom: 24px; }
+.segmento button { white-space: nowrap; border: 0; background: transparent; padding: 5px 13px; border-radius: 999px; font-size: 13px; color: var(--tinta-media); }
+.segmento button[aria-pressed="true"] { background: var(--verde-oscuro); color: var(--blanco); font-weight: 600; }
+
+.muestra { height: 132px; display: grid; place-items: center; padding: 26px; border-radius: var(--radio-chico); }
+.muestra img { max-width: 100%; max-height: 54px; }
+.borde { box-shadow: inset 0 0 0 1px var(--linea); }
+.ficha .acciones { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+
+
+.colores { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.color { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio-chico); overflow: hidden; }
+.color .plano { height: 84px; border-bottom: 1px solid var(--linea); }
+.color .datos { padding: 9px 12px 11px; display: grid; gap: 2px; font-size: 12.5px; color: var(--tinta-media); font-variant-numeric: tabular-nums; }
+.color .datos b { color: var(--carbon); font-size: 13.5px; }
+.copiable { border: 0; background: none; padding: 0; text-align: left; font-weight: 700; font-size: 14px; color: var(--carbon); font-variant-numeric: tabular-nums; justify-self: start; }
+.copiable:hover { color: var(--verde); text-decoration: underline; text-underline-offset: 3px; }
+.proporcion { display: flex; height: 22px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--linea); margin-top: 16px; }
+
+/* Probador: la hoja a la izquierda, los mandos a la derecha, las lecturas
+   debajo de la hoja, como en la herramienta. */
+.consola { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+@media (max-width: 52rem) { .consola { grid-template-columns: minmax(0, 1fr); } }
+.hoja { border-radius: var(--radio); min-height: 260px; display: grid; place-items: center; padding: 40px; box-shadow: inset 0 0 0 1px var(--linea); transition: background 150ms var(--curva); }
+.hoja img { width: min(360px, 80%); height: auto; }
+.lecturas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.lectura { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio-chico); padding: 10px 12px; display: grid; gap: 2px; }
+.lectura .etq { font-size: 12px; color: var(--tinta-tenue); }
+.lectura .valor { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.mandos { display: grid; gap: 18px; background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); padding: 16px; }
+.mando { display: grid; gap: 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.mando legend { font-weight: 600; font-size: 13px; padding: 0; margin-bottom: 8px; }
+.opciones { display: flex; flex-wrap: wrap; gap: 6px; }
+.opcion { border: 1px solid var(--linea); background: var(--blanco); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; }
+.opcion[aria-pressed="true"] { border-color: var(--verde-oscuro); background: var(--verde-oscuro); color: var(--blanco); font-weight: 600; }
+.muestras { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+/* La selección se marca con un anillo: el color de la muestra no se toca. */
+.muestra-color { aspect-ratio: 1; border-radius: 8px; border: 1px solid rgb(0 0 0 / 0.15); padding: 0; }
+.muestra-color[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--blanco), 0 0 0 4px var(--verde-oscuro); }
+
+.especimen .aa { font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: var(--verde-oscuro); }
+.especimen .pesos { display: flex; gap: 16px; font-size: 14px; }
+.especimen .titular { font-size: 22px; font-weight: 700; line-height: 1.2; color: var(--carbon); }
+
+.galeria { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.foto { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio-chico); overflow: hidden; }
+.foto img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+.foto figcaption { padding: 8px 12px 10px; font-size: 13px; color: var(--tinta-media); }
+.foto figcaption b { color: var(--carbon); font-weight: 600; }
+
+.antes { display: grid; gap: 10px; }
+.par-texto { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio-chico); padding: 14px 16px; display: grid; gap: 6px; grid-template-columns: 4.5rem 1fr; font-size: 14px; }
+.par-texto .etq { font-size: 12px; color: var(--tinta-tenue); padding-top: 2px; }
+.par-texto .hoy { color: var(--tinta-media); }
+.par-texto .propuesta { color: var(--verde-oscuro); font-weight: 600; }
+.personalidad { font-size: 18px; font-weight: 700; color: var(--verde-oscuro); max-width: 40ch; margin-bottom: 14px; }
+
+.pie { margin-top: 12px; font-size: 12.5px; color: var(--tinta-tenue); }
+
+/* Aviso efímero: uno cada vez, y breve. */
+.aviso {
+  position: fixed; left: 50%; bottom: 24px; translate: -50% 12px; opacity: 0;
+  background: var(--carbon); color: var(--blanco); font-size: 13px; padding: 8px 16px; border-radius: 999px;
+  pointer-events: none; transition: opacity 200ms var(--curva), translate 200ms var(--curva);
+}
+.aviso.visible { opacity: 1; translate: -50% 0; }
+
+@media (max-width: 40rem) {
+  .barra { padding: 14px 18px; }
+  .cajon { padding: 28px 18px 56px; }
+  .lectura .valor { font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}
+
+/* En papel sale todo, una sección por página. */
+@media print {
+  html.cajones, html.cajones body { height: auto; overflow: visible; display: block; }
+  html.cajones .tiradores, html.cajones .segmento, .probador-grupo { display: none !important; }
+  .cajon[hidden], .grupo[hidden] { display: block !important; }
+  .cajon { break-before: page; }
+  .cajon:first-of-type { break-before: auto; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+
+<body>
+
+<header class="barra">
+  <img class="logo" src="../identidad/media/logos/coipsa-blanco.svg" alt="Coipsa" width="190" height="34">
+  <div class="nombre">
+    <b>Forma de trabajo</b>
+    <span>Estudio Bastos · octubre de 2026</span>
+  </div>
+  <nav class="tiradores" role="tablist" aria-label="Secciones">
+    <button class="tirador" role="tab" id="tab-metodo" aria-controls="metodo" aria-selected="true"><kbd>1</kbd>Método</button>
+    <button class="tirador" role="tab" id="tab-meses" aria-controls="meses" aria-selected="false" tabindex="-1"><kbd>2</kbd>Meses 1 a 3</button>
+    <button class="tirador" role="tab" id="tab-estrategia" aria-controls="estrategia" aria-selected="false" tabindex="-1"><kbd>3</kbd>Estrategia</button>
+    <button class="tirador" role="tab" id="tab-oportunidades" aria-controls="oportunidades" aria-selected="false" tabindex="-1"><kbd>4</kbd>Oportunidades</button>
+    <button class="tirador" role="tab" id="tab-marca" aria-controls="marca" aria-selected="false" tabindex="-1"><kbd>5</kbd>Base de marca</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ══ 1 · MÉTODO ════════════════════════════════════════════════════════ -->
+  <section class="cajon" id="metodo" role="tabpanel" aria-labelledby="tab-metodo">
+    <div class="ancho-lectura">
+      <div class="intro">
+        <h2>Método</h2>
+        <p>Un año en cuatro trimestres. Redes, materiales y herramientas avanzan desde el primer mes.</p>
+      </div>
+      <div class="fichas">
+        <article class="ficha trimestre actual">
+          <span class="numero" aria-hidden="true">1</span>
+          <h3>Escuchar</h3>
+          <span class="meta">Meses 1 a 3</span>
+          <p>Entrevistas, revisión de lo que hay y línea base de indicadores.</p>
+          <a class="boton principal" href="#meses" data-abrir="meses">Ver meses 1 a 3</a>
+        </article>
+        <article class="ficha trimestre">
+          <span class="numero" aria-hidden="true">2</span>
+          <h3>Ordenar</h3>
+          <span class="meta">Meses 4 a 6</span>
+          <p>Estrategia, pilares de contenido, metas y decisiones de marca pendientes.</p>
+        </article>
+        <article class="ficha trimestre">
+          <span class="numero" aria-hidden="true">3</span>
+          <h3>Diseñar</h3>
+          <span class="meta">Meses 7 a 9</span>
+          <p>Manual de marca, recursos gráficos y herramientas.</p>
+        </article>
+        <article class="ficha trimestre">
+          <span class="numero" aria-hidden="true">4</span>
+          <h3>Entregar</h3>
+          <span class="meta">Meses 10 a 12</span>
+          <p>Todo en uso. Reporte anual contra la línea base.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 2 · MESES 1 A 3 ═══════════════════════════════════════════════════ -->
+  <section class="cajon" id="meses" role="tabpanel" aria-labelledby="tab-meses">
+    <div class="ancho-lectura">
+      <div class="intro">
+        <h2>Meses 1 a 3</h2>
+        <p>Al cierre del mes 3 se fijan las metas del año.</p>
+      </div>
+      <div class="ficha gantt-ficha">
+        <table class="gantt">
+          <caption class="oculto-visual">Plan de los meses 1 a 3, por semana</caption>
+          <colgroup><col class="tarea"><col><col><col></colgroup>
+          <thead><tr><th scope="col"><span class="oculto-visual">Tarea</span></th><th scope="col">Mes 1</th><th scope="col">Mes 2</th><th scope="col">Mes 3</th></tr></thead>
+          <tbody>
+            <tr class="grupo-g"><th colspan="4" scope="colgroup">Escuchar y medir</th></tr>
+            <tr><th scope="row">Reunión de inicio<span class="oculto-visual">: semana 1</span></th><td class="pista" colspan="3"><i class="hito" style="left:4.17%"></i></td></tr>
+            <tr><th scope="row">Entrevistas al equipo de comunicaciones<span class="oculto-visual">: semanas 2 a 4</span></th><td class="pista" colspan="3"><i class="barra-g" style="left:8.33%;width:25%"></i></td></tr>
+            <tr><th scope="row">Línea base de indicadores<span class="oculto-visual">: semanas 2 a 12</span></th><td class="pista" colspan="3"><i class="barra-g" style="left:8.33%;width:91.67%"></i></td></tr>
+
+            <tr class="grupo-g"><th colspan="4" scope="colgroup">Marca</th></tr>
+            <tr><th scope="row">Base de marca<span class="oculto-visual">: semanas 1 a 3</span></th><td class="pista" colspan="3"><i class="barra-g" style="left:0;width:25%"></i></td></tr>
+            <tr><th scope="row">Plantillas para redes<span class="oculto-visual">: semanas 3 a 6</span></th><td class="pista" colspan="3"><i class="barra-g" style="left:16.67%;width:33.33%"></i></td></tr>
+            <tr><th scope="row">Ficha de cifras oficiales<span class="oculto-visual">: semanas 4 a 7</span></th><td class="pista" colspan="3"><i class="barra-g" style="left:25%;width:33.33%"></i></td></tr>
+
+            <tr class="grupo-g"><th colspan="4" scope="colgroup">Redes</th></tr>
+            <tr><th scope="row">Estrategia y calendario<span class="oculto-visual">: semanas 2 a 4</span></th><td class="pista" colspan="3"><i class="barra-g" style="left:8.33%;width:25%"></i></td></tr>
+            <tr><th scope="row">Dos publicaciones a la semana<span class="oculto-visual">: desde la semana 4</span></th><td class="pista" colspan="3"><i class="barra-g" style="left:25%;width:75%"></i></td></tr>
+
+            <tr class="grupo-g"><th colspan="4" scope="colgroup">Según el plan</th></tr>
+            <tr><th scope="row">Materiales institucionales <span class="plan">· planes 2 y 3</span><span class="oculto-visual">: semanas 5 a 12</span></th><td class="pista" colspan="3"><i class="barra-g segun-plan" style="left:33.33%;width:66.67%"></i></td></tr>
+            <tr><th scope="row">Herramientas: levantamiento por área <span class="plan">· planes 2 y 3</span><span class="oculto-visual">: semanas 3 a 12</span></th><td class="pista" colspan="3"><i class="barra-g segun-plan" style="left:16.67%;width:83.33%"></i></td></tr>
+            <tr><th scope="row">Medio propio: línea editorial <span class="plan">· plan 3</span><span class="oculto-visual">: semanas 7 a 12</span></th><td class="pista" colspan="3"><i class="barra-g segun-plan" style="left:50%;width:50%"></i></td></tr>
+
+            <tr class="grupo-g"><th colspan="4" scope="colgroup">Seguimiento</th></tr>
+            <tr><th scope="row">Sesión mensual<span class="oculto-visual">: semanas 4, 8 y 12</span></th><td class="pista" colspan="3"><i class="hito" style="left:29.17%"></i><i class="hito" style="left:62.5%"></i><i class="hito" style="left:95.83%"></i></td></tr>
+            <tr><th scope="row">Reporte, metas y evaluación<span class="oculto-visual">: semana 12</span></th><td class="pista" colspan="3"><i class="hito" style="left:95.83%"></i></td></tr>
+          </tbody>
+        </table>
+        <div class="leyenda" aria-hidden="true">
+          <span><i></i>Todos los planes</span>
+          <span><i class="segun-plan"></i>Según el plan</span>
+          <span><i class="hito"></i>Hito</span>
+        </div>
+      </div>
+      <p class="pie">Planes: 1 Marca y redes · 2 Marca, redes y herramientas · 3 Completo.</p>
+    </div>
+  </section>
+
+  <!-- ══ 3 · ESTRATEGIA ════════════════════════════════════════════════════ -->
+  <section class="cajon" id="estrategia" role="tabpanel" aria-labelledby="tab-estrategia">
+    <div class="ancho-lectura">
+      <div class="intro">
+        <h2>Estrategia de partida</h2>
+        <p>Se ajusta en el segundo trimestre.</p>
+      </div>
+      <div class="fichas">
+        <article class="ficha">
+          <h3>Una sola marca</h3>
+          <p>Coipsa firma. Recupac, CPP y Corrupac aparecen como unidades, no como cuentas aparte.</p>
+        </article>
+        <article class="ficha">
+          <h3>Dos canales</h3>
+          <p>LinkedIn: opinión con datos, para clientes e industria. Instagram: personas, plantas y procesos.</p>
+        </article>
+        <article class="ficha">
+          <h3>Medio propio</h3>
+          <p>Contenido práctico: Ley REP, qué se recicla, cómo elegir un embalaje.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 4 · OPORTUNIDADES ═════════════════════════════════════════════════ -->
+  <section class="cajon" id="oportunidades" role="tabpanel" aria-labelledby="tab-oportunidades">
+    <div class="ancho-lectura">
+      <div class="intro">
+        <h2>Oportunidades</h2>
+      </div>
+      <div class="fichas">
+        <article class="ficha oportunidad" style="--c:var(--verde-oscuro)">
+          <h3>El ciclo completo</h3>
+          <p>Coipsa recupera, transforma y fabrica. Contado como un solo ciclo, cada unidad respalda a las otras.</p>
+        </article>
+        <article class="ficha oportunidad" style="--c:var(--lima)">
+          <h3>Noticias 2026–2028</h3>
+          <p>Graneros, la planta de Quilicura y la nueva máquina papelera de Mostazal.</p>
+        </article>
+        <article class="ficha oportunidad" style="--c:var(--verde)">
+          <h3>Ley REP</h3>
+          <p>Las empresas necesitan saber qué hacer con sus residuos y envases. Coipsa puede explicarlo.</p>
+        </article>
+        <article class="ficha oportunidad" style="--c:var(--naranja)">
+          <h3>Personas y plantas</h3>
+          <p>Material propio para mostrar el trabajo y atraer talento.</p>
+        </article>
+        <article class="ficha oportunidad" style="--c:var(--verde-oscuro)">
+          <h3>Cifras únicas</h3>
+          <p>Una ficha oficial de años, plantas y toneladas, igual en todos los canales.</p>
+        </article>
+        <article class="ficha oportunidad" style="--c:var(--lima)">
+          <h3>Las columnas</h3>
+          <p>Las columnas en LinkedIn ya tienen un tono claro y con opinión. Se puede extender al resto.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 5 · BASE DE MARCA ═════════════════════════════════════════════════ -->
+  <section class="cajon" id="marca" role="tabpanel" aria-labelledby="tab-marca">
+    <div class="ancho-lectura">
+      <div class="intro">
+        <h2>Base de marca</h2>
+        <p>Armada con lo que Coipsa publica en sus sitios. Es el punto de partida del manual.</p>
+      </div>
+
+      <div class="segmento" role="group" aria-label="Partes de la base de marca">
+        <button type="button" data-grupo="logos" aria-pressed="true">Logos</button>
+        <button type="button" data-grupo="colores" aria-pressed="false">Colores</button>
+        <button type="button" data-grupo="probador" aria-pressed="false">Probador</button>
+        <button type="button" data-grupo="letra" aria-pressed="false">Tipografía</button>
+        <button type="button" data-grupo="fotos" aria-pressed="false">Fotos</button>
+        <button type="button" data-grupo="tono" aria-pressed="false">Tono</button>
+      </div>
+
+      <!-- Logos -->
+      <section class="grupo" id="logos">
+        <h3>Logos</h3>
+        <p class="nota">Coipsa firma todo. Las unidades se nombran con el color de su pieza del símbolo.</p>
+        <div class="fichas">
+          <article class="ficha">
+            <div class="muestra" style="background:var(--verde-oscuro)"><img src="../identidad/media/logos/coipsa-blanco.svg" alt="Logotipo de Coipsa en blanco"></div>
+            <h3>Coipsa · blanco</h3>
+            <span class="meta">Principal, sobre verde oscuro</span>
+            <div class="acciones"><a class="boton" href="../identidad/media/logos/coipsa-blanco.svg" download="coipsa-blanco.svg">SVG</a></div>
+          </article>
+          <article class="ficha">
+            <div class="muestra borde" style="background:var(--blanco)"><img src="media/coipsa-logotipo-color.svg" alt="Logotipo de Coipsa a color"></div>
+            <h3>Coipsa · color</h3>
+            <span class="meta">Sobre blanco o hueso</span>
+            <div class="acciones"><a class="boton" href="media/coipsa-logotipo-color.svg" download="coipsa-color.svg">SVG</a></div>
+          </article>
+          <article class="ficha">
+            <div class="muestra" style="background:var(--lima)"><img src="../identidad/media/logos/coipsa-verde.svg" alt="Logotipo de Coipsa en verde oscuro"></div>
+            <h3>Coipsa · verde oscuro</h3>
+            <span class="meta">Sobre lima y fondos claros</span>
+            <div class="acciones"><a class="boton" href="../identidad/media/logos/coipsa-verde.svg" download="coipsa-verde-oscuro.svg">SVG</a></div>
+          </article>
+          <article class="ficha">
+            <div class="muestra borde" style="background:var(--blanco)"><img src="media/coipsa-simbolo-color.svg" alt="Símbolo de Coipsa" style="max-height:64px"></div>
+            <h3>Símbolo</h3>
+            <span class="meta">Lima Recupac · verde CPP · naranja Corrupac</span>
+            <div class="acciones"><a class="boton" href="media/coipsa-simbolo-color.svg" download="coipsa-simbolo.svg">SVG</a></div>
+          </article>
+          <article class="ficha">
+            <div class="muestra borde" style="background:var(--blanco)"><img src="../identidad/media/logos/recupac.svg" alt="Logotipo de Recupac"></div>
+            <h3>Recupac</h3>
+            <span class="meta">Solo operación con clientes</span>
+          </article>
+          <article class="ficha">
+            <div class="muestra" style="background:var(--verde)"><img src="../identidad/media/logos/cpp-blanco.svg" alt="Logotipo de CPP en blanco"></div>
+            <h3>CPP</h3>
+            <span class="meta">Solo operación con clientes</span>
+          </article>
+          <article class="ficha">
+            <div class="muestra borde" style="background:var(--blanco)"><img src="../identidad/media/logos/corrupac.svg" alt="Logotipo de Corrupac"></div>
+            <h3>Corrupac</h3>
+            <span class="meta">Solo operación con clientes</span>
+          </article>
+        </div>
+      </section>
+
+      <!-- Colores -->
+      <section class="grupo" id="colores">
+        <h3>Colores</h3>
+        <p class="nota">Siete colores, un valor cada uno. Pulsar el HEX lo copia. La franja muestra la proporción de uso.</p>
+        <div class="colores">
+          <div class="color"><div class="plano" style="background:var(--verde-oscuro)"></div><div class="datos"><b>Verde oscuro</b><button class="copiable" type="button">#014C31</button>Fondo principal</div></div>
+          <div class="color"><div class="plano" style="background:var(--hueso)"></div><div class="datos"><b>Hueso</b><button class="copiable" type="button">#F3F0EE</button>Fondo claro</div></div>
+          <div class="color"><div class="plano" style="background:var(--blanco)"></div><div class="datos"><b>Blanco</b><button class="copiable" type="button">#FFFFFF</button>Texto sobre verde</div></div>
+          <div class="color"><div class="plano" style="background:var(--carbon)"></div><div class="datos"><b>Carbón</b><button class="copiable" type="button">#1E1E1E</button>Texto</div></div>
+          <div class="color"><div class="plano" style="background:var(--lima)"></div><div class="datos"><b>Lima</b><button class="copiable" type="button">#B2D000</button>Acento · Recupac</div></div>
+          <div class="color"><div class="plano" style="background:var(--verde)"></div><div class="datos"><b>Verde</b><button class="copiable" type="button">#006A45</button>Acento · CPP</div></div>
+          <div class="color"><div class="plano" style="background:var(--naranja)"></div><div class="datos"><b>Naranja</b><button class="copiable" type="button">#FE5000</button>Acento · Corrupac</div></div>
+        </div>
+        <div class="proporcion" role="img" aria-label="Proporción de uso: verde oscuro 46 %, hueso 22 %, blanco 10 %, lima 8 %, verde 6 %, carbón 5 %, naranja 3 %">
+          <div style="flex:46;background:var(--verde-oscuro)"></div>
+          <div style="flex:22;background:var(--hueso)"></div>
+          <div style="flex:10;background:var(--blanco)"></div>
+          <div style="flex:8;background:var(--lima)"></div>
+          <div style="flex:6;background:var(--verde)"></div>
+          <div style="flex:5;background:var(--carbon)"></div>
+          <div style="flex:3;background:var(--naranja)"></div>
+        </div>
+      </section>
+
+      <!-- Probador: solo con guion, porque sin él los mandos no harían nada. -->
+      <section class="grupo probador-grupo" id="probador" data-solo-guion hidden>
+        <h3>Probador</h3>
+        <p class="nota">Logo sobre fondo. 3:1 alcanza para un logo; por debajo, no se lee.</p>
+        <div class="consola">
+          <div>
+            <div class="hoja" id="hoja" style="background:var(--verde-oscuro)">
+              <img id="hoja-logo" src="../identidad/media/logos/coipsa-blanco.svg" alt="Logotipo de Coipsa en blanco sobre verde oscuro">
+            </div>
+            <div class="lecturas" aria-live="polite">
+              <div class="lectura"><span class="etq">Letras</span><span class="valor" id="l-letras">—</span></div>
+              <div class="lectura"><span class="etq">Símbolo</span><span class="valor" id="l-simbolo">—</span></div>
+              <div class="lectura"><span class="etq">Se lee</span><span class="valor" id="l-veredicto">—</span></div>
+            </div>
+          </div>
+          <div class="mandos">
+            <fieldset class="mando">
+              <legend>Logo</legend>
+              <div class="opciones" id="op-logo">
+                <button type="button" class="opcion" data-logo="blanco" aria-pressed="true">Blanco</button>
+                <button type="button" class="opcion" data-logo="color" aria-pressed="false">Color</button>
+                <button type="button" class="opcion" data-logo="verde" aria-pressed="false">Verde oscuro</button>
+              </div>
+            </fieldset>
+            <fieldset class="mando">
+              <legend>Fondo</legend>
+              <div class="muestras" id="op-fondo">
+                <button type="button" class="muestra-color" data-fondo="#014C31" data-nombre="verde oscuro" style="background:#014C31" aria-label="Verde oscuro" aria-pressed="true"></button>
+                <button type="button" class="muestra-color" data-fondo="#F3F0EE" data-nombre="hueso" style="background:#F3F0EE" aria-label="Hueso" aria-pressed="false"></button>
+                <button type="button" class="muestra-color" data-fondo="#FFFFFF" data-nombre="blanco" style="background:#FFFFFF" aria-label="Blanco" aria-pressed="false"></button>
+                <button type="button" class="muestra-color" data-fondo="#1E1E1E" data-nombre="carbón" style="background:#1E1E1E" aria-label="Carbón" aria-pressed="false"></button>
+                <button type="button" class="muestra-color" data-fondo="#B2D000" data-nombre="lima" style="background:#B2D000" aria-label="Lima" aria-pressed="false"></button>
+                <button type="button" class="muestra-color" data-fondo="#006A45" data-nombre="verde" style="background:#006A45" aria-label="Verde" aria-pressed="false"></button>
+                <button type="button" class="muestra-color" data-fondo="#FE5000" data-nombre="naranja" style="background:#FE5000" aria-label="Naranja" aria-pressed="false"></button>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tipografía -->
+      <section class="grupo" id="letra">
+        <h3>Tipografía</h3>
+        <p class="nota">Poppins para todo, en tres pesos. Titulares con mayúscula inicial.</p>
+        <div class="fichas">
+          <article class="ficha especimen">
+            <div class="aa" aria-hidden="true">Aa</div>
+            <div class="pesos"><span style="font-weight:400">Regular</span><span style="font-weight:600">Seminegra</span><span style="font-weight:700">Negra</span></div>
+          </article>
+          <article class="ficha especimen">
+            <p class="titular">Del residuo a la caja, en cuatro pasos</p>
+            <p>Negra para titulares, seminegra para bajadas, regular para texto.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Fotos -->
+      <section class="grupo" id="fotos">
+        <h3>Fotos</h3>
+        <p class="nota">Personas en su trabajo, material de cerca, plantas desde el aire. Tres tratamientos y tres plantillas para redes.</p>
+        <div class="galeria">
+          <figure class="foto"><img src="../identidad/media/foto-original.webp" alt="Fotografía de planta sin tratar"><figcaption><b>Original.</b> La foto manda.</figcaption></figure>
+          <figure class="foto"><img src="../identidad/media/foto-duotono.webp" alt="Dos trabajadores entre bobinas de papel, en duotono verde oscuro y lima"><figcaption><b>Duotono.</b> Pieza con marca.</figcaption></figure>
+          <figure class="foto"><img src="../identidad/media/foto-bn.webp" alt="Fotografía en blanco y negro con un bloque de verde"><figcaption><b>Blanco y negro con bloque.</b> Texto encima.</figcaption></figure>
+          <figure class="foto"><img src="../identidad/media/red-dato.webp" alt="Publicación: 113 mil toneladas de residuos retiró y valorizó Recupac en 2024"><figcaption><b>Plantilla:</b> cifra.</figcaption></figure>
+          <figure class="foto"><img src="../identidad/media/red-pregunta.webp" alt="Publicación con una pregunta"><figcaption><b>Plantilla:</b> pregunta.</figcaption></figure>
+          <figure class="foto"><img src="../identidad/media/red-manifiesto.webp" alt="Publicación con una frase sobre fondo kraft"><figcaption><b>Plantilla:</b> frase sobre kraft.</figcaption></figure>
+        </div>
+      </section>
+
+      <!-- Tono -->
+      <section class="grupo" id="tono">
+        <h3>Tono</h3>
+        <p class="personalidad">El que sabe del oficio y lo explica sin hacerte sentir ignorante.</p>
+        <div class="antes">
+          <div class="par-texto"><span class="etq">Hoy</span><span class="hoy">Fabricamos soluciones sostenibles para proteger los productos de nuestros clientes.</span><span class="etq">Propuesta</span><span class="propuesta">Hacemos las cajas que protegen lo que vendes, con papel que fue caja antes.</span></div>
+          <div class="par-texto"><span class="etq">Hoy</span><span class="hoy">Minimizamos los costos de operación asociados a la gestión de residuos.</span><span class="etq">Propuesta</span><span class="propuesta">Gestionar residuos cuesta. Con plantas cerca y el material bien valorizado, cuesta menos.</span></div>
+        </div>
+      </section>
+
+      <p class="pie">Propuesta de partida, sin aprobación de Coipsa.</p>
+    </div>
+  </section>
+
+</main>
+
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const tiradores = [...document.querySelectorAll('.tirador')];
+  const cajones = tiradores.map(t => document.getElementById(t.getAttribute('aria-controls')));
+  if (!tiradores.length) return;
+
+  // La caja se arma solo si hay guion: sin él, la página se lee entera.
+  document.documentElement.classList.add('cajones');
+  document.querySelectorAll('[data-solo-guion]').forEach(el => { el.hidden = false; });
+
+  // ——— Cajones ———
+  // Uno abierto cada vez. El hash guarda cuál, para poder enlazar directo
+  // a la base de marca (…/forma-de-trabajo/#marca).
+  function abrir(id, { foco = false, historial = true } = {}) {
+    const i = Math.max(0, cajones.findIndex(c => c.id === id));
+    tiradores.forEach((t, j) => {
+      const activo = j === i;
+      t.setAttribute('aria-selected', activo);
+      t.tabIndex = activo ? 0 : -1;
+      cajones[j].hidden = !activo;
+    });
+    cajones[i].scrollTop = 0;
+    // El salto al ancla del hash desplaza la caja aunque no tenga scroll, y la
+    // barra queda fuera de la vista. Se devuelve a su sitio.
+    document.scrollingElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    document.querySelector("main").scrollTop = 0;
+    if (foco) tiradores[i].focus();
+    // Que el tirador abierto quede a la vista en pantallas estrechas. A mano y no
+    // con scrollIntoView, que también desplaza la caja y esconde la barra.
+    const nav = tiradores[i].parentElement;
+    const t = tiradores[i];
+    if (t.offsetLeft < nav.scrollLeft || t.offsetLeft + t.offsetWidth > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = t.offsetLeft - 8;
+    if (historial && location.hash !== '#' + cajones[i].id) history.replaceState(null, '', '#' + cajones[i].id);
+  }
+
+  tiradores.forEach(t => t.addEventListener('click', () => abrir(t.getAttribute('aria-controls'))));
+  document.querySelectorAll('[data-abrir]').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    abrir(a.dataset.abrir, { foco: true });
+  }));
+
+  document.querySelector('.tiradores').addEventListener('keydown', e => {
+    const i = tiradores.indexOf(document.activeElement);
+    if (i < 0) return;
+    const j = { ArrowRight: (i + 1) % tiradores.length, ArrowLeft: (i - 1 + tiradores.length) % tiradores.length, Home: 0, End: tiradores.length - 1 }[e.key];
+    if (j === undefined) return;
+    e.preventDefault();
+    abrir(cajones[j].id, { foco: true });
+  });
+
+  // Teclas 1 a 5, las que el tirador lleva impresas.
+  document.addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const n = Number(e.key);
+    if (n >= 1 && n <= tiradores.length) abrir(cajones[n - 1].id, { foco: true });
+  });
+
+  window.addEventListener('hashchange', () => abrir(location.hash.slice(1), { historial: false }));
+  abrir(location.hash.slice(1), { historial: false });
+  // Con Poppins cargada los tiradores cambian de ancho: se vuelve a encuadrar.
+  document.fonts?.ready.then(() => abrir(location.hash.slice(1), { historial: false }));
+
+  // ——— Segmento de la base de marca ———
+  const botonesGrupo = [...document.querySelectorAll('.segmento button')];
+  function verGrupo(id) {
+    botonesGrupo.forEach(b => {
+      const activo = b.dataset.grupo === id;
+      b.setAttribute('aria-pressed', activo);
+      document.getElementById(b.dataset.grupo).hidden = !activo;
+    });
+  }
+  botonesGrupo.forEach(b => b.addEventListener('click', () => verGrupo(b.dataset.grupo)));
+  verGrupo('logos');
+
+  // ——— Aviso efímero ———
+  const aviso = document.getElementById('aviso');
+  let temporizador;
+  function avisar(texto) {
+    aviso.textContent = texto;
+    aviso.classList.add('visible');
+    clearTimeout(temporizador);
+    temporizador = setTimeout(() => aviso.classList.remove('visible'), 1600);
+  }
+
+  document.querySelectorAll('.copiable').forEach(b => b.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(b.textContent.trim()); avisar(b.textContent.trim() + ' copiado'); }
+    catch { avisar('No se pudo copiar'); }
+  }));
+
+  // ——— Probador ———
+  // Contraste WCAG 2.1, el mismo cálculo de la herramienta.
+  const lum = hex => {
+    const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map(v => v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const contraste = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const formato = r => r.toFixed(1).replace('.', ',') + ':1';
+
+  // Cada versión con el color de sus letras y de cada pieza del símbolo.
+  const LOGOS = {
+    blanco: { src: '../identidad/media/logos/coipsa-blanco.svg', nombre: 'en blanco', letras: '#FFFFFF', piezas: [['blanco', '#FFFFFF']] },
+    color:  { src: 'media/coipsa-logotipo-color.svg', nombre: 'a color', letras: '#000000', piezas: [['lima', '#B2D000'], ['verde', '#006A45'], ['naranja', '#F95D27']] },
+    verde:  { src: '../identidad/media/logos/coipsa-verde.svg', nombre: 'en verde oscuro', letras: '#014C31', piezas: [['verde oscuro', '#014C31']] },
+  };
+  const estado = { logo: 'blanco', fondo: '#014C31', nombreFondo: 'verde oscuro' };
+  const hoja = document.getElementById('hoja');
+  const hojaLogo = document.getElementById('hoja-logo');
+
+  function probar() {
+    const l = LOGOS[estado.logo];
+    hoja.style.background = estado.fondo;
+    hojaLogo.src = l.src;
+    hojaLogo.alt = `Logotipo de Coipsa ${l.nombre} sobre ${estado.nombreFondo}`;
+    const letras = contraste(l.letras, estado.fondo);
+    const [pieza, ratio] = l.piezas.map(([n, c]) => [n, contraste(c, estado.fondo)]).sort((a, b) => a[1] - b[1])[0];
+    document.getElementById('l-letras').textContent = formato(letras);
+    document.getElementById('l-simbolo').textContent = l.piezas.length > 1 ? `${formato(ratio)} · ${pieza}` : formato(ratio);
+    document.getElementById('l-veredicto').textContent = Math.min(letras, ratio) >= 3 ? 'Sí' : 'No';
+  }
+
+  function elegir(grupo, boton) {
+    grupo.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === boton));
+  }
+  document.getElementById('op-logo').addEventListener('click', e => {
+    const b = e.target.closest('[data-logo]'); if (!b) return;
+    estado.logo = b.dataset.logo; elegir(e.currentTarget, b); probar();
+  });
+  document.getElementById('op-fondo').addEventListener('click', e => {
+    const b = e.target.closest('[data-fondo]'); if (!b) return;
+    estado.fondo = b.dataset.fondo; estado.nombreFondo = b.dataset.nombre; elegir(e.currentTarget, b); probar();
+  });
+  probar();
+})();
+</script>
+
+</body>
+</html>
