@@ -353,14 +353,23 @@ const folio = (n: number) => String(n).padStart(2, '0');
           const ruta = primera && `${base}media/${primera.archivo}`;
           return (
             <li>
-              <button type="button" class="miniatura" data-ir={indice}>
+              {/* Sin texto: la grilla es solo las piezas en movimiento. El
+                  título queda para quien no las ve. */}
+              <button
+                type="button"
+                class="miniatura"
+                data-ir={indice}
+                aria-label={proyecto.data.titulo}
+              >
                 <span class="mini-media">
                   {primera &&
                     (esVideo(primera.archivo) ? (
-                      // Sin reproducir: basta un cuadro, y `#t` lo pide.
+                      // Corre solo mientras está a la vista. Antes de arrancar
+                      // —o con movimiento reducido— muestra el cuadro de `#t`.
                       <video
                         data-src={`${ruta}?v=${version(primera.archivo)}#t=${proyecto.data.miniatura ?? 0.1}`}
                         muted
+                        loop
                         playsinline
                         preload="metadata"
                         aria-hidden="true"
@@ -369,7 +378,6 @@ const folio = (n: number) => String(n).padStart(2, '0');
                       <img data-src={ruta} alt="" decoding="async" />
                     ))}
                 </span>
-                <span class="mini-titulo">{proyecto.data.titulo}</span>
               </button>
             </li>
           );
@@ -934,7 +942,7 @@ const folio = (n: number) => String(n).padStart(2, '0');
     list-style: none;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: clamp(1.25rem, 3vh, 2rem) clamp(0.75rem, 1.6vw, 1.5rem);
+    gap: clamp(0.75rem, 1.6vw, 1.5rem);
     align-content: center;
     min-height: 100%;
     padding-block: clamp(1rem, 3vh, 2rem);
@@ -942,8 +950,7 @@ const folio = (n: number) => String(n).padStart(2, '0');
 
   .miniatura {
     all: unset;
-    display: grid;
-    gap: 0.6em;
+    display: block;
     width: 100%;
     cursor: var(--cursor);
   }
@@ -970,22 +977,6 @@ const folio = (n: number) => String(n).padStart(2, '0');
 
   .miniatura:hover .mini-media :is(img, video) {
     scale: 1.03;
-  }
-
-  .mini-titulo {
-    font-size: var(--text-body-sm);
-    line-height: 1.4;
-    opacity: 0.8;
-    transition: opacity var(--transition-normal);
-  }
-
-  .miniatura:hover .mini-titulo,
-  .miniatura[data-actual] .mini-titulo {
-    opacity: 1;
-  }
-
-  .miniatura[data-actual] .mini-titulo {
-    font-weight: var(--weight-bold);
   }
 
   .miniatura:focus-visible {
@@ -1450,6 +1441,7 @@ const folio = (n: number) => String(n).padStart(2, '0');
     // la baraja en ese proyecto.
     const grilla = () => document.querySelector<HTMLElement>('[data-grilla]');
     const enGrilla = () => escenario()?.dataset.vista === 'grilla';
+    let observador: IntersectionObserver | undefined;
 
     const abrirGrilla = () => {
       const caja = escenario();
@@ -1460,9 +1452,22 @@ const folio = (n: number) => String(n).padStart(2, '0');
         m.src = m.dataset.src!;
         m.removeAttribute('data-src');
       });
-      lista.querySelectorAll<HTMLElement>('[data-ir]').forEach((mini) => {
-        mini.toggleAttribute('data-actual', mini.dataset.ir === String(activo));
-      });
+
+      // Las miniaturas corren solo mientras se ven: son catorce videos, y en
+      // el teléfono la mayoría queda fuera de la pantalla.
+      if (!sinMovimiento()) {
+        observador?.disconnect();
+        observador = new IntersectionObserver(
+          (entradas) =>
+            entradas.forEach(({ target, isIntersecting }) => {
+              const video = target as HTMLVideoElement;
+              if (isIntersecting) video.play().catch(() => {});
+              else video.pause();
+            }),
+          { root: lista, threshold: 0.15 },
+        );
+        lista.querySelectorAll('video').forEach((video) => observador!.observe(video));
+      }
 
       clearTimeout(pase);
       capas().forEach((capa) => {
@@ -1492,6 +1497,8 @@ const folio = (n: number) => String(n).padStart(2, '0');
 
       delete caja.dataset.vista;
       lista.inert = true;
+      observador?.disconnect();
+      lista.querySelectorAll('video').forEach((video) => video.pause());
       const boton = document.querySelector('[data-vista-cambiar]');
       boton?.setAttribute('aria-pressed', 'false');
       boton?.setAttribute('aria-label', 'Ver todos los proyectos');
