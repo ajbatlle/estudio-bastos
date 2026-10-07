@@ -114,7 +114,7 @@ html.cajones .tiradores {
 }
 /* El número de la tecla va en el tirador: el atajo se enseña. */
 .tirador kbd { font: 400 11px/1 inherit; font-variant-numeric: tabular-nums; opacity: 0.6; }
-.tirador:hover { color: var(--blanco); }
+.tirador:hover { color: var(--blanco); background: rgb(255 255 255 / 0.08); }
 .tirador[aria-selected="true"] { background: var(--lima); color: var(--verde-oscuro); font-weight: 600; }
 .tirador:focus-visible { outline: 2px solid var(--lima); outline-offset: 2px; }
 
@@ -155,6 +155,13 @@ html.cajones .cajon + .cajon { border-top: 0; }
   transition: color 150ms var(--curva);
 }
 .enlace:hover { color: var(--verde); }
+/* La flecha avanza hacia donde apunta: tres píxeles, sin rebote. */
+.flecha { display: inline-block; transition: transform 300ms var(--curva); }
+.enlace:hover .flecha, .enlace:focus-visible .flecha { transform: translateX(3px); }
+.enlace:hover .flecha.abajo, .enlace:focus-visible .flecha.abajo { transform: translateY(3px); }
+/* El imán mueve el enlace entero; translate y no transform, para no pisar
+   la flecha. */
+[data-iman] { will-change: translate; }
 
 /* ——— Método ——— */
 .trimestre.actual { background: var(--verde-oscuro); border-color: var(--verde-oscuro); color: var(--blanco); }
@@ -225,6 +232,8 @@ html.cajones .cajon + .cajon { border-top: 0; }
 .segmento { display: none; }
 html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: 2px; background: var(--blanco); border: 1px solid var(--linea); padding: 4px; border-radius: 999px; margin-bottom: var(--e5); }
 .segmento button { white-space: nowrap; border: 0; background: transparent; padding: 8px 16px; border-radius: 999px; font-size: 13px; line-height: 1; color: var(--tinta-media); }
+.segmento button { transition: color 150ms var(--curva), background 150ms var(--curva); }
+.segmento button:hover { color: var(--carbon); }
 .segmento button[aria-pressed="true"] { background: var(--verde-oscuro); color: var(--blanco); font-weight: 600; }
 /* Con el segmento se ve un bloque a la vez: sin línea ni margen de arriba. */
 html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
@@ -343,6 +352,18 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
   .cabeza { margin-bottom: var(--e5); }
 }
 
+/* ——— Transición entre cajones ———
+   El rótulo «Meses 1 a 3» de la ficha y el título del cajón llevan el mismo
+   nombre: al pasar de uno a otro, el chico crece hasta ser el grande. Lo
+   demás se funde. Los dos nunca están a la vez en pantalla, porque el cajón
+   cerrado va en display: none, así que el nombre no se repite. */
+.vt-meses { view-transition-name: meses; }
+::view-transition-group(*) { animation-duration: 420ms; animation-timing-function: var(--curva); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 240ms; }
+/* La barra no cambia: se queda fuera del fundido. */
+.barra { view-transition-name: barra; }
+::view-transition-old(barra), ::view-transition-new(barra) { animation: none; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; }
 }
@@ -389,10 +410,10 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
       <div class="fichas">
         <article class="ficha trimestre actual">
           <div class="ficha-num t-rotulo">(01)</div>
-          <span class="t-rotulo">Meses 1 a 3</span>
+          <span class="t-rotulo vt-meses">Meses 1 a 3</span>
           <h3>Escuchar</h3>
           <p>Entrevistas, revisión de lo que hay y medición de cómo están hoy las redes y el sitio.</p>
-          <a class="enlace" href="#meses" data-abrir="meses">Ver meses 1 a 3 <span aria-hidden="true">→</span></a>
+          <a class="enlace" href="#meses" data-abrir="meses" data-iman>Ver meses 1 a 3 <span class="flecha" aria-hidden="true">→</span></a>
         </article>
         <article class="ficha trimestre">
           <div class="ficha-num t-rotulo">(02)</div>
@@ -420,7 +441,7 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
   <section class="cajon" id="meses" role="tabpanel" aria-labelledby="tab-meses">
     <div class="marco">
       <header class="cabeza">
-        <h2 class="t-titulo">Meses 1 a 3</h2>
+        <h2 class="t-titulo vt-meses">Meses 1 a 3</h2>
         <p class="t-entrada">Al cierre del mes 3 se fijan las metas del año.</p>
       </header>
       <div class="gantt-caja">
@@ -546,25 +567,25 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
             <div class="muestra" style="background:var(--verde-oscuro)"><img src="../identidad/media/logos/coipsa-blanco.svg" alt="Logotipo de Coipsa en blanco"></div>
             <h3>Coipsa · blanco</h3>
             <span class="t-rotulo">Principal, sobre verde oscuro</span>
-            <a class="enlace" href="../identidad/media/logos/coipsa-blanco.svg" download="coipsa-blanco.svg">Descargar SVG <span aria-hidden="true">↓</span></a>
+            <a class="enlace" href="../identidad/media/logos/coipsa-blanco.svg" download="coipsa-blanco.svg">Descargar SVG <span class="flecha abajo" aria-hidden="true">↓</span></a>
           </article>
           <article class="ficha logo-ficha">
             <div class="muestra borde" style="background:var(--blanco)"><img src="media/coipsa-logotipo-color.svg" alt="Logotipo de Coipsa a color"></div>
             <h3>Coipsa · color</h3>
             <span class="t-rotulo">Sobre blanco o hueso</span>
-            <a class="enlace" href="media/coipsa-logotipo-color.svg" download="coipsa-color.svg">Descargar SVG <span aria-hidden="true">↓</span></a>
+            <a class="enlace" href="media/coipsa-logotipo-color.svg" download="coipsa-color.svg">Descargar SVG <span class="flecha abajo" aria-hidden="true">↓</span></a>
           </article>
           <article class="ficha logo-ficha">
             <div class="muestra" style="background:var(--lima)"><img src="../identidad/media/logos/coipsa-verde.svg" alt="Logotipo de Coipsa en verde oscuro"></div>
             <h3>Coipsa · verde oscuro</h3>
             <span class="t-rotulo">Sobre lima y fondos claros</span>
-            <a class="enlace" href="../identidad/media/logos/coipsa-verde.svg" download="coipsa-verde-oscuro.svg">Descargar SVG <span aria-hidden="true">↓</span></a>
+            <a class="enlace" href="../identidad/media/logos/coipsa-verde.svg" download="coipsa-verde-oscuro.svg">Descargar SVG <span class="flecha abajo" aria-hidden="true">↓</span></a>
           </article>
           <article class="ficha logo-ficha">
             <div class="muestra borde" style="background:var(--blanco)"><img class="simbolo" src="media/coipsa-simbolo-color.svg" alt="Símbolo de Coipsa"></div>
             <h3>Símbolo</h3>
             <span class="t-rotulo">Lima Recupac · verde CPP · naranja Corrupac</span>
-            <a class="enlace" href="media/coipsa-simbolo-color.svg" download="coipsa-simbolo.svg">Descargar SVG <span aria-hidden="true">↓</span></a>
+            <a class="enlace" href="media/coipsa-simbolo-color.svg" download="coipsa-simbolo.svg">Descargar SVG <span class="flecha abajo" aria-hidden="true">↓</span></a>
           </article>
           <article class="ficha logo-ficha no">
             <div class="muestra" style="background:var(--verde-oscuro)"><img src="media/coipsa-logotipo-color.svg" alt="Logotipo de Coipsa a color sobre verde oscuro"></div>
@@ -736,7 +757,20 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
   // ——— Cajones ———
   // Uno abierto cada vez. El hash guarda cuál, para poder enlazar directo
   // a la base de marca (…/forma-de-trabajo/#marca).
-  function abrir(id, { foco = false, historial = true } = {}) {
+  const quietoVT = matchMedia('(prefers-reduced-motion: reduce)');
+  function conTransicion(cambio) {
+    if (!document.startViewTransition || quietoVT.matches) { cambio(); return; }
+    document.startViewTransition(cambio);
+  }
+
+  function abrir(id, opciones = {}) {
+    const actual = cajones.findIndex(c => !c.hidden);
+    const destino = Math.max(0, cajones.findIndex(c => c.id === id));
+    if (opciones.animar && actual !== destino) conTransicion(() => abrirYa(id, opciones));
+    else abrirYa(id, opciones);
+  }
+
+  function abrirYa(id, { foco = false, historial = true } = {}) {
     const i = Math.max(0, cajones.findIndex(c => c.id === id));
     tiradores.forEach((t, j) => {
       const activo = j === i;
@@ -759,10 +793,10 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
     if (historial && location.hash !== '#' + cajones[i].id) history.replaceState(null, '', '#' + cajones[i].id);
   }
 
-  tiradores.forEach(t => t.addEventListener('click', () => abrir(t.getAttribute('aria-controls'))));
+  tiradores.forEach(t => t.addEventListener('click', () => abrir(t.getAttribute('aria-controls'), { animar: true })));
   document.querySelectorAll('[data-abrir]').forEach(a => a.addEventListener('click', e => {
     e.preventDefault();
-    abrir(a.dataset.abrir, { foco: true });
+    abrir(a.dataset.abrir, { foco: true, animar: true });
   }));
 
   document.querySelector('.tiradores').addEventListener('keydown', e => {
@@ -771,14 +805,14 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
     const j = { ArrowRight: (i + 1) % tiradores.length, ArrowLeft: (i - 1 + tiradores.length) % tiradores.length, Home: 0, End: tiradores.length - 1 }[e.key];
     if (j === undefined) return;
     e.preventDefault();
-    abrir(cajones[j].id, { foco: true });
+    abrir(cajones[j].id, { foco: true, animar: true });
   });
 
   // Teclas 1 a 4, las que el tirador lleva impresas.
   document.addEventListener('keydown', e => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const n = Number(e.key);
-    if (n >= 1 && n <= tiradores.length) abrir(cajones[n - 1].id, { foco: true });
+    if (n >= 1 && n <= tiradores.length) abrir(cajones[n - 1].id, { foco: true, animar: true });
   });
 
   window.addEventListener('hashchange', () => abrir(location.hash.slice(1), { historial: false }));
@@ -796,9 +830,12 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
     });
   }
   botonesGrupo.forEach(b => b.addEventListener('click', () => {
-    verGrupo(b.dataset.grupo);
-    // Abrir las fotos las reproduce: el gesto es de quien abre, no del scroll.
-    if (b.dataset.grupo === 'fotos') document.querySelectorAll('.aplicacion').forEach(el => repetir(el));
+    conTransicion(() => {
+      verGrupo(b.dataset.grupo);
+      // Abrir las fotos las reproduce: el gesto es de quien abre, no del scroll.
+      // Dentro del cambio, para que ya estén visibles al repetir.
+      if (b.dataset.grupo === 'fotos') document.querySelectorAll('.aplicacion').forEach(el => repetir(el));
+    });
   }));
   verGrupo('logos');
 
@@ -825,6 +862,34 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
   document.querySelectorAll('.aplicacion').forEach(el => {
     el.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') repetir(el); });
     el.addEventListener('click', () => repetir(el));
+  });
+
+  // ——— Imán ———
+  // Solo con puntero fino y sin movimiento reducido: en táctil no hay cursor
+  // que acercar, y con teclado el foco ya lo señala.
+  const fino = matchMedia('(pointer: fine)');
+  document.querySelectorAll('[data-iman]').forEach(el => {
+    let objetivo = [0, 0], actual = [0, 0], cuadro = null;
+    const TOPE = 6, ALCANCE = 1.8;
+    function paso() {
+      actual = actual.map((v, i) => v + (objetivo[i] - v) * 0.18);
+      el.style.translate = actual[0].toFixed(2) + 'px ' + actual[1].toFixed(2) + 'px';
+      const quieto = Math.abs(objetivo[0] - actual[0]) < 0.25 && Math.abs(objetivo[1] - actual[1]) < 0.25;
+      cuadro = quieto ? null : requestAnimationFrame(paso);
+      if (quieto && !objetivo[0] && !objetivo[1]) el.style.translate = '';
+    }
+    function mover(e) {
+      if (!fino.matches || quieto.matches || el.offsetParent === null) return;
+      const r = el.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+      // Distancia en la elipse del propio enlace: 1 es el borde, ALCANCE el campo.
+      const d = Math.hypot(dx / (r.width / 2), dy / (r.height / 2)) / ALCANCE;
+      const tiron = d < 1 ? Math.pow(1 - d, 1.5) : 0;
+      const n = Math.hypot(dx, dy) || 1;
+      objetivo = [dx / n * TOPE * tiron, dy / n * TOPE * tiron];
+      if (!cuadro) cuadro = requestAnimationFrame(paso);
+    }
+    document.addEventListener('pointermove', mover, { passive: true });
   });
 
   // ——— Aviso efímero ———
