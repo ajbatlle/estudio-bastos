@@ -212,6 +212,20 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
 .especimen .pesos { display: flex; gap: 16px; font-size: 14px; }
 .especimen .titular { font-size: 22px; font-weight: 700; line-height: 1.2; color: var(--carbon); }
 
+.animacion { display: grid; grid-template-columns: minmax(0, 280px) 1fr; gap: 20px; align-items: center; background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); padding: 16px; margin-bottom: 8px; }
+.animacion video { width: 100%; aspect-ratio: 4 / 5; border-radius: var(--radio-chico); background: var(--blanco); display: block; }
+.animacion h4, .tratamiento h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.animacion p { font-size: 14px; color: var(--tinta-media); margin-top: 4px; max-width: 40ch; }
+@media (max-width: 40rem) { .animacion { grid-template-columns: 1fr; } }
+.tratamiento { margin-top: 22px; }
+.tratamiento h4 span { font-weight: 400; color: var(--tinta-media); }
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.trio figure { position: relative; margin: 0; border-radius: var(--radio-chico); overflow: hidden; }
+.trio img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+/* El bloque es del tratamiento, no de la foto: va encima en CSS para que la
+   misma imagen sirva con o sin él. */
+.bloque { position: absolute; left: 0; bottom: 0; width: 40%; aspect-ratio: 2.2 / 1; background: var(--verde-oscuro); display: grid; align-items: end; padding: 9%; }
+.bloque img { width: 100%; height: auto; aspect-ratio: auto; }
 .galeria { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .foto { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio-chico); overflow: hidden; }
 .foto img { width: 100%; aspect-ratio: 1; object-fit: cover; }
@@ -377,16 +391,6 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
       </section>
 
       <section class="grupo">
-        <h3>Situación</h3>
-        <div class="fichas">
-          <article class="ficha"><h3>Fortalezas</h3><ul><li>Hace el ciclo completo: recupera, transforma y fabrica.</li><li>Plantas, máquinas y personas para mostrar.</li><li>Columnas en LinkedIn con voz propia.</li></ul></article>
-          <article class="ficha"><h3>Debilidades</h3><ul><li>Cada unidad habla por separado, con su propio sitio.</li><li>Cifras distintas según el canal.</li><li>Sin cuenta de Instagram.</li><li>Un área de comunicaciones chica para tres marcas.</li></ul></article>
-          <article class="ficha"><h3>Oportunidades</h3><ul><li>Ley REP: las empresas necesitan saber qué hacer con sus residuos y envases.</li><li>Graneros, Quilicura y la nueva máquina de Mostazal: noticias hasta 2028.</li><li>Clientes que deben reportar metas de sostenibilidad.</li></ul></article>
-          <article class="ficha"><h3>Amenazas</h3><ul><li>Desconfianza hacia los mensajes verdes: lo que no se puede probar resta.</li><li>El reciclaje es un tema en que muchos dicen lo mismo.</li></ul></article>
-        </div>
-      </section>
-
-      <section class="grupo">
         <h3>Públicos</h3>
         <div class="fichas">
           <article class="ficha"><h3>Clientes</h3><p>Empresas que generan residuos o compran papel y embalaje: gerencias de operaciones, compras y sostenibilidad.</p></article>
@@ -406,15 +410,6 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
             <li><b>Materiales al día</b> <span class="plan-nota">(planes «Marca, redes y herramientas» y «Completo»).</span> Presentación, brochure y fichas con las mismas cifras.</li>
             <li><b>Medio propio</b> <span class="plan-nota">(plan «Completo»).</span> Respuestas a lo que preguntan los clientes; LinkedIn lleva los lectores.</li>
           </ol>
-        </div>
-      </section>
-
-      <section class="grupo">
-        <h3>Recursos</h3>
-        <div class="fichas">
-          <article class="ficha"><h3>Bastos</h3><p>Estrategia, diseño, producción de piezas y herramientas, con las horas del plan elegido.</p></article>
-          <article class="ficha"><h3>Coipsa</h3><p>El área de comunicaciones como contraparte, tiempo de las áreas para entrevistas e información, y acceso a Google Analytics, a las estadísticas de LinkedIn y al administrador del sitio.</p></article>
-          <article class="ficha"><h3>Fuera del plan</h3><p>Producción de foto y video, publicidad pagada e impresión.</p></article>
         </div>
       </section>
 
@@ -448,7 +443,7 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
         <button type="button" data-grupo="logos" aria-pressed="true">Logos</button>
         <button type="button" data-grupo="colores" aria-pressed="false">Colores</button>
         <button type="button" data-grupo="letra" aria-pressed="false">Tipografía</button>
-        <button type="button" data-grupo="fotos" aria-pressed="false">Fotos</button>
+        <button type="button" data-grupo="fotos" aria-pressed="false">Fotos y movimiento</button>
         <button type="button" data-grupo="tono" aria-pressed="false">Tono</button>
       </div>
 
@@ -546,12 +541,40 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
 
       <!-- Fotos -->
       <section class="grupo" id="fotos">
-        <h3>Fotos</h3>
-        <p class="nota">Personas en su trabajo, material de cerca, plantas desde el aire. Tres tratamientos, según la pieza.</p>
-        <div class="galeria">
-          <figure class="foto"><img src="../identidad/media/foto-original.webp" alt="Fotografía de planta sin tratar"><figcaption><b>Original.</b> La foto manda.</figcaption></figure>
-          <figure class="foto"><img src="../identidad/media/foto-duotono.webp" alt="Dos trabajadores entre bobinas de papel, en duotono verde oscuro y lima"><figcaption><b>Duotono.</b> Pieza con marca.</figcaption></figure>
-          <figure class="foto"><img src="../identidad/media/foto-bn.webp" alt="Fotografía en blanco y negro con un bloque de verde"><figcaption><b>Blanco y negro con bloque.</b> Texto encima.</figcaption></figure>
+        <h3>Fotos y movimiento</h3>
+        <p class="nota">Fotos de los sitios de Coipsa: personas en su trabajo, material de cerca, camiones y plantas. Tres tratamientos, según la pieza.</p>
+
+        <div class="animacion">
+          <video src="media/coipsa-animacion.mp4" poster="media/coipsa-animacion.webp" autoplay muted loop playsinline aria-label="Animación del símbolo de Coipsa: las tres piezas se ordenan y aparece el logotipo"></video>
+          <div>
+            <h4>Animación del símbolo</h4>
+            <p>Las tres piezas se ordenan como el ciclo. Para cierres de video, presentaciones y pantallas.</p>
+          </div>
+        </div>
+
+        <div class="tratamiento">
+          <h4>Original <span>· cuando la foto manda</span></h4>
+          <div class="trio">
+            <figure><img src="media/fotos/armado-caja.webp" alt="Manos con guantes armando una caja de cartón" loading="lazy"></figure>
+            <figure><img src="media/fotos/corrugado.webp" alt="Láminas de cartón corrugado de cerca" loading="lazy"></figure>
+            <figure><img src="media/fotos/pellet.webp" alt="Pellet de plástico reciclado de Recupac" loading="lazy"></figure>
+          </div>
+        </div>
+        <div class="tratamiento">
+          <h4>Duotono <span>· cuando la pieza necesita marca</span></h4>
+          <div class="trio">
+            <figure><img src="media/fotos/camion-bobinas.webp" alt="Camión cargado con bobinas de papel, en duotono verde oscuro y lima" loading="lazy"></figure>
+            <figure><img src="media/fotos/operario.webp" alt="Operario con protección auditiva en planta, en duotono" loading="lazy"></figure>
+            <figure><img src="media/fotos/descarga.webp" alt="Camión descargando cartón para reciclar, en duotono" loading="lazy"></figure>
+          </div>
+        </div>
+        <div class="tratamiento">
+          <h4>Blanco y negro con bloque <span>· para escribir encima</span></h4>
+          <div class="trio">
+            <figure class="con-bloque"><img src="media/fotos/fardos.webp" alt="Fardos de cartón en el patio de Recupac, en blanco y negro" loading="lazy"><div class="bloque"><img src="../identidad/media/logos/coipsa-blanco.svg" alt=""></div></figure>
+            <figure class="con-bloque"><img src="media/fotos/planta.webp" alt="Operario en una línea de corrugado, en blanco y negro" loading="lazy"><div class="bloque"><img src="../identidad/media/logos/coipsa-blanco.svg" alt=""></div></figure>
+            <figure class="con-bloque"><img src="media/fotos/reciclaje.webp" alt="Trabajador de Recupac con casco junto a fardos, en blanco y negro" loading="lazy"><div class="bloque"><img src="../identidad/media/logos/coipsa-blanco.svg" alt=""></div></figure>
+          </div>
         </div>
       </section>
 
@@ -652,6 +675,19 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
   }
   botonesGrupo.forEach(b => b.addEventListener('click', () => verGrupo(b.dataset.grupo)));
   verGrupo('logos');
+
+  // ——— Animación ———
+  // Con movimiento reducido no arranca sola: queda el último cuadro y los
+  // controles, para verla si se quiere.
+  const video = document.querySelector('.animacion video');
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)');
+  function ajustarVideo() {
+    if (!video) return;
+    if (quieto.matches) { video.pause(); video.controls = true; }
+    else { video.controls = false; video.play().catch(() => { video.controls = true; }); }
+  }
+  quieto.addEventListener('change', ajustarVideo);
+  ajustarVideo();
 
   // ——— Aviso efímero ———
   const aviso = document.getElementById('aviso');
