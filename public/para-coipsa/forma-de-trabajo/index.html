@@ -12,8 +12,12 @@
 /* ──────────────────────────────────────────────────────────────────────────
    Coipsa — ¿Cómo empezamos?
    Anexo del PDF de la propuesta. Va con la marca de Coipsa y ordenado como
-   marca-coipsa.html: una caja de cajones, uno abierto cada vez, y dentro de
-   la base de marca los mismos bloques que la herramienta, en chico.
+   marca-coipsa.html: una caja de cajones, uno abierto cada vez.
+
+   El sistema es corto a propósito: un solo margen, que comparten la barra y
+   el contenido; cinco tamaños de letra; una escala de espacios en múltiplos
+   de 8; y una sola forma de ficha. Si algo no cabe en eso, se cambia el
+   contenido, no se inventa un tamaño.
 
    Sin JavaScript no hay cajones: todo se lee seguido.
    ────────────────────────────────────────────────────────────────────────── */
@@ -34,33 +38,52 @@
   --carbon:       #1E1E1E;
   /* Grises tibios para la interfaz, que conviven con el hueso. */
   --tinta-media:  #5B5B5B;
-  --tinta-tenue:  #7d7a77;
-  --linea:        #E4E0DC;
+  --tinta-tenue:  #85817D;
+  --linea:        #E2DDD8;
   --verde-claro:  #88BBA9;
 
-  --radio:        18px;
-  --radio-chico:  12px;
-  --curva:        cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* Espacios: múltiplos de 8. */
+  --e1: 8px;  --e2: 16px; --e3: 24px; --e4: 32px;
+  --e5: 48px; --e6: 64px; --e7: 96px;
+
+  /* El margen lateral es uno solo, para la barra y para el contenido. */
+  --margen: clamp(20px, 5vw, 64px);
+  --ancho:  1200px;
+
+  --radio:       20px;
+  --radio-chico: 12px;
+  --curva:       cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 * { box-sizing: border-box; }
-h1, h2, h3, p, ul, figure { margin: 0; }
+h1, h2, h3, h4, p, ul, ol, figure { margin: 0; }
 img { display: block; max-width: 100%; }
 [hidden] { display: none !important; }
 
 body {
   margin: 0;
   background: var(--hueso); color: var(--carbon);
-  font: 400 15px/1.55 'Poppins', system-ui, -apple-system, sans-serif;
+  font: 400 15px/1.6 'Poppins', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 button { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--verde); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--verde); outline-offset: 3px; }
 
 .oculto-visual {
   position: absolute; width: 1px; height: 1px;
   overflow: hidden; clip-path: inset(50%); white-space: nowrap;
 }
+
+.marco { width: min(100% - 2 * var(--margen), var(--ancho)); margin-inline: auto; }
+
+/* ——— Escala tipográfica ———
+   Cinco tamaños y nada más: título de cajón, entrada, título de bloque,
+   texto y rótulo. */
+.t-titulo   { font-size: clamp(34px, 1.6vw + 24px, 52px); line-height: 1.05; font-weight: 600; letter-spacing: -0.035em; color: var(--verde-oscuro); }
+.t-entrada  { font-size: clamp(17px, 0.3vw + 15px, 20px); line-height: 1.5; color: var(--tinta-media); letter-spacing: -0.005em; }
+.t-bloque   { font-size: 20px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+.t-rotulo   { font-size: 12px; line-height: 1.4; font-weight: 400; color: var(--tinta-tenue); font-variant-numeric: tabular-nums; }
 
 /* ——— Caja de cajones ———
    Con guion, la caja ocupa la pantalla y se desplaza el cajón abierto: la
@@ -69,37 +92,33 @@ button { font: inherit; color: inherit; }
 html.cajones, html.cajones body { height: 100%; overflow: hidden; }
 html.cajones body { display: grid; grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
 
-.barra {
-  background: var(--verde-oscuro); color: var(--blanco);
-  display: flex; align-items: center; gap: 14px 28px; flex-wrap: wrap;
-  padding: 16px 28px;
-}
-.barra .logo { height: 22px; width: auto; }
-.barra .nombre { display: grid; line-height: 1.3; }
-.barra .nombre b { font-weight: 600; font-size: 15px; }
-.barra .nombre span { font-size: 12px; opacity: 0.75; }
+.barra { background: var(--verde-oscuro); color: var(--blanco); }
+.barra .marco { display: flex; align-items: center; gap: var(--e2) var(--e4); flex-wrap: wrap; min-height: 72px; padding-block: var(--e2); }
+.barra .logo { height: 20px; width: auto; }
+.barra .nombre { display: grid; gap: 2px; padding-left: var(--e4); border-left: 1px solid rgb(255 255 255 / 0.2); }
+.barra .nombre b { font-weight: 600; font-size: 14px; line-height: 1.2; }
+.barra .nombre span { font-size: 12px; line-height: 1.2; color: rgb(255 255 255 / 0.65); }
 
 /* Sin guion no hay tiradores: no abrirían nada. */
 .tiradores { display: none; }
 html.cajones .tiradores {
   position: relative;
-  display: flex; gap: 4px; margin-left: auto;
-  background: rgb(255 255 255 / 0.1); padding: 4px; border-radius: 999px;
+  display: flex; gap: 2px; margin-left: auto;
   overflow-x: auto; max-width: 100%; scrollbar-width: none;
 }
 .tirador {
-  border: 0; background: transparent; padding: 7px 15px; border-radius: 999px;
-  font-weight: 600; font-size: 13px; color: rgb(255 255 255 / 0.8);
+  border: 0; background: transparent; padding: 8px 14px; border-radius: 999px;
+  font-weight: 400; font-size: 13px; line-height: 1; color: rgb(255 255 255 / 0.7);
   display: flex; gap: 8px; align-items: baseline; white-space: nowrap;
   transition: background 150ms var(--curva), color 150ms var(--curva);
 }
 /* El número de la tecla va en el tirador: el atajo se enseña. */
-.tirador kbd { font: 500 11px/1 inherit; font-variant-numeric: tabular-nums; opacity: 0.65; }
+.tirador kbd { font: 400 11px/1 inherit; font-variant-numeric: tabular-nums; opacity: 0.6; }
 .tirador:hover { color: var(--blanco); }
-.tirador[aria-selected="true"] { background: var(--lima); color: var(--verde-oscuro); }
+.tirador[aria-selected="true"] { background: var(--lima); color: var(--verde-oscuro); font-weight: 600; }
 .tirador:focus-visible { outline: 2px solid var(--lima); outline-offset: 2px; }
 
-.cajon { padding: 36px 28px 72px; }
+.cajon { padding-block: var(--e6) var(--e7); }
 /* El main es la celda que se encoge; el cajón abierto la llena y es lo único
    que se desplaza. Sin el min-height: 0, el main crece con su contenido y
    empuja la barra fuera de la pantalla. */
@@ -107,148 +126,219 @@ html.cajones main { min-height: 0; display: grid; overflow: hidden; }
 html.cajones .cajon { overflow: auto; min-height: 0; }
 .cajon + .cajon { border-top: 1px solid var(--linea); }
 html.cajones .cajon + .cajon { border-top: 0; }
-.ancho-lectura { max-width: 1120px; margin-inline: auto; }
 
-.intro { max-width: 60ch; margin-bottom: 24px; }
-.intro h2 { font-size: clamp(1.4rem, 1.2rem + 0.8vw, 1.8rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--verde-oscuro); }
-.intro p { color: var(--tinta-media); margin-top: 6px; }
+.cabeza { display: grid; gap: var(--e2); max-width: 760px; margin-bottom: var(--e6); }
 
-.grupo { margin-bottom: 36px; }
-.grupo > h3 { font-size: 1.05rem; font-weight: 700; color: var(--verde-oscuro); }
-.grupo > .nota { color: var(--tinta-media); font-size: 13.5px; margin: 2px 0 14px; max-width: 70ch; }
+/* ——— Bloques ———
+   Dos columnas: a la izquierda el título y la nota, a la derecha el
+   contenido. Cada bloque abre con una línea fina, que es el único
+   separador de la página. */
+.bloque { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: var(--e3) var(--e5); padding-top: var(--e4); border-top: 1px solid var(--linea); }
+.bloque + .bloque { margin-top: var(--e6); }
+.bloque-lado { display: grid; gap: var(--e1); align-content: start; }
+.bloque-lado p { font-size: 14px; color: var(--tinta-media); }
+@media (max-width: 56rem) { .bloque { grid-template-columns: minmax(0, 1fr); } }
 
-.fichas { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
-.ficha { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); padding: 18px 20px; display: grid; gap: 6px; align-content: start; }
-.ficha h3 { font-size: 15.5px; font-weight: 600; line-height: 1.3; }
-.ficha p { font-size: 14px; color: var(--tinta-media); }
-.ficha .meta { font-size: 12.5px; color: var(--tinta-tenue); }
+/* ——— Fichas ———
+   Una sola forma: número arriba a la derecha sobre una línea fina, y el
+   contenido abajo. */
+.fichas { display: grid; gap: var(--e2); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.ficha { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); padding: var(--e3); display: flex; flex-direction: column; gap: var(--e1); }
+.ficha-num { display: flex; justify-content: flex-end; padding-bottom: var(--e2); margin-bottom: var(--e4); border-bottom: 1px solid var(--carbon); }
+.ficha h3 { font-size: 17px; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; }
+.ficha p { font-size: 14px; line-height: 1.55; color: var(--tinta-media); }
 
-.boton {
-  justify-self: start; display: inline-block;
-  border: 1px solid var(--linea); background: var(--blanco); color: var(--carbon);
-  border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 600; text-decoration: none;
-  transition: border-color 150ms var(--curva), color 150ms var(--curva);
+.enlace {
+  display: inline-flex; align-items: center; gap: var(--e1); align-self: flex-start;
+  font-size: 13px; font-weight: 600; color: var(--verde-oscuro); text-decoration: none;
+  padding-bottom: 4px; border-bottom: 1px solid currentColor;
+  transition: color 150ms var(--curva);
 }
-.boton:hover { border-color: var(--verde-oscuro); color: var(--verde-oscuro); }
-.boton.principal { background: var(--verde-oscuro); border-color: var(--verde-oscuro); color: var(--blanco); padding: 6px 14px; }
-.boton.principal:hover { background: var(--verde); }
+.enlace:hover { color: var(--verde); }
 
 /* ——— Método ——— */
-
-.trimestre .numero {
-  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--hueso); color: var(--verde-oscuro); font-weight: 700; font-size: 14px;
-}
-.trimestre.actual { box-shadow: inset 0 0 0 1px var(--verde-oscuro); border-color: var(--verde-oscuro); }
-.trimestre.actual .numero { background: var(--lima); }
+.trimestre.actual { background: var(--verde-oscuro); border-color: var(--verde-oscuro); color: var(--blanco); }
+.trimestre.actual .ficha-num { border-color: rgb(255 255 255 / 0.5); }
+.trimestre.actual .t-rotulo, .trimestre.actual p { color: rgb(255 255 255 / 0.75); }
+.trimestre.actual .enlace { color: var(--lima); margin-top: auto; }
+.trimestre p { margin-bottom: var(--e3); }
+/* Cuatro trimestres: cuatro columnas, o dos por dos; nunca tres y uno. */
+#metodo .fichas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 64rem) { #metodo .fichas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 40rem) { #metodo .fichas, #logos .fichas { grid-template-columns: minmax(0, 1fr); } }
 
 /* ——— Meses 1 a 3 ———
    Una tabla y no un dibujo: el lector de pantalla oye las semanas que en
    pantalla dice la posición de la barra. La pista es una sola celda de doce
    semanas; las barras se ubican en porcentaje. */
-
-.gantt-ficha { overflow-x: auto; padding: 20px 22px; }
-.gantt { width: 100%; min-width: 620px; border-collapse: collapse; table-layout: fixed; font-size: 13.5px; line-height: 1.35; }
-.gantt col.tarea { width: 46%; }
-.gantt th, .gantt td { padding: 0; text-align: left; }
-.gantt thead th { font-weight: 600; font-size: 12.5px; color: var(--tinta-media); padding: 0 0 8px 8px; border-bottom: 1px solid var(--carbon); }
+.gantt-caja { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); padding: var(--e4); overflow-x: auto; }
+.gantt { width: 100%; min-width: 680px; border-collapse: collapse; table-layout: fixed; font-size: 14px; line-height: 1.35; }
+.gantt col.tarea { width: 44%; }
+.gantt th, .gantt td { padding: 0; text-align: left; font-weight: 400; }
+.gantt thead th { font-size: 12px; color: var(--tinta-tenue); padding: 0 0 var(--e1) var(--e1); border-bottom: 1px solid var(--carbon); }
 .gantt thead th + th { border-left: 1px solid var(--linea); }
-.gantt tbody th { font-weight: 400; padding: 6px 16px 6px 0; vertical-align: middle; }
-.gantt tbody tr { border-bottom: 1px solid #f0ede9; }
+.gantt tbody th { height: 40px; padding-right: var(--e3); vertical-align: middle; }
+.gantt tbody tr { border-bottom: 1px solid #EFEBE7; }
 .gantt tr.grupo-g { border-bottom: 0; }
-.gantt tr.grupo-g th { font-weight: 700; color: var(--verde-oscuro); padding-top: 16px; }
+.gantt tr.grupo-g th { height: auto; padding-top: var(--e4); padding-bottom: var(--e1); font-size: 13px; font-weight: 600; color: var(--verde-oscuro); }
+.gantt tbody tr.grupo-g:first-child th { padding-top: var(--e3); }
 .pista {
   position: relative;
   background-image: linear-gradient(to right, var(--linea) 1px, transparent 1px);
   background-size: calc(100% / 3) 100%;
 }
-.barra-g { position: absolute; top: 50%; height: 11px; translate: 0 -50%; background: var(--verde-oscuro); border-radius: 999px; }
+.barra-g { position: absolute; top: 50%; height: 8px; translate: 0 -50%; background: var(--verde-oscuro); border-radius: 999px; }
 .barra-g.segun-plan { background: var(--verde-claro); }
-.hito { position: absolute; top: 50%; width: 11px; height: 11px; translate: -50% -50%; rotate: 45deg; background: var(--naranja); }
+.hito { position: absolute; top: 50%; width: 9px; height: 9px; translate: -50% -50%; rotate: 45deg; background: var(--naranja); }
 
-.leyenda { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 14px; font-size: 12.5px; color: var(--tinta-media); }
-.leyenda span { display: inline-flex; align-items: center; gap: 8px; }
-.leyenda i { width: 22px; height: 9px; border-radius: 999px; background: var(--verde-oscuro); }
+.leyenda { display: flex; flex-wrap: wrap; gap: var(--e1) var(--e3); margin-top: var(--e3); font-size: 12px; color: var(--tinta-tenue); }
+.leyenda span { display: inline-flex; align-items: center; gap: var(--e1); }
+.leyenda i { width: 20px; height: 8px; border-radius: 999px; background: var(--verde-oscuro); }
 .leyenda i.segun-plan { background: var(--verde-claro); }
-.leyenda i.hito { position: static; width: 9px; height: 9px; border-radius: 0; translate: none; background: var(--naranja); }
+.leyenda i.hito { position: static; width: 8px; height: 8px; border-radius: 0; translate: none; background: var(--naranja); }
 
-.ficha ul, .acciones-lista { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; color: var(--tinta-media); }
-.acciones-lista { gap: 8px; }
-.acciones-lista b { color: var(--carbon); font-weight: 600; }
-.plan-nota { font-size: 12.5px; color: var(--tinta-tenue); }
-.objetivo { font-size: 17px !important; font-weight: 600; color: var(--verde-oscuro) !important; max-width: 62ch; }
-.indicadores { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.indicadores th, .indicadores td { text-align: left; vertical-align: top; padding: 8px 14px 8px 0; border-bottom: 1px solid var(--linea); }
-.indicadores thead th { font-size: 12.5px; font-weight: 600; color: var(--tinta-media); border-bottom-color: var(--carbon); }
+/* ——— Estrategia ——— */
+.objetivo { font-size: clamp(22px, 0.8vw + 16px, 28px); line-height: 1.3; font-weight: 600; letter-spacing: -0.02em; color: var(--verde-oscuro); max-width: 30ch; }
+.objetivo + .t-rotulo { margin-top: var(--e2); font-size: 13px; }
+
+/* Lista de filas: número, título y texto, separadas por líneas finas. */
+.filas { list-style: none; padding: 0; border-top: 1px solid var(--carbon); }
+.filas li { display: grid; grid-template-columns: 40px minmax(0, 220px) minmax(0, 1fr); gap: var(--e2); padding-block: var(--e2); border-bottom: 1px solid var(--linea); font-size: 14px; }
+.filas .t-rotulo { padding-top: 2px; }
+.filas b { font-weight: 600; }
+.filas span:last-child { color: var(--tinta-media); }
+.filas .plan-nota { display: block; color: var(--tinta-tenue); font-size: 12px; }
+@media (max-width: 40rem) { .filas li { grid-template-columns: 32px minmax(0, 1fr); } .filas li > span:last-child { grid-column: 2; } }
+
+.tabla-envoltura { overflow-x: auto; }
+.indicadores { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
+.indicadores th, .indicadores td { text-align: left; vertical-align: top; padding: var(--e2) var(--e3) var(--e2) 0; border-bottom: 1px solid var(--linea); font-weight: 400; }
+.indicadores thead th { font-size: 12px; color: var(--tinta-tenue); padding-top: 0; padding-bottom: var(--e1); border-bottom-color: var(--carbon); }
 .indicadores tbody th { font-weight: 600; white-space: nowrap; }
 .indicadores td { color: var(--tinta-media); }
-.indicadores tr:last-child > * { border-bottom: 0; }
+.indicadores-pie { margin-top: var(--e2); }
 
 /* ——— Base de marca ——— */
 
 /* Los bloques de la base de marca, como los cajones de la herramienta pero
    dentro de uno: un segmento elige cuál se ve. Sin guion se ven todos. */
 .segmento { display: none; }
-html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: 2px; background: var(--blanco); border: 1px solid var(--linea); padding: 3px; border-radius: 999px; margin-bottom: 24px; }
-.segmento button { white-space: nowrap; border: 0; background: transparent; padding: 5px 13px; border-radius: 999px; font-size: 13px; color: var(--tinta-media); }
+html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: 2px; background: var(--blanco); border: 1px solid var(--linea); padding: 4px; border-radius: 999px; margin-bottom: var(--e5); }
+.segmento button { white-space: nowrap; border: 0; background: transparent; padding: 8px 16px; border-radius: 999px; font-size: 13px; line-height: 1; color: var(--tinta-media); }
 .segmento button[aria-pressed="true"] { background: var(--verde-oscuro); color: var(--blanco); font-weight: 600; }
+/* Con el segmento se ve un bloque a la vez: sin línea ni margen de arriba. */
+html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
 
-.muestra { height: 132px; display: grid; place-items: center; padding: 26px; border-radius: var(--radio-chico); }
-.muestra img { max-width: 100%; max-height: 54px; }
+.muestra { aspect-ratio: 16 / 10; display: grid; place-items: center; padding: 18%; border-radius: var(--radio-chico); margin-bottom: var(--e2); }
+.muestra img { width: 100%; max-height: 56px; object-fit: contain; }
 .borde { box-shadow: inset 0 0 0 1px var(--linea); }
-.ficha .acciones { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.logo-ficha h3 { font-size: 15px; }
+/* Ocho logos en dos columnas: cuatro filas parejas, sin huérfanos. */
+#logos .fichas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.muestra img.simbolo { max-height: 88px; }
+.logo-ficha .enlace { margin-top: var(--e2); }
+.logo-ficha.no h3 { color: #B23A00; }
 
-
-.colores { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.colores { display: grid; gap: var(--e2); grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .color { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio-chico); overflow: hidden; }
-.color .plano { height: 84px; border-bottom: 1px solid var(--linea); }
-.color .datos { padding: 9px 12px 11px; display: grid; gap: 2px; font-size: 12.5px; color: var(--tinta-media); font-variant-numeric: tabular-nums; }
-.color .datos b { color: var(--carbon); font-size: 13.5px; }
-.copiable { border: 0; background: none; padding: 0; text-align: left; font-weight: 700; font-size: 14px; color: var(--carbon); font-variant-numeric: tabular-nums; justify-self: start; }
+.color .plano { aspect-ratio: 4 / 3; border-bottom: 1px solid var(--linea); }
+.color .datos { padding: 12px var(--e2) var(--e2); display: grid; gap: 2px; }
+.color .datos b { font-size: 14px; font-weight: 600; }
+.copiable { border: 0; background: none; padding: 0; text-align: left; font-size: 13px; color: var(--carbon); font-variant-numeric: tabular-nums; justify-self: start; }
 .copiable:hover { color: var(--verde); text-decoration: underline; text-underline-offset: 3px; }
-.proporcion { display: flex; height: 22px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--linea); margin-top: 16px; }
+.proporcion { display: flex; height: 8px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--linea); margin-top: var(--e4); }
+.proporcion + .t-rotulo { margin-top: var(--e1); }
 
-.especimen .aa { font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: var(--verde-oscuro); }
-.especimen .pesos { display: flex; gap: 16px; font-size: 14px; }
-.especimen .titular { font-size: 22px; font-weight: 700; line-height: 1.2; color: var(--carbon); }
+.especimen { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--e2); }
+@media (max-width: 40rem) { .especimen { grid-template-columns: minmax(0, 1fr); } }
+.especimen .ficha { min-height: 280px; }
+.especimen .aa { font-size: 120px; font-weight: 600; line-height: 0.9; letter-spacing: -0.04em; color: var(--verde-oscuro); margin-top: auto; }
+.especimen .pesos { display: flex; gap: var(--e3); font-size: 14px; margin-top: var(--e3); }
+.especimen .titular { font-size: 28px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--carbon); margin-top: auto; }
 
-.animacion { display: grid; grid-template-columns: minmax(0, 280px) 1fr; gap: 20px; align-items: center; background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); padding: 16px; margin-bottom: 8px; }
+.animacion { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: var(--e4); align-items: end; background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); padding: var(--e3); margin-bottom: var(--e5); }
 .animacion video { width: 100%; aspect-ratio: 4 / 5; border-radius: var(--radio-chico); background: var(--blanco); display: block; }
-.animacion h4, .tratamiento h4 { margin: 0; font-size: 15px; font-weight: 600; }
-.animacion p { font-size: 14px; color: var(--tinta-media); margin-top: 4px; max-width: 40ch; }
-@media (max-width: 40rem) { .animacion { grid-template-columns: 1fr; } }
-.tratamiento { margin-top: 22px; }
-.tratamiento h4 span { font-weight: 400; color: var(--tinta-media); }
-.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
-.trio figure { position: relative; margin: 0; border-radius: var(--radio-chico); overflow: hidden; }
-.trio img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
-/* El bloque es del tratamiento, no de la foto: va encima en CSS para que la
-   misma imagen sirva con o sin él. */
-.bloque { position: absolute; left: 0; bottom: 0; width: 40%; aspect-ratio: 2.2 / 1; background: var(--verde-oscuro); display: grid; align-items: end; padding: 9%; }
-.bloque img { width: 100%; height: auto; aspect-ratio: auto; }
-.galeria { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
-.foto { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio-chico); overflow: hidden; }
-.foto img { width: 100%; aspect-ratio: 1; object-fit: cover; }
-.foto figcaption { padding: 8px 12px 10px; font-size: 13px; color: var(--tinta-media); }
-.foto figcaption b { color: var(--carbon); font-weight: 600; }
+.animacion h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.animacion p { font-size: 14px; color: var(--tinta-media); margin-top: var(--e1); max-width: 36ch; }
+@media (max-width: 40rem) { .animacion { grid-template-columns: minmax(0, 1fr); } }
 
-.personalidad { font-size: 18px; font-weight: 700; color: var(--verde-oscuro); max-width: 40ch; margin-bottom: 6px; }
-.descripcion-tono { color: var(--tinta-media); max-width: 60ch; margin-bottom: 20px; }
-.nota-canales { font-size: 13.5px; font-weight: 600; margin-bottom: 10px; }
+/* Aplicaciones sobre foto. Por defecto se ve el estado final: es lo que
+   queda sin guion o con movimiento reducido. El guion pone .inicio, fuerza
+   un cuadro y la quita; las transiciones hacen el resto. Sin keyframes, para
+   que repetir sea solo eso. */
+.aplicaciones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e5) var(--e3); }
+@media (max-width: 52rem) { .aplicaciones { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.aplicacion-ficha { margin: 0; }
+.aplicacion-ficha figcaption { display: grid; gap: 2px; margin-top: var(--e2); }
+.aplicacion-ficha figcaption b { font-size: 15px; font-weight: 600; }
+.aplicacion-ficha figcaption span { font-size: 13px; color: var(--tinta-media); }
+.aplicacion { all: unset; box-sizing: border-box; container-type: inline-size; position: relative; display: block; width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: var(--radio-chico); background: var(--verde-oscuro); }
+.aplicacion:focus-visible { outline: 2px solid var(--verde); outline-offset: 3px; }
+.aplicacion img { display: block; }
+.foto-base, .foto-duotono { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* El logo va siempre en el mismo lugar y del mismo tamaño: 7 % del borde,
+   28 % del ancho. Las seis piezas se comparan mejor así. */
+.logo-foto { position: absolute; left: 7%; bottom: 7%; width: 28%; height: auto; transition: opacity 600ms var(--curva) 500ms; }
+.inicio .logo-foto { opacity: 0; transition: none; }
 
-.pie { margin-top: 12px; font-size: 12.5px; color: var(--tinta-tenue); }
+/* 1 · Franjas del ciclo */
+.franja { position: absolute; left: 0; height: 2%; width: var(--w); background: var(--c); transform-origin: left; transition: transform 700ms var(--curva); }
+.franja:nth-of-type(1) { bottom: 23%; }
+.franja:nth-of-type(2) { bottom: 20%; transition-delay: 90ms; }
+.franja:nth-of-type(3) { bottom: 17%; transition-delay: 180ms; }
+.inicio .franja { transform: scaleX(0); transition: none; }
+
+/* 2 · Símbolo al borde: gira un tercio de vuelta, lo que mide una pieza. */
+.simbolo-borde { position: absolute; right: -20%; bottom: -20%; width: 60%; height: auto; transition: transform 1100ms var(--curva), opacity 400ms var(--curva); }
+.inicio .simbolo-borde { transform: translate(30%, 30%) rotate(-120deg); opacity: 0; transition: none; }
+
+/* 3 · Viraje a duotono */
+.foto-duotono { transition: opacity 1400ms var(--curva) 150ms; }
+.inicio .foto-duotono { opacity: 0; transition: none; }
+
+/* 4 · Bloque: el logo cae en el mismo lugar que en las otras piezas. */
+.plano { position: absolute; left: 0; bottom: 0; width: 42%; height: 21%; background: var(--verde-oscuro); transition: transform 800ms var(--curva); }
+.plano img { position: absolute; left: 16.7%; bottom: 33%; width: 66.7%; height: auto; transition: opacity 500ms var(--curva) 450ms; }
+.inicio .plano { transform: translateX(-101%); transition: none; }
+.inicio .plano img { opacity: 0; transition: none; }
+
+/* 5 · Ventana: el hexágono del centro del símbolo, con sus seis puntos
+   siempre presentes para que clip-path pueda interpolar. */
+.ventana .foto-base { clip-path: polygon(50% 10%, 81% 28%, 81% 64%, 50% 82%, 19% 64%, 19% 28%); transition: clip-path 1000ms var(--curva); }
+.ventana.inicio .foto-base { clip-path: polygon(50% 46%, 50% 46%, 50% 46%, 50% 46%, 50% 46%, 50% 46%); transition: none; }
+
+/* 6 · Firma con unidad */
+.firma-unidad::after { content: ""; position: absolute; inset: 50% 0 0 0; background: linear-gradient(to top, rgb(0 0 0 / 0.5), transparent); transition: opacity 600ms var(--curva); }
+.pie-foto { position: absolute; left: 7%; right: 7%; bottom: 7%; z-index: 1; display: grid; gap: 3.5cqi; color: var(--blanco); transition: transform 700ms var(--curva), opacity 700ms var(--curva); }
+.pie-foto img { width: 30.1%; height: auto; }
+/* La pieza se lee como una imagen: el texto escala con ella, no con la pantalla. */
+.pie-foto .unidad { display: flex; align-items: center; gap: 2cqi; font-size: 4.3cqi; line-height: 1; white-space: nowrap; }
+.pie-foto .unidad i { width: 2.8cqi; height: 2.8cqi; border-radius: 50%; background: var(--c); flex: none; }
+.inicio .pie-foto { transform: translateY(12px); opacity: 0; transition: none; }
+.firma-unidad.inicio::after { opacity: 0; transition: none; }
+
+.personalidad { font-size: clamp(22px, 0.8vw + 16px, 28px); line-height: 1.3; font-weight: 600; letter-spacing: -0.02em; color: var(--verde-oscuro); max-width: 26ch; }
+.descripcion-tono { margin-top: var(--e2); max-width: 52ch; color: var(--tinta-media); }
+.canales { margin-top: var(--e5); }
+.canales > .t-rotulo { margin-bottom: var(--e2); }
+/* Cuatro canales en dos por dos, para que no quede uno solo abajo. */
+.canales .fichas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 40rem) { .canales .fichas { grid-template-columns: minmax(0, 1fr); } }
+
+.pie { margin-top: var(--e7); padding-top: var(--e3); border-top: 1px solid var(--linea); }
 
 /* Aviso efímero: uno cada vez, y breve. */
 .aviso {
-  position: fixed; left: 50%; bottom: 24px; translate: -50% 12px; opacity: 0;
-  background: var(--carbon); color: var(--blanco); font-size: 13px; padding: 8px 16px; border-radius: 999px;
+  position: fixed; left: 50%; bottom: var(--e3); translate: -50% 12px; opacity: 0;
+  background: var(--carbon); color: var(--blanco); font-size: 13px; padding: var(--e1) var(--e2); border-radius: 999px;
   pointer-events: none; transition: opacity 200ms var(--curva), translate 200ms var(--curva);
 }
 .aviso.visible { opacity: 1; translate: -50% 0; }
 
 @media (max-width: 40rem) {
-  .barra { padding: 14px 18px; }
-  .cajon { padding: 28px 18px 56px; }
+  .barra .nombre { padding-left: 0; border-left: 0; }
+  .cajon { padding-block: var(--e5) var(--e6); }
+  .cabeza { margin-bottom: var(--e5); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -259,7 +349,8 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
 @media print {
   html.cajones, html.cajones body { height: auto; overflow: visible; display: block; }
   html.cajones .tiradores, html.cajones .segmento { display: none !important; }
-  .cajon[hidden], .grupo[hidden] { display: block !important; }
+  .cajon[hidden], .bloque[hidden] { display: grid !important; }
+  .cajon[hidden] { display: block !important; }
   .cajon { break-before: page; }
   .cajon:first-of-type { break-before: auto; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -270,52 +361,53 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
 <body>
 
 <header class="barra">
-  <img class="logo" src="../identidad/media/logos/coipsa-blanco.svg" alt="Coipsa" width="190" height="34">
-  <div class="nombre">
-    <b>¿Cómo empezamos?</b>
-    <span>Estudio Bastos · octubre de 2026</span>
+  <div class="marco">
+    <img class="logo" src="../identidad/media/logos/coipsa-blanco.svg" alt="Coipsa" width="190" height="34">
+    <div class="nombre">
+      <b>¿Cómo empezamos?</b>
+      <span>Estudio Bastos · octubre de 2026</span>
+    </div>
+    <nav class="tiradores" role="tablist" aria-label="Secciones">
+      <button class="tirador" role="tab" id="tab-metodo" aria-controls="metodo" aria-selected="true"><kbd>1</kbd>Método</button>
+      <button class="tirador" role="tab" id="tab-meses" aria-controls="meses" aria-selected="false" tabindex="-1"><kbd>2</kbd>Meses 1 a 3</button>
+      <button class="tirador" role="tab" id="tab-estrategia" aria-controls="estrategia" aria-selected="false" tabindex="-1"><kbd>3</kbd>Estrategia</button>
+      <button class="tirador" role="tab" id="tab-marca" aria-controls="marca" aria-selected="false" tabindex="-1"><kbd>4</kbd>Base de marca</button>
+    </nav>
   </div>
-  <nav class="tiradores" role="tablist" aria-label="Secciones">
-    <button class="tirador" role="tab" id="tab-metodo" aria-controls="metodo" aria-selected="true"><kbd>1</kbd>Método</button>
-    <button class="tirador" role="tab" id="tab-meses" aria-controls="meses" aria-selected="false" tabindex="-1"><kbd>2</kbd>Meses 1 a 3</button>
-    <button class="tirador" role="tab" id="tab-estrategia" aria-controls="estrategia" aria-selected="false" tabindex="-1"><kbd>3</kbd>Estrategia</button>
-    <button class="tirador" role="tab" id="tab-marca" aria-controls="marca" aria-selected="false" tabindex="-1"><kbd>4</kbd>Base de marca</button>
-  </nav>
 </header>
 
 <main>
 
   <!-- ══ 1 · MÉTODO ════════════════════════════════════════════════════════ -->
   <section class="cajon" id="metodo" role="tabpanel" aria-labelledby="tab-metodo">
-    <div class="ancho-lectura">
-      <div class="intro">
-        <h2>Método</h2>
-        <p>Un año en cuatro trimestres. Redes, materiales y herramientas avanzan desde el primer mes.</p>
-      </div>
+    <div class="marco">
+      <header class="cabeza">
+        <h2 class="t-titulo">Método</h2>
+      </header>
       <div class="fichas">
         <article class="ficha trimestre actual">
-          <span class="numero" aria-hidden="true">1</span>
+          <div class="ficha-num t-rotulo">(01)</div>
+          <span class="t-rotulo">Meses 1 a 3</span>
           <h3>Escuchar</h3>
-          <span class="meta">Meses 1 a 3</span>
           <p>Entrevistas, revisión de lo que hay y medición de cómo están hoy las redes y el sitio.</p>
-          <a class="boton principal" href="#meses" data-abrir="meses">Ver meses 1 a 3</a>
+          <a class="enlace" href="#meses" data-abrir="meses">Ver meses 1 a 3 <span aria-hidden="true">→</span></a>
         </article>
         <article class="ficha trimestre">
-          <span class="numero" aria-hidden="true">2</span>
+          <div class="ficha-num t-rotulo">(02)</div>
+          <span class="t-rotulo">Meses 4 a 6</span>
           <h3>Ordenar</h3>
-          <span class="meta">Meses 4 a 6</span>
           <p>Estrategia, pilares de contenido, metas y decisiones de marca pendientes.</p>
         </article>
         <article class="ficha trimestre">
-          <span class="numero" aria-hidden="true">3</span>
+          <div class="ficha-num t-rotulo">(03)</div>
+          <span class="t-rotulo">Meses 7 a 9</span>
           <h3>Diseñar</h3>
-          <span class="meta">Meses 7 a 9</span>
           <p>Manual de marca, recursos gráficos y herramientas.</p>
         </article>
         <article class="ficha trimestre">
-          <span class="numero" aria-hidden="true">4</span>
+          <div class="ficha-num t-rotulo">(04)</div>
+          <span class="t-rotulo">Meses 10 a 12</span>
           <h3>Entregar</h3>
-          <span class="meta">Meses 10 a 12</span>
           <p>Todo en uso. Reporte anual comparado con la medición inicial.</p>
         </article>
       </div>
@@ -324,12 +416,12 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
 
   <!-- ══ 2 · MESES 1 A 3 ═══════════════════════════════════════════════════ -->
   <section class="cajon" id="meses" role="tabpanel" aria-labelledby="tab-meses">
-    <div class="ancho-lectura">
-      <div class="intro">
-        <h2>Meses 1 a 3</h2>
-        <p>Al cierre del mes 3 se fijan las metas del año.</p>
-      </div>
-      <div class="ficha gantt-ficha">
+    <div class="marco">
+      <header class="cabeza">
+        <h2 class="t-titulo">Meses 1 a 3</h2>
+        <p class="t-entrada">Al cierre del mes 3 se fijan las metas del año.</p>
+      </header>
+      <div class="gantt-caja">
         <table class="gantt">
           <caption class="oculto-visual">Plan de los meses 1 a 3, por semana</caption>
           <colgroup><col class="tarea"><col><col><col></colgroup>
@@ -376,46 +468,44 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
 
   <!-- ══ 3 · ESTRATEGIA ════════════════════════════════════════════════════ -->
   <section class="cajon" id="estrategia" role="tabpanel" aria-labelledby="tab-estrategia">
-    <div class="ancho-lectura">
-      <div class="intro">
-        <h2>Estrategia de partida</h2>
-        <p>Se ajusta al cierre del mes 3, con lo que salga de las entrevistas y la medición inicial.</p>
-      </div>
+    <div class="marco">
+      <header class="cabeza">
+        <h2 class="t-titulo">Estrategia de partida</h2>
+        <p class="t-entrada">Se ajusta al cierre del mes 3, con lo que salga de las entrevistas y la medición inicial.</p>
+      </header>
 
-      <section class="grupo">
-        <h3>Objetivo</h3>
-        <div class="ficha">
+      <section class="bloque">
+        <div class="bloque-lado"><h3 class="t-bloque">Objetivo</h3></div>
+        <div>
           <p class="objetivo">Que en 2027 Coipsa se reconozca como una sola marca, con Recupac, CPP y Corrupac como partes de un mismo ciclo, y que su presencia en LinkedIn e Instagram crezca contra la medición inicial.</p>
-          <p>Las metas en cifras se fijan en la semana 12, cuando ya sabemos desde dónde partimos.</p>
+          <p class="t-rotulo">Las metas en cifras se fijan en la semana 12, cuando ya sabemos desde dónde partimos.</p>
         </div>
       </section>
 
-      <section class="grupo">
-        <h3>Públicos</h3>
+      <section class="bloque">
+        <div class="bloque-lado"><h3 class="t-bloque">Públicos</h3></div>
         <div class="fichas">
-          <article class="ficha"><h3>Clientes</h3><p>Empresas que generan residuos o compran papel y embalaje: gerencias de operaciones, compras y sostenibilidad.</p></article>
-          <article class="ficha"><h3>Industria y autoridades</h3><p>Gremios, prensa del sector y quienes regulan.</p></article>
-          <article class="ficha"><h3>Talento</h3><p>Quienes podrían trabajar en Coipsa: operarios, técnicos y profesionales.</p></article>
+          <article class="ficha"><div class="ficha-num t-rotulo">(01)</div><h3>Clientes</h3><p>Empresas que generan residuos o compran papel y embalaje: gerencias de operaciones, compras y sostenibilidad.</p></article>
+          <article class="ficha"><div class="ficha-num t-rotulo">(02)</div><h3>Industria y autoridades</h3><p>Gremios, prensa del sector y quienes regulan.</p></article>
+          <article class="ficha"><div class="ficha-num t-rotulo">(03)</div><h3>Talento</h3><p>Quienes podrían trabajar en Coipsa: operarios, técnicos y profesionales.</p></article>
         </div>
       </section>
 
-      <section class="grupo">
-        <h3>Acciones</h3>
-        <div class="ficha">
-          <ol class="acciones-lista">
-            <li><b>Una sola firma.</b> Coipsa firma todo; las unidades aparecen con su nombre y su color.</li>
-            <li><b>LinkedIn para clientes e industria.</b> Columnas, noticias de la expansión y datos con fuente.</li>
-            <li><b>Instagram para talento.</b> Personas, plantas y procesos.</li>
-            <li><b>Calendario fijo.</b> Dos publicaciones a la semana, planificadas por trimestre.</li>
-            <li><b>Materiales al día</b> <span class="plan-nota">(planes «Marca, redes y herramientas» y «Completo»).</span> Presentación, brochure y fichas con las mismas cifras.</li>
-            <li><b>Medio propio</b> <span class="plan-nota">(plan «Completo»).</span> Respuestas a lo que preguntan los clientes; LinkedIn lleva los lectores.</li>
-          </ol>
-        </div>
+      <section class="bloque">
+        <div class="bloque-lado"><h3 class="t-bloque">Acciones</h3></div>
+        <ol class="filas">
+          <li><span class="t-rotulo">01</span><b>Una sola firma</b><span>Coipsa firma todo; las unidades aparecen con su nombre y su color.</span></li>
+          <li><span class="t-rotulo">02</span><b>LinkedIn para clientes e industria</b><span>Columnas, noticias de la expansión y datos con fuente.</span></li>
+          <li><span class="t-rotulo">03</span><b>Instagram para talento</b><span>Personas, plantas y procesos.</span></li>
+          <li><span class="t-rotulo">04</span><b>Calendario fijo</b><span>Dos publicaciones a la semana, planificadas por trimestre.</span></li>
+          <li><span class="t-rotulo">05</span><b>Materiales al día<span class="plan-nota">Planes «Marca, redes y herramientas» y «Completo»</span></b><span>Presentación, brochure y fichas con las mismas cifras.</span></li>
+          <li><span class="t-rotulo">06</span><b>Medio propio<span class="plan-nota">Plan «Completo»</span></b><span>Respuestas a lo que preguntan los clientes; LinkedIn lleva los lectores.</span></li>
+        </ol>
       </section>
 
-      <section class="grupo">
-        <h3>Indicadores</h3>
-        <div class="ficha">
+      <section class="bloque">
+        <div class="bloque-lado"><h3 class="t-bloque">Indicadores</h3><p>Reporte y revisión cada mes. Metas en la semana 12. Comparación con la medición inicial al cierre del año.</p></div>
+        <div class="tabla-envoltura">
           <table class="indicadores">
             <thead><tr><th scope="col">Parte</th><th scope="col">Indicador principal</th><th scope="col">También</th></tr></thead>
             <tbody>
@@ -425,7 +515,6 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
               <tr><th scope="row">Seguimiento</th><td>Publicaciones del calendario cumplidas</td><td>Horas usadas</td></tr>
             </tbody>
           </table>
-          <p class="meta" style="margin-top:10px">Reporte y revisión cada mes. Metas en la semana 12. Comparación con la medición inicial al cierre del año.</p>
         </div>
       </section>
     </div>
@@ -433,11 +522,11 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
 
   <!-- ══ 4 · BASE DE MARCA ═════════════════════════════════════════════════ -->
   <section class="cajon" id="marca" role="tabpanel" aria-labelledby="tab-marca">
-    <div class="ancho-lectura">
-      <div class="intro">
-        <h2>Base de marca</h2>
-        <p>Armada con lo que Coipsa publica en sus sitios. Es el punto de partida del manual.</p>
-      </div>
+    <div class="marco">
+      <header class="cabeza">
+        <h2 class="t-titulo">Base de marca</h2>
+        <p class="t-entrada">Armada con lo que Coipsa publica en sus sitios. Es el punto de partida del manual.</p>
+      </header>
 
       <div class="segmento" role="group" aria-label="Partes de la base de marca">
         <button type="button" data-grupo="logos" aria-pressed="true">Logos</button>
@@ -448,91 +537,93 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
       </div>
 
       <!-- Logos -->
-      <section class="grupo" id="logos">
-        <h3>Logos</h3>
-        <p class="nota">Coipsa firma todo. Las unidades se nombran con el color de su pieza del símbolo.</p>
+      <section class="bloque" id="logos">
+        <div class="bloque-lado"><h3 class="t-bloque">Logos</h3><p>Coipsa firma todo. Las unidades se nombran con el color de su pieza del símbolo; sus logos quedan para la operación con clientes.</p></div>
         <div class="fichas">
-          <article class="ficha">
+          <article class="ficha logo-ficha">
             <div class="muestra" style="background:var(--verde-oscuro)"><img src="../identidad/media/logos/coipsa-blanco.svg" alt="Logotipo de Coipsa en blanco"></div>
             <h3>Coipsa · blanco</h3>
-            <span class="meta">Principal, sobre verde oscuro</span>
-            <div class="acciones"><a class="boton" href="../identidad/media/logos/coipsa-blanco.svg" download="coipsa-blanco.svg">SVG</a></div>
+            <span class="t-rotulo">Principal, sobre verde oscuro</span>
+            <a class="enlace" href="../identidad/media/logos/coipsa-blanco.svg" download="coipsa-blanco.svg">Descargar SVG <span aria-hidden="true">↓</span></a>
           </article>
-          <article class="ficha">
+          <article class="ficha logo-ficha">
             <div class="muestra borde" style="background:var(--blanco)"><img src="media/coipsa-logotipo-color.svg" alt="Logotipo de Coipsa a color"></div>
             <h3>Coipsa · color</h3>
-            <span class="meta">Sobre blanco o hueso</span>
-            <div class="acciones"><a class="boton" href="media/coipsa-logotipo-color.svg" download="coipsa-color.svg">SVG</a></div>
+            <span class="t-rotulo">Sobre blanco o hueso</span>
+            <a class="enlace" href="media/coipsa-logotipo-color.svg" download="coipsa-color.svg">Descargar SVG <span aria-hidden="true">↓</span></a>
           </article>
-          <article class="ficha">
+          <article class="ficha logo-ficha">
             <div class="muestra" style="background:var(--lima)"><img src="../identidad/media/logos/coipsa-verde.svg" alt="Logotipo de Coipsa en verde oscuro"></div>
             <h3>Coipsa · verde oscuro</h3>
-            <span class="meta">Sobre lima y fondos claros</span>
-            <div class="acciones"><a class="boton" href="../identidad/media/logos/coipsa-verde.svg" download="coipsa-verde-oscuro.svg">SVG</a></div>
+            <span class="t-rotulo">Sobre lima y fondos claros</span>
+            <a class="enlace" href="../identidad/media/logos/coipsa-verde.svg" download="coipsa-verde-oscuro.svg">Descargar SVG <span aria-hidden="true">↓</span></a>
           </article>
-          <article class="ficha">
+          <article class="ficha logo-ficha">
+            <div class="muestra borde" style="background:var(--blanco)"><img class="simbolo" src="media/coipsa-simbolo-color.svg" alt="Símbolo de Coipsa"></div>
+            <h3>Símbolo</h3>
+            <span class="t-rotulo">Lima Recupac · verde CPP · naranja Corrupac</span>
+            <a class="enlace" href="media/coipsa-simbolo-color.svg" download="coipsa-simbolo.svg">Descargar SVG <span aria-hidden="true">↓</span></a>
+          </article>
+          <article class="ficha logo-ficha no">
             <div class="muestra" style="background:var(--verde-oscuro)"><img src="media/coipsa-logotipo-color.svg" alt="Logotipo de Coipsa a color sobre verde oscuro"></div>
             <h3>No: color sobre verde oscuro</h3>
-            <span class="meta">Las letras y la pieza verde se pierden</span>
+            <span class="t-rotulo">Las letras y la pieza verde se pierden</span>
           </article>
-          <article class="ficha">
-            <div class="muestra borde" style="background:var(--blanco)"><img src="media/coipsa-simbolo-color.svg" alt="Símbolo de Coipsa" style="max-height:64px"></div>
-            <h3>Símbolo</h3>
-            <span class="meta">Lima Recupac · verde CPP · naranja Corrupac</span>
-            <div class="acciones"><a class="boton" href="media/coipsa-simbolo-color.svg" download="coipsa-simbolo.svg">SVG</a></div>
-          </article>
-          <article class="ficha">
+          <article class="ficha logo-ficha">
             <div class="muestra borde" style="background:var(--blanco)"><img src="../identidad/media/logos/recupac.svg" alt="Logotipo de Recupac"></div>
             <h3>Recupac</h3>
-            <span class="meta">Solo operación con clientes</span>
+            <span class="t-rotulo">Operación con clientes</span>
           </article>
-          <article class="ficha">
+          <article class="ficha logo-ficha">
             <div class="muestra" style="background:var(--verde)"><img src="../identidad/media/logos/cpp-blanco.svg" alt="Logotipo de CPP en blanco"></div>
             <h3>CPP</h3>
-            <span class="meta">Solo operación con clientes</span>
+            <span class="t-rotulo">Operación con clientes</span>
           </article>
-          <article class="ficha">
+          <article class="ficha logo-ficha">
             <div class="muestra borde" style="background:var(--blanco)"><img src="../identidad/media/logos/corrupac.svg" alt="Logotipo de Corrupac"></div>
             <h3>Corrupac</h3>
-            <span class="meta">Solo operación con clientes</span>
+            <span class="t-rotulo">Operación con clientes</span>
           </article>
         </div>
       </section>
 
       <!-- Colores -->
-      <section class="grupo" id="colores">
-        <h3>Colores</h3>
-        <p class="nota">Siete colores, un valor cada uno. Pulsar el HEX lo copia. La franja muestra la proporción de uso.</p>
-        <div class="colores">
-          <div class="color"><div class="plano" style="background:var(--verde-oscuro)"></div><div class="datos"><b>Verde oscuro</b><button class="copiable" type="button">#014C31</button>Fondo principal</div></div>
-          <div class="color"><div class="plano" style="background:var(--hueso)"></div><div class="datos"><b>Hueso</b><button class="copiable" type="button">#F3F0EE</button>Fondo claro</div></div>
-          <div class="color"><div class="plano" style="background:var(--blanco)"></div><div class="datos"><b>Blanco</b><button class="copiable" type="button">#FFFFFF</button>Texto sobre verde</div></div>
-          <div class="color"><div class="plano" style="background:var(--carbon)"></div><div class="datos"><b>Carbón</b><button class="copiable" type="button">#1E1E1E</button>Texto</div></div>
-          <div class="color"><div class="plano" style="background:var(--lima)"></div><div class="datos"><b>Lima</b><button class="copiable" type="button">#B2D000</button>Acento · Recupac</div></div>
-          <div class="color"><div class="plano" style="background:var(--verde)"></div><div class="datos"><b>Verde</b><button class="copiable" type="button">#006A45</button>Acento · CPP</div></div>
-          <div class="color"><div class="plano" style="background:var(--naranja)"></div><div class="datos"><b>Naranja</b><button class="copiable" type="button">#FE5000</button>Acento · Corrupac</div></div>
-        </div>
-        <div class="proporcion" role="img" aria-label="Proporción de uso: verde oscuro 46 %, hueso 22 %, blanco 10 %, lima 8 %, verde 6 %, carbón 5 %, naranja 3 %">
-          <div style="flex:46;background:var(--verde-oscuro)"></div>
-          <div style="flex:22;background:var(--hueso)"></div>
-          <div style="flex:10;background:var(--blanco)"></div>
-          <div style="flex:8;background:var(--lima)"></div>
-          <div style="flex:6;background:var(--verde)"></div>
-          <div style="flex:5;background:var(--carbon)"></div>
-          <div style="flex:3;background:var(--naranja)"></div>
+      <section class="bloque" id="colores">
+        <div class="bloque-lado"><h3 class="t-bloque">Colores</h3><p>Siete colores, un valor cada uno. Pulsar el HEX lo copia.</p></div>
+        <div>
+          <div class="colores">
+            <div class="color"><div class="plano" style="background:var(--verde-oscuro)"></div><div class="datos"><b>Verde oscuro</b><button class="copiable" type="button">#014C31</button><span class="t-rotulo">Fondo principal</span></div></div>
+            <div class="color"><div class="plano" style="background:var(--hueso)"></div><div class="datos"><b>Hueso</b><button class="copiable" type="button">#F3F0EE</button><span class="t-rotulo">Fondo claro</span></div></div>
+            <div class="color"><div class="plano" style="background:var(--blanco)"></div><div class="datos"><b>Blanco</b><button class="copiable" type="button">#FFFFFF</button><span class="t-rotulo">Texto sobre verde</span></div></div>
+            <div class="color"><div class="plano" style="background:var(--carbon)"></div><div class="datos"><b>Carbón</b><button class="copiable" type="button">#1E1E1E</button><span class="t-rotulo">Texto</span></div></div>
+            <div class="color"><div class="plano" style="background:var(--lima)"></div><div class="datos"><b>Lima</b><button class="copiable" type="button">#B2D000</button><span class="t-rotulo">Acento · Recupac</span></div></div>
+            <div class="color"><div class="plano" style="background:var(--verde)"></div><div class="datos"><b>Verde</b><button class="copiable" type="button">#006A45</button><span class="t-rotulo">Acento · CPP</span></div></div>
+            <div class="color"><div class="plano" style="background:var(--naranja)"></div><div class="datos"><b>Naranja</b><button class="copiable" type="button">#FE5000</button><span class="t-rotulo">Acento · Corrupac</span></div></div>
+          </div>
+          <div class="proporcion" role="img" aria-label="Proporción de uso: verde oscuro 46 %, hueso 22 %, blanco 10 %, lima 8 %, verde 6 %, carbón 5 %, naranja 3 %">
+            <div style="flex:46;background:var(--verde-oscuro)"></div>
+            <div style="flex:22;background:var(--hueso)"></div>
+            <div style="flex:10;background:var(--blanco)"></div>
+            <div style="flex:8;background:var(--lima)"></div>
+            <div style="flex:6;background:var(--verde)"></div>
+            <div style="flex:5;background:var(--carbon)"></div>
+            <div style="flex:3;background:var(--naranja)"></div>
+          </div>
+          <p class="t-rotulo">Proporción de uso</p>
         </div>
       </section>
 
       <!-- Tipografía -->
-      <section class="grupo" id="letra">
-        <h3>Tipografía</h3>
-        <p class="nota">Poppins para todo, en tres pesos. Titulares con mayúscula inicial.</p>
-        <div class="fichas">
-          <article class="ficha especimen">
+      <section class="bloque" id="letra">
+        <div class="bloque-lado"><h3 class="t-bloque">Tipografía</h3><p>Poppins para todo, en tres pesos. Titulares con mayúscula inicial.</p></div>
+        <div class="especimen">
+          <article class="ficha">
+            <div class="ficha-num t-rotulo">Poppins</div>
             <div class="aa" aria-hidden="true">Aa</div>
             <div class="pesos"><span style="font-weight:400">Regular</span><span style="font-weight:600">Seminegra</span><span style="font-weight:700">Negra</span></div>
           </article>
-          <article class="ficha especimen">
+          <article class="ficha">
+            <div class="ficha-num t-rotulo">Uso</div>
             <p class="titular">Del residuo a la caja, en cuatro pasos</p>
             <p>Negra para titulares, seminegra para bajadas, regular para texto.</p>
           </article>
@@ -540,59 +631,88 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
       </section>
 
       <!-- Fotos -->
-      <section class="grupo" id="fotos">
-        <h3>Fotos y movimiento</h3>
-        <p class="nota">Fotos de los sitios de Coipsa: personas en su trabajo, material de cerca, camiones y plantas. Tres tratamientos, según la pieza.</p>
+      <section class="bloque" id="fotos">
+        <div class="bloque-lado"><h3 class="t-bloque">Fotos y movimiento</h3><p>Seis formas de poner la marca sobre una foto sin taparla. Pasa el cursor o toca una foto para verla de nuevo.</p></div>
+        <div>
+          <div class="animacion">
+            <video src="media/coipsa-animacion.mp4" poster="media/coipsa-animacion.webp" autoplay muted loop playsinline aria-label="Animación del símbolo de Coipsa: las tres piezas se ordenan y aparece el logotipo"></video>
+            <div>
+              <h4>Animación del símbolo</h4>
+              <p>Las tres piezas se ordenan como el ciclo. Para cierres de video, presentaciones y pantallas.</p>
+            </div>
+          </div>
 
-        <div class="animacion">
-          <video src="media/coipsa-animacion.mp4" poster="media/coipsa-animacion.webp" autoplay muted loop playsinline aria-label="Animación del símbolo de Coipsa: las tres piezas se ordenan y aparece el logotipo"></video>
-          <div>
-            <h4>Animación del símbolo</h4>
-            <p>Las tres piezas se ordenan como el ciclo. Para cierres de video, presentaciones y pantallas.</p>
-          </div>
-        </div>
-
-        <div class="tratamiento">
-          <h4>Original <span>· cuando la foto manda</span></h4>
-          <div class="trio">
-            <figure><img src="media/fotos/armado-caja.webp" alt="Manos con guantes armando una caja de cartón" loading="lazy"></figure>
-            <figure><img src="media/fotos/corrugado.webp" alt="Láminas de cartón corrugado de cerca" loading="lazy"></figure>
-            <figure><img src="media/fotos/pellet.webp" alt="Pellet de plástico reciclado de Recupac" loading="lazy"></figure>
-          </div>
-        </div>
-        <div class="tratamiento">
-          <h4>Duotono <span>· cuando la pieza necesita marca</span></h4>
-          <div class="trio">
-            <figure><img src="media/fotos/camion-bobinas.webp" alt="Camión cargado con bobinas de papel, en duotono verde oscuro y lima" loading="lazy"></figure>
-            <figure><img src="media/fotos/operario.webp" alt="Operario con protección auditiva en planta, en duotono" loading="lazy"></figure>
-            <figure><img src="media/fotos/descarga.webp" alt="Camión descargando cartón para reciclar, en duotono" loading="lazy"></figure>
-          </div>
-        </div>
-        <div class="tratamiento">
-          <h4>Blanco y negro con bloque <span>· para escribir encima</span></h4>
-          <div class="trio">
-            <figure class="con-bloque"><img src="media/fotos/fardos.webp" alt="Fardos de cartón en el patio de Recupac, en blanco y negro" loading="lazy"><div class="bloque"><img src="../identidad/media/logos/coipsa-blanco.svg" alt=""></div></figure>
-            <figure class="con-bloque"><img src="media/fotos/planta.webp" alt="Operario en una línea de corrugado, en blanco y negro" loading="lazy"><div class="bloque"><img src="../identidad/media/logos/coipsa-blanco.svg" alt=""></div></figure>
-            <figure class="con-bloque"><img src="media/fotos/reciclaje.webp" alt="Trabajador de Recupac con casco junto a fardos, en blanco y negro" loading="lazy"><div class="bloque"><img src="../identidad/media/logos/coipsa-blanco.svg" alt=""></div></figure>
+          <div class="aplicaciones">
+            <figure class="aplicacion-ficha">
+              <button type="button" class="aplicacion franjas" aria-label="Ver de nuevo: Franjas del ciclo">
+                <img class="foto-base" src="media/fotos/operario.webp" alt="Operario con protección auditiva en planta">
+                <span class="franja" style="--c:var(--lima);--w:44%"></span>
+                <span class="franja" style="--c:var(--verde);--w:34%"></span>
+                <span class="franja" style="--c:var(--naranja);--w:24%"></span>
+                <img class="logo-foto" src="../identidad/media/logos/coipsa-blanco.svg" alt="">
+              </button>
+              <figcaption><b>Franjas del ciclo</b><span>Los tres colores del símbolo, como firma.</span></figcaption>
+            </figure>
+            <figure class="aplicacion-ficha">
+              <button type="button" class="aplicacion borde-simbolo" aria-label="Ver de nuevo: Símbolo al borde">
+                <img class="foto-base" src="media/fotos/camion-bobinas.webp" alt="Camión cargado con bobinas de papel">
+                <img class="simbolo-borde" src="media/coipsa-simbolo-color.svg" alt="">
+                <img class="logo-foto" src="../identidad/media/logos/coipsa-blanco.svg" alt="">
+              </button>
+              <figcaption><b>Símbolo al borde</b><span>Una pieza grande, recortada por el encuadre.</span></figcaption>
+            </figure>
+            <figure class="aplicacion-ficha">
+              <button type="button" class="aplicacion viraje" aria-label="Ver de nuevo: Viraje a duotono">
+                <img class="foto-base" src="media/fotos/descarga.webp" alt="Camión descargando cartón para reciclar">
+                <img class="foto-duotono" src="media/fotos/descarga-duotono.webp" alt="">
+                <img class="logo-foto" src="../identidad/media/logos/coipsa-blanco.svg" alt="">
+              </button>
+              <figcaption><b>Viraje a duotono</b><span>La foto pasa a los verdes de la marca.</span></figcaption>
+            </figure>
+            <figure class="aplicacion-ficha">
+              <button type="button" class="aplicacion bloque-anim" aria-label="Ver de nuevo: Bloque">
+                <img class="foto-base" src="media/fotos/planta.webp" alt="Operario en una línea de corrugado, en blanco y negro">
+                <span class="plano"><img src="../identidad/media/logos/coipsa-blanco.svg" alt=""></span>
+              </button>
+              <figcaption><b>Bloque</b><span>Un plano de verde oscuro para el logo o un titular.</span></figcaption>
+            </figure>
+            <figure class="aplicacion-ficha">
+              <button type="button" class="aplicacion ventana" aria-label="Ver de nuevo: Ventana">
+                <img class="foto-base" src="media/fotos/armado-caja.webp" alt="Manos con guantes armando una caja de cartón">
+                <img class="logo-foto" src="../identidad/media/logos/coipsa-blanco.svg" alt="">
+              </button>
+              <figcaption><b>Ventana</b><span>La foto dentro del hexágono del símbolo.</span></figcaption>
+            </figure>
+            <figure class="aplicacion-ficha">
+              <button type="button" class="aplicacion firma-unidad" aria-label="Ver de nuevo: Firma con unidad">
+                <img class="foto-base" src="media/fotos/reciclaje.webp" alt="Trabajador de Recupac con casco junto a fardos de cartón">
+                <span class="pie-foto"><img src="../identidad/media/logos/coipsa-blanco.svg" alt=""><span class="unidad"><i style="--c:var(--lima)"></i>Recupac · Gestión de residuos</span></span>
+              </button>
+              <figcaption><b>Firma con unidad</b><span>Coipsa firma; la unidad aparece con su color.</span></figcaption>
+            </figure>
           </div>
         </div>
       </section>
 
       <!-- Tono -->
-      <section class="grupo" id="tono">
-        <h3>Tono</h3>
-        <p class="personalidad">Experiencia en el oficio y claridad en la explicación, sin jerga.</p>
-        <p class="descripcion-tono">Habla alguien con años en el oficio: claro y directo. Responde lo que la gente pregunta, no exagera y se permite algo de humor.</p>
-        <p class="nota-canales">La voz es una; cambia según el canal.</p>
-        <div class="fichas">
-          <article class="ficha"><h3>LinkedIn</h3><p>Opinión con datos, para clientes, industria y autoridades.</p></article>
-          <article class="ficha"><h3>Instagram</h3><p>El trabajo por dentro: personas, máquinas y procesos.</p></article>
-          <article class="ficha"><h3>Comercial</h3><p>Lo que gana el cliente, en cifras.</p></article>
-          <article class="ficha"><h3>Medio propio</h3><p>Conversacional, cercano y con humor. Lo técnico, contado de forma que den ganas de leerlo.</p></article>
+      <section class="bloque" id="tono">
+        <div class="bloque-lado"><h3 class="t-bloque">Tono</h3></div>
+        <div>
+          <p class="personalidad">Experiencia en el oficio y claridad en la explicación, sin jerga.</p>
+          <p class="descripcion-tono t-entrada">Habla alguien con años en el oficio: claro y directo. Responde lo que la gente pregunta, no exagera y se permite algo de humor.</p>
+          <div class="canales">
+            <p class="t-rotulo">La voz es una; cambia según el canal.</p>
+            <div class="fichas">
+              <article class="ficha canal"><div class="ficha-num t-rotulo">(01)</div><h3>LinkedIn</h3><p>Opinión con datos, para clientes, industria y autoridades.</p></article>
+              <article class="ficha canal"><div class="ficha-num t-rotulo">(02)</div><h3>Instagram</h3><p>El trabajo por dentro: personas, máquinas y procesos.</p></article>
+              <article class="ficha canal"><div class="ficha-num t-rotulo">(03)</div><h3>Comercial</h3><p>Lo que gana el cliente, en cifras.</p></article>
+              <article class="ficha canal"><div class="ficha-num t-rotulo">(04)</div><h3>Medio propio</h3><p>Conversacional, cercano y con humor. Lo técnico, contado de forma que den ganas de leerlo.</p></article>
+            </div>
+          </div>
         </div>
       </section>
 
-      <p class="pie">Propuesta de partida, sin aprobación de Coipsa.</p>
+      <p class="pie t-rotulo">Propuesta de partida, sin aprobación de Coipsa.</p>
     </div>
   </section>
 
@@ -627,7 +747,7 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
     // barra queda fuera de la vista. Se devuelve a su sitio.
     document.scrollingElement.scrollTop = 0;
     document.body.scrollTop = 0;
-    document.querySelector("main").scrollTop = 0;
+    document.querySelector('main').scrollTop = 0;
     if (foco) tiradores[i].focus();
     // Que el tirador abierto quede a la vista en pantallas estrechas. A mano y no
     // con scrollIntoView, que también desplaza la caja y esconde la barra.
@@ -652,7 +772,7 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
     abrir(cajones[j].id, { foco: true });
   });
 
-  // Teclas 1 a 5, las que el tirador lleva impresas.
+  // Teclas 1 a 4, las que el tirador lleva impresas.
   document.addEventListener('keydown', e => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const n = Number(e.key);
@@ -673,7 +793,11 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
       document.getElementById(b.dataset.grupo).hidden = !activo;
     });
   }
-  botonesGrupo.forEach(b => b.addEventListener('click', () => verGrupo(b.dataset.grupo)));
+  botonesGrupo.forEach(b => b.addEventListener('click', () => {
+    verGrupo(b.dataset.grupo);
+    // Abrir las fotos las reproduce: el gesto es de quien abre, no del scroll.
+    if (b.dataset.grupo === 'fotos') document.querySelectorAll('.aplicacion').forEach(el => repetir(el));
+  }));
   verGrupo('logos');
 
   // ——— Animación ———
@@ -688,6 +812,18 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
   }
   quieto.addEventListener('change', ajustarVideo);
   ajustarVideo();
+
+  // ——— Aplicaciones sobre foto ———
+  function repetir(el) {
+    if (quieto.matches) return;
+    el.classList.add('inicio');
+    void el.offsetWidth; // un cuadro en el estado inicial, sin transición
+    el.classList.remove('inicio');
+  }
+  document.querySelectorAll('.aplicacion').forEach(el => {
+    el.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') repetir(el); });
+    el.addEventListener('click', () => repetir(el));
+  });
 
   // ——— Aviso efímero ———
   const aviso = document.getElementById('aviso');
