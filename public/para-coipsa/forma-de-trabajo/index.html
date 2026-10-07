@@ -172,7 +172,17 @@ html.cajones .cajon + .cajon { border-top: 0; }
 .leyenda i.segun-plan { background: var(--verde-claro); }
 .leyenda i.hito { position: static; width: 9px; height: 9px; border-radius: 0; translate: none; background: var(--naranja); }
 
-.oportunidad { border-top: 4px solid var(--c, var(--verde-oscuro)); }
+.ficha ul, .acciones-lista { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; color: var(--tinta-media); }
+.acciones-lista { gap: 8px; }
+.acciones-lista b { color: var(--carbon); font-weight: 600; }
+.plan-nota { font-size: 12.5px; color: var(--tinta-tenue); }
+.objetivo { font-size: 17px !important; font-weight: 600; color: var(--verde-oscuro) !important; max-width: 62ch; }
+.indicadores { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.indicadores th, .indicadores td { text-align: left; vertical-align: top; padding: 8px 14px 8px 0; border-bottom: 1px solid var(--linea); }
+.indicadores thead th { font-size: 12.5px; font-weight: 600; color: var(--tinta-media); border-bottom-color: var(--carbon); }
+.indicadores tbody th { font-weight: 600; white-space: nowrap; }
+.indicadores td { color: var(--tinta-media); }
+.indicadores tr:last-child > * { border-bottom: 0; }
 
 /* ——— Base de marca ——— */
 
@@ -255,8 +265,7 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
     <button class="tirador" role="tab" id="tab-metodo" aria-controls="metodo" aria-selected="true"><kbd>1</kbd>Método</button>
     <button class="tirador" role="tab" id="tab-meses" aria-controls="meses" aria-selected="false" tabindex="-1"><kbd>2</kbd>Meses 1 a 3</button>
     <button class="tirador" role="tab" id="tab-estrategia" aria-controls="estrategia" aria-selected="false" tabindex="-1"><kbd>3</kbd>Estrategia</button>
-    <button class="tirador" role="tab" id="tab-oportunidades" aria-controls="oportunidades" aria-selected="false" tabindex="-1"><kbd>4</kbd>Oportunidades</button>
-    <button class="tirador" role="tab" id="tab-marca" aria-controls="marca" aria-selected="false" tabindex="-1"><kbd>5</kbd>Base de marca</button>
+    <button class="tirador" role="tab" id="tab-marca" aria-controls="marca" aria-selected="false" tabindex="-1"><kbd>4</kbd>Base de marca</button>
   </nav>
 </header>
 
@@ -356,57 +365,78 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
     <div class="ancho-lectura">
       <div class="intro">
         <h2>Estrategia de partida</h2>
-        <p>Se ajusta en el segundo trimestre.</p>
+        <p>Se ajusta al cierre del mes 3, con lo que salga de las entrevistas y la medición inicial.</p>
       </div>
-      <div class="fichas">
-        <article class="ficha">
-          <h3>Una sola marca</h3>
-          <p>Coipsa firma. Recupac, CPP y Corrupac aparecen como unidades, no como cuentas aparte.</p>
-        </article>
-        <article class="ficha">
-          <h3>Dos canales</h3>
-          <p>LinkedIn: opinión con datos, para clientes e industria. Instagram: personas, plantas y procesos.</p>
-        </article>
-        <article class="ficha">
-          <h3>Medio propio</h3>
-          <p>Contenido práctico: Ley REP, qué se recicla, cómo elegir un embalaje.</p>
-        </article>
-      </div>
+
+      <section class="grupo">
+        <h3>Objetivo</h3>
+        <div class="ficha">
+          <p class="objetivo">Que en 2027 Coipsa se reconozca como una sola marca, con Recupac, CPP y Corrupac como partes de un mismo ciclo, y que su presencia en LinkedIn e Instagram crezca contra la medición inicial.</p>
+          <p>Las metas en cifras se fijan en la semana 12, cuando ya sabemos desde dónde partimos.</p>
+        </div>
+      </section>
+
+      <section class="grupo">
+        <h3>Situación</h3>
+        <div class="fichas">
+          <article class="ficha"><h3>Fortalezas</h3><ul><li>Hace el ciclo completo: recupera, transforma y fabrica.</li><li>Plantas, máquinas y personas para mostrar.</li><li>Columnas en LinkedIn con voz propia.</li></ul></article>
+          <article class="ficha"><h3>Debilidades</h3><ul><li>Cada unidad habla por separado, con su propio sitio.</li><li>Cifras distintas según el canal.</li><li>Sin cuenta de Instagram.</li><li>Un área de comunicaciones chica para tres marcas.</li></ul></article>
+          <article class="ficha"><h3>Oportunidades</h3><ul><li>Ley REP: las empresas necesitan saber qué hacer con sus residuos y envases.</li><li>Graneros, Quilicura y la nueva máquina de Mostazal: noticias hasta 2028.</li><li>Clientes que deben reportar metas de sostenibilidad.</li></ul></article>
+          <article class="ficha"><h3>Amenazas</h3><ul><li>Desconfianza hacia los mensajes verdes: lo que no se puede probar resta.</li><li>El reciclaje es un tema en que muchos dicen lo mismo.</li></ul></article>
+        </div>
+      </section>
+
+      <section class="grupo">
+        <h3>Públicos</h3>
+        <div class="fichas">
+          <article class="ficha"><h3>Clientes</h3><p>Empresas que generan residuos o compran papel y embalaje: gerencias de operaciones, compras y sostenibilidad.</p></article>
+          <article class="ficha"><h3>Industria y autoridades</h3><p>Gremios, prensa del sector y quienes regulan.</p></article>
+          <article class="ficha"><h3>Talento</h3><p>Quienes podrían trabajar en Coipsa: operarios, técnicos y profesionales.</p></article>
+        </div>
+      </section>
+
+      <section class="grupo">
+        <h3>Acciones</h3>
+        <div class="ficha">
+          <ol class="acciones-lista">
+            <li><b>Una sola firma.</b> Coipsa firma todo; las unidades aparecen con su nombre y su color.</li>
+            <li><b>LinkedIn para clientes e industria.</b> Columnas, noticias de la expansión y datos con fuente.</li>
+            <li><b>Instagram para talento.</b> Personas, plantas y procesos.</li>
+            <li><b>Calendario fijo.</b> Dos publicaciones a la semana, planificadas por trimestre.</li>
+            <li><b>Materiales al día</b> <span class="plan-nota">(planes «Marca, redes y herramientas» y «Completo»).</span> Presentación, brochure y fichas con las mismas cifras.</li>
+            <li><b>Medio propio</b> <span class="plan-nota">(plan «Completo»).</span> Respuestas a lo que preguntan los clientes; LinkedIn lleva los lectores.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="grupo">
+        <h3>Recursos</h3>
+        <div class="fichas">
+          <article class="ficha"><h3>Bastos</h3><p>Estrategia, diseño, producción de piezas y herramientas, con las horas del plan elegido.</p></article>
+          <article class="ficha"><h3>Coipsa</h3><p>El área de comunicaciones como contraparte, tiempo de las áreas para entrevistas e información, y acceso a Google Analytics, a las estadísticas de LinkedIn y al administrador del sitio.</p></article>
+          <article class="ficha"><h3>Fuera del plan</h3><p>Producción de foto y video, publicidad pagada e impresión.</p></article>
+        </div>
+      </section>
+
+      <section class="grupo">
+        <h3>Indicadores</h3>
+        <div class="ficha">
+          <table class="indicadores">
+            <thead><tr><th scope="col">Parte</th><th scope="col">Indicador principal</th><th scope="col">También</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Redes</th><td>Interacción por formato: columnas, noticias, videos</td><td>Tasa de interacción en LinkedIn · alcance y seguidores en Instagram</td></tr>
+              <tr><th scope="row">Medio propio</th><td>Lectores que vuelven</td><td>Visitas desde LinkedIn · consultas y contactos</td></tr>
+              <tr><th scope="row">Herramientas</th><td>Horas de producción por pieza</td><td>Piezas que hace el equipo de Coipsa</td></tr>
+              <tr><th scope="row">Seguimiento</th><td>Publicaciones del calendario cumplidas</td><td>Horas usadas</td></tr>
+            </tbody>
+          </table>
+          <p class="meta" style="margin-top:10px">Reporte y revisión cada mes. Metas en la semana 12. Comparación con la medición inicial al cierre del año.</p>
+        </div>
+      </section>
     </div>
   </section>
 
-  <!-- ══ 4 · OPORTUNIDADES ═════════════════════════════════════════════════ -->
-  <section class="cajon" id="oportunidades" role="tabpanel" aria-labelledby="tab-oportunidades">
-    <div class="ancho-lectura">
-      <div class="intro">
-        <h2>Oportunidades</h2>
-      </div>
-      <div class="fichas">
-        <article class="ficha oportunidad" style="--c:var(--verde-oscuro)">
-          <h3>El ciclo completo</h3>
-          <p>Coipsa recupera, transforma y fabrica. Contado como un solo ciclo, cada unidad respalda a las otras.</p>
-        </article>
-        <article class="ficha oportunidad" style="--c:var(--lima)">
-          <h3>Noticias 2026–2028</h3>
-          <p>Graneros, la planta de Quilicura y la nueva máquina papelera de Mostazal.</p>
-        </article>
-        <article class="ficha oportunidad" style="--c:var(--verde)">
-          <h3>Ley REP</h3>
-          <p>Las empresas necesitan saber qué hacer con sus residuos y envases. Coipsa puede explicarlo.</p>
-        </article>
-        <article class="ficha oportunidad" style="--c:var(--naranja)">
-          <h3>Personas y plantas</h3>
-          <p>Material propio para mostrar el trabajo y atraer talento.</p>
-        </article>
-        <article class="ficha oportunidad" style="--c:var(--lima)">
-          <h3>Las columnas</h3>
-          <p>Las columnas en LinkedIn ya tienen un tono claro y con opinión. Se puede extender al resto.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ 5 · BASE DE MARCA ═════════════════════════════════════════════════ -->
+  <!-- ══ 4 · BASE DE MARCA ═════════════════════════════════════════════════ -->
   <section class="cajon" id="marca" role="tabpanel" aria-labelledby="tab-marca">
     <div class="ancho-lectura">
       <div class="intro">
