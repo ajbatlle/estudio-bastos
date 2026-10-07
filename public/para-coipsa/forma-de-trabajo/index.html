@@ -239,7 +239,9 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
 .logo-ficha .enlace { margin-top: var(--e2); }
 .logo-ficha.no h3 { color: #B23A00; }
 
-.colores { display: grid; gap: var(--e2); grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+/* Cuatro columnas: arriba los cuatro de base, abajo los tres acentos. */
+.colores { display: grid; gap: var(--e2); grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 40rem) { .colores { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .color { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio-chico); overflow: hidden; }
 .color .plano { aspect-ratio: 4 / 3; border-bottom: 1px solid var(--linea); }
 .color .datos { padding: 12px var(--e2) var(--e2); display: grid; gap: 2px; }
@@ -297,10 +299,10 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
 .inicio .foto-duotono { opacity: 0; transition: none; }
 
 /* 4 · Bloque: el logo cae en el mismo lugar que en las otras piezas. */
-.plano { position: absolute; left: 0; bottom: 0; width: 42%; height: 21%; background: var(--verde-oscuro); transition: transform 800ms var(--curva); }
-.plano img { position: absolute; left: 16.7%; bottom: 33%; width: 66.7%; height: auto; transition: opacity 500ms var(--curva) 450ms; }
-.inicio .plano { transform: translateX(-101%); transition: none; }
-.inicio .plano img { opacity: 0; transition: none; }
+.plano-bloque { position: absolute; left: 0; bottom: 0; width: 42%; height: 21%; background: var(--verde-oscuro); transition: transform 800ms var(--curva); }
+.plano-bloque img { position: absolute; left: 16.7%; bottom: 33%; width: 66.7%; height: auto; transition: opacity 500ms var(--curva) 450ms; }
+.inicio .plano-bloque { transform: translateX(-101%); transition: none; }
+.inicio .plano-bloque img { opacity: 0; transition: none; }
 
 /* 5 · Ventana: el hexágono del centro del símbolo, con sus seis puntos
    siempre presentes para que clip-path pueda interpolar. */
@@ -672,7 +674,7 @@ html.cajones #marca .bloque { border-top: 0; padding-top: 0; margin-top: 0; }
             <figure class="aplicacion-ficha">
               <button type="button" class="aplicacion bloque-anim" aria-label="Ver de nuevo: Bloque">
                 <img class="foto-base" src="media/fotos/planta.webp" alt="Operario en una línea de corrugado, en blanco y negro">
-                <span class="plano"><img src="../identidad/media/logos/coipsa-blanco.svg" alt=""></span>
+                <span class="plano-bloque"><img src="../identidad/media/logos/coipsa-blanco.svg" alt=""></span>
               </button>
               <figcaption><b>Bloque</b><span>Un plano de verde oscuro para el logo o un titular.</span></figcaption>
             </figure>
