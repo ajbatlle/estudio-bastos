@@ -158,7 +158,6 @@ html.cajones .cajon + .cajon { border-top: 0; }
 .gantt tbody tr { border-bottom: 1px solid #f0ede9; }
 .gantt tr.grupo-g { border-bottom: 0; }
 .gantt tr.grupo-g th { font-weight: 700; color: var(--verde-oscuro); padding-top: 16px; }
-.gantt .plan { color: var(--tinta-tenue); font-size: 12px; }
 .pista {
   position: relative;
   background-image: linear-gradient(to right, var(--linea) 1px, transparent 1px);
@@ -352,10 +351,11 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
             <tr><th scope="row">Estrategia y calendario<span class="oculto-visual">: semanas 2 a 4</span></th><td class="pista" colspan="3"><i class="barra-g" style="left:8.33%;width:25%"></i></td></tr>
             <tr><th scope="row">Dos publicaciones a la semana<span class="oculto-visual">: desde la semana 4</span></th><td class="pista" colspan="3"><i class="barra-g" style="left:25%;width:75%"></i></td></tr>
 
-            <tr class="grupo-g"><th colspan="4" scope="colgroup">Según el plan</th></tr>
-            <tr><th scope="row">Materiales institucionales <span class="plan">· planes 2 y 3</span><span class="oculto-visual">: semanas 5 a 12</span></th><td class="pista" colspan="3"><i class="barra-g segun-plan" style="left:33.33%;width:66.67%"></i></td></tr>
-            <tr><th scope="row">Herramientas: levantamiento por área <span class="plan">· planes 2 y 3</span><span class="oculto-visual">: semanas 3 a 12</span></th><td class="pista" colspan="3"><i class="barra-g segun-plan" style="left:16.67%;width:83.33%"></i></td></tr>
-            <tr><th scope="row">Medio propio: línea editorial <span class="plan">· plan 3</span><span class="oculto-visual">: semanas 7 a 12</span></th><td class="pista" colspan="3"><i class="barra-g segun-plan" style="left:50%;width:50%"></i></td></tr>
+            <tr class="grupo-g"><th colspan="4" scope="colgroup">Planes «Marca, redes y herramientas» y «Completo»</th></tr>
+            <tr><th scope="row">Materiales institucionales<span class="oculto-visual">: semanas 5 a 12</span></th><td class="pista" colspan="3"><i class="barra-g segun-plan" style="left:33.33%;width:66.67%"></i></td></tr>
+            <tr><th scope="row">Herramientas: levantamiento por área<span class="oculto-visual">: semanas 3 a 12</span></th><td class="pista" colspan="3"><i class="barra-g segun-plan" style="left:16.67%;width:83.33%"></i></td></tr>
+            <tr class="grupo-g"><th colspan="4" scope="colgroup">Plan «Completo»</th></tr>
+            <tr><th scope="row">Medio propio: línea editorial<span class="oculto-visual">: semanas 7 a 12</span></th><td class="pista" colspan="3"><i class="barra-g segun-plan" style="left:50%;width:50%"></i></td></tr>
 
             <tr class="grupo-g"><th colspan="4" scope="colgroup">Seguimiento</th></tr>
             <tr><th scope="row">Sesión mensual<span class="oculto-visual">: semanas 4, 8 y 12</span></th><td class="pista" colspan="3"><i class="hito" style="left:29.17%"></i><i class="hito" style="left:62.5%"></i><i class="hito" style="left:95.83%"></i></td></tr>
@@ -364,11 +364,10 @@ html.cajones .segmento { display: inline-flex; max-width: 100%; overflow-x: auto
         </table>
         <div class="leyenda" aria-hidden="true">
           <span><i></i>Todos los planes</span>
-          <span><i class="segun-plan"></i>Según el plan</span>
+          <span><i class="segun-plan"></i>Solo en algunos planes</span>
           <span><i class="hito"></i>Hito</span>
         </div>
       </div>
-      <p class="pie">Planes: 1 Marca y redes · 2 Marca, redes y herramientas · 3 Completo.</p>
     </div>
   </section>
 
