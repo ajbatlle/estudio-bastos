@@ -15,6 +15,8 @@ const logos = [
   'tisvol',
   'vivienda',
   'wift',
+  'aspade',
+  'manoyaguja-texto',
   'bastos',
 ];
 
@@ -23,12 +25,13 @@ const logos = [
 const pista = [...logos, ...logos];
 ---
 
-<span class="marcas" data-marcas>
-  <button type="button" aria-expanded="false" aria-controls="tira-marcas">
-    <slot />
-  </button>
-
-  <span class="tira" id="tira-marcas" aria-hidden="true">
+{/* Sin espacios entre el botón, la tira y el cierre: la frase sigue con una
+    coma pegada, y cualquier salto de línea aquí se vuelve un espacio antes de
+    ella. */}
+<span class="marcas" data-marcas
+  ><button type="button" aria-expanded="false" aria-controls="tira-marcas"
+    ><slot /></button
+  ><span class="tira" id="tira-marcas" aria-hidden="true">
     <span class="pista">
       {
         pista.map((nombre) => (
@@ -36,10 +39,8 @@ const pista = [...logos, ...logos];
         ))
       }
     </span>
-  </span>
-</span>
-
-<style>
+  </span></span
+><style>
   .marcas {
     position: relative;
     display: inline;
@@ -118,6 +119,12 @@ const pista = [...logos, ...logos];
     flex: none;
   }
 
+  /* Mano y Aguja va con su logotipo de texto, como en la etiqueta: es una
+     sola línea muy apaisada y al ancho de los demás quedaría ilegible. */
+  .pista img[src$='manoyaguja-texto.webp'] {
+    max-width: 165px;
+  }
+
   @keyframes correr {
     to {
       transform: translateX(-50%);
@@ -161,9 +168,7 @@ const pista = [...logos, ...logos];
       max-width: 92px;
     }
   }
-</style>
-
-<script>
+</style><script>
   if (!(window as any).__marcasMontado) {
     (window as any).__marcasMontado = true;
 
