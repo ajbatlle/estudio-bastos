@@ -29,8 +29,8 @@ const pista = [...logos, ...logos];
     coma pegada, y cualquier salto de línea aquí se vuelve un espacio antes de
     ella. */}
 <span class="marcas" data-marcas
-  ><button type="button" aria-expanded="false" aria-controls="tira-marcas"
-    ><slot /></button
+  ><span role="button" tabindex="0" aria-expanded="false" aria-controls="tira-marcas"
+    ><slot /></span
   ><span class="tira" id="tira-marcas" aria-hidden="true">
     <span class="pista">
       {
@@ -46,7 +46,7 @@ const pista = [...logos, ...logos];
     display: inline;
   }
 
-  .marcas button {
+  .marcas [role='button'] {
     all: unset;
     cursor: var(--cursor);
     text-decoration: underline;
@@ -58,13 +58,13 @@ const pista = [...logos, ...logos];
       text-underline-offset var(--transition-normal);
   }
 
-  .marcas button:hover,
-  .marcas[data-abierto] button {
+  .marcas [role='button']:hover,
+  .marcas[data-abierto] [role='button'] {
     text-decoration-color: var(--white);
     text-underline-offset: 0.34em;
   }
 
-  .marcas button:focus-visible {
+  .marcas [role='button']:focus-visible {
     outline: 2px solid var(--white);
     outline-offset: 4px;
   }
@@ -177,7 +177,7 @@ const pista = [...logos, ...logos];
     const cerrar = () => {
       if (!abierto) return;
       abierto.removeAttribute('data-abierto');
-      abierto.querySelector('button')?.setAttribute('aria-expanded', 'false');
+      abierto.querySelector('[role="button"]')?.setAttribute('aria-expanded', 'false');
       abierto = null;
     };
 
@@ -189,7 +189,7 @@ const pista = [...logos, ...logos];
         cerrar();
         return;
       }
-      if (!destino.closest('button')) return;
+      if (!destino.closest('[role="button"]')) return;
 
       if (abierto === raiz) {
         cerrar();
@@ -198,12 +198,21 @@ const pista = [...logos, ...logos];
 
       cerrar();
       raiz.setAttribute('data-abierto', '');
-      raiz.querySelector('button')?.setAttribute('aria-expanded', 'true');
+      raiz.querySelector('[role="button"]')?.setAttribute('aria-expanded', 'true');
       abierto = raiz;
     });
 
     document.addEventListener('keydown', (evento) => {
-      if (evento.key === 'Escape') cerrar();
+      if (evento.key === 'Escape') return cerrar();
+
+      // El disparador es un <span> y no un <button>: un botón no se parte entre
+      // líneas, y la frase saltaba entera a la siguiente aunque cupiera media.
+      // Así que el teclado se le da a mano, como lo traería el botón.
+      const destino = evento.target as HTMLElement;
+      if ((evento.key === 'Enter' || evento.key === ' ') && destino.matches?.('[data-marcas] > [role="button"]')) {
+        evento.preventDefault();
+        destino.click();
+      }
     });
 
     document.addEventListener('astro:before-swap', () => {

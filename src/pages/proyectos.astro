@@ -1175,29 +1175,31 @@ const folio = (n: number) => String(n).padStart(2, '0');
     .proyecto {
       inset: calc(var(--pestana-alto) + var(--pestana-aire)) 0 var(--indice-hueco) 0;
       grid-template-columns: 1fr;
-      /* La lámina toma lo que sobre y la ficha lo que necesite. `minmax(0, 1fr)`
-         y no `1fr` a secas: sin el mínimo en cero, la fila se niega a encoger
-         por debajo del contenido y la baraja acaba desbordando la pantalla. */
+      /* El recuadro mide lo que pide su proporción y la ficha toma lo que
+         sobre. `minmax(0, 1fr)` y no `1fr` a secas: sin el mínimo en cero, la
+         fila se niega a encoger por debajo del contenido y la baraja acaba
+         desbordando la pantalla. */
       grid-template-rows: auto minmax(0, 1fr);
       gap: var(--spacing-05);
-      align-content: stretch;
+      align-content: start;
     }
 
-    /* La ficha va justo debajo de la pestaña y la lámina después. Con la lámina
-       en medio, una ficha larga la encogía y la subía, y el texto quedaba a una
-       distancia distinta de su logo en cada proyecto. Así la distancia es
-       siempre la misma y lo que cambia es el alto de la lámina. */
-    .ficha {
-      order: 1;
-    }
-
-    /* Aquí la altura no puede salir de la proporción: la impone el sitio que
-       queda una vez puesta la ficha. */
+    /* Lo primero que se ve es la pieza: justo debajo de la pestaña, a todo el
+       ancho de la caja de texto. Antes iba después de la ficha y su alto era
+       lo que dejaba el texto, así que con una ficha larga encogía hasta quedar
+       en una tira. Con la proporción fija mide siempre lo mismo, y el texto
+       arranca a la misma distancia del logo en todos los proyectos. */
     .media {
+      order: 1;
+      /* Tope para pantallas apaisadas: ahí el 16/10 a todo el ancho pedía más
+         alto que la ventana entera. */
+      max-height: 58svh;
+    }
+
+    .ficha {
       order: 2;
-      aspect-ratio: auto;
       min-height: 0;
-      height: 100%;
+      overflow: hidden;
     }
 
     .proyecto[data-estado='siguiente'],

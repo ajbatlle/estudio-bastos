@@ -12,9 +12,9 @@ const fases = ['Escuchar', 'Ordenar', 'Diseñar', 'Entregar'];
 ---
 
 <span class="metodo" data-metodo>
-  <button type="button" aria-expanded="false" aria-controls="panel-metodologia">
+  <span role="button" tabindex="0" aria-expanded="false" aria-controls="panel-metodologia">
     <slot />
-  </button>
+  </span>
 
   <span
     class="panel"
@@ -45,7 +45,7 @@ const fases = ['Escuchar', 'Ordenar', 'Diseñar', 'Entregar'];
     display: inline;
   }
 
-  .metodo button {
+  .metodo [role='button'] {
     all: unset;
     cursor: var(--cursor);
     font-weight: inherit;
@@ -58,13 +58,13 @@ const fases = ['Escuchar', 'Ordenar', 'Diseñar', 'Entregar'];
       text-underline-offset var(--transition-normal);
   }
 
-  .metodo button:hover,
-  .metodo[data-abierto] button {
+  .metodo [role='button']:hover,
+  .metodo[data-abierto] [role='button'] {
     text-decoration-color: var(--white);
     text-underline-offset: 0.34em;
   }
 
-  .metodo button:focus-visible {
+  .metodo [role='button']:focus-visible {
     outline: 2px solid var(--white);
     outline-offset: 4px;
   }
@@ -247,7 +247,7 @@ const fases = ['Escuchar', 'Ordenar', 'Diseñar', 'Entregar'];
     const cerrar = () => {
       if (!abierto) return;
       abierto.removeAttribute('data-abierto');
-      abierto.querySelector('button')?.setAttribute('aria-expanded', 'false');
+      abierto.querySelector('[role="button"]')?.setAttribute('aria-expanded', 'false');
       abierto = null;
     };
 
@@ -258,18 +258,27 @@ const fases = ['Escuchar', 'Ordenar', 'Diseñar', 'Entregar'];
       // Clic fuera: se cierra lo que hubiera abierto.
       if (!raiz) return cerrar();
       // Clic dentro del panel: no debe cerrarlo.
-      if (!destino.closest('button')) return;
+      if (!destino.closest('[role="button"]')) return;
 
       if (abierto === raiz) return cerrar();
 
       cerrar();
       raiz.setAttribute('data-abierto', '');
-      raiz.querySelector('button')?.setAttribute('aria-expanded', 'true');
+      raiz.querySelector('[role="button"]')?.setAttribute('aria-expanded', 'true');
       abierto = raiz;
     });
 
     document.addEventListener('keydown', (evento) => {
-      if (evento.key === 'Escape') cerrar();
+      if (evento.key === 'Escape') return cerrar();
+
+      // El disparador es un <span> y no un <button>: un botón no se parte entre
+      // líneas, y la frase saltaba entera a la siguiente aunque cupiera media.
+      // Así que el teclado se le da a mano, como lo traería el botón.
+      const destino = evento.target as HTMLElement;
+      if ((evento.key === 'Enter' || evento.key === ' ') && destino.matches?.('[data-metodo] > [role="button"]')) {
+        evento.preventDefault();
+        destino.click();
+      }
     });
 
     document.addEventListener('astro:before-swap', () => {
