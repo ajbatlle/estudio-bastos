@@ -158,6 +158,31 @@ const folio = (n: number) => String(n).padStart(2, '0');
   accion="Volver al inicio"
   accionHref={import.meta.env.BASE_URL}
 >
+  {/* El paso a la grilla va en la cabecera, junto a la píldora: abajo, en la
+      esquina, no se leía como botón. Mismo contorno que la píldora, pero
+      redondo y sin texto. */}
+  <button
+    slot="cabecera"
+    type="button"
+    class="vista"
+    data-vista-cambiar
+    data-iman
+    aria-pressed="false"
+    aria-label="Ver todos los proyectos"
+  >
+    {/* Cuatro cuadros en la baraja; uno solo en la grilla, que es a donde
+        lleva el botón en cada caso. */}
+    <svg class="icono-grilla" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+      <rect x="2" y="2" width="5" height="5" rx="1" />
+      <rect x="9" y="2" width="5" height="5" rx="1" />
+      <rect x="2" y="9" width="5" height="5" rx="1" />
+      <rect x="9" y="9" width="5" height="5" rx="1" />
+    </svg>
+    <svg class="icono-baraja" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+      <rect x="2" y="3" width="12" height="10" rx="1.5" />
+    </svg>
+  </button>
+
   <h1 class="visually-hidden">Proyectos</h1>
 
   {/* Una baraja, no un listado: los proyectos están apilados y solo se ve el de
@@ -303,8 +328,8 @@ const folio = (n: number) => String(n).padStart(2, '0');
               )}
             </div>
 
-            {/* El folio va en la línea del índice, a la derecha: a la
-                izquierda, en qué proyecto estás; aquí, en qué hoja. */}
+            {/* El folio va en la franja de abajo, a la derecha: dice en qué
+                hoja vas. */}
             {hojas.length > 1 && (
               <p class="folio" aria-hidden="true">
                 <span data-folio>01</span> / {folio(hojas.length)}
@@ -384,29 +409,6 @@ const folio = (n: number) => String(n).padStart(2, '0');
         })}
       </ul>
     </div>
-
-    <p class="indice container">
-      <span data-indice>1</span> / {proyectos.length}
-      <button
-        type="button"
-        class="vista"
-        data-vista-cambiar
-        aria-pressed="false"
-        aria-label="Ver todos los proyectos"
-      >
-        {/* Cuatro cuadros en la baraja; uno solo en la grilla, que es a donde
-            lleva el botón en cada caso. */}
-        <svg class="icono-grilla" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-          <rect x="2" y="2" width="5" height="5" rx="1" />
-          <rect x="9" y="2" width="5" height="5" rx="1" />
-          <rect x="2" y="9" width="5" height="5" rx="1" />
-          <rect x="9" y="9" width="5" height="5" rx="1" />
-        </svg>
-        <svg class="icono-baraja" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-          <rect x="2" y="3" width="12" height="10" rx="1.5" />
-        </svg>
-      </button>
-    </p>
 
     {/* La seña: dice que se avanza bajando, que es lo único que la baraja no
         cuenta por sí sola. El isotipo hace de rueda porque en este sitio el
@@ -851,23 +853,6 @@ const folio = (n: number) => String(n).padStart(2, '0');
     font-weight: var(--weight-bold);
   }
 
-  /* El índice es lo único que dice cuántos hay y por dónde vas. Sin él, y sin
-     botones, la baraja no se anuncia. */
-  .indice {
-    position: absolute;
-    inset: auto 0 0 0;
-    z-index: 4;
-    font-size: var(--text-body-sm);
-    letter-spacing: var(--tracking-wider);
-    font-variant-numeric: tabular-nums;
-    opacity: 0.7;
-  }
-
-  .indice span {
-    font-weight: var(--weight-bold);
-    opacity: 1;
-  }
-
   .mandos {
     position: absolute;
     inset: auto 0 0 0;
@@ -875,16 +860,31 @@ const folio = (n: number) => String(n).padStart(2, '0');
   }
 
   /* ——— El botón de vista ———
-     Al lado del índice y con su misma opacidad: es parte de la línea, no un
-     mando más. Se aclara entera al pasar por encima. */
+     En la cabecera, al lado de la píldora y con sus mismas medidas: mismo
+     cuerpo de letra, mismo contorno fino, mismo alto. Redondo porque no lleva
+     texto, y al pasar por encima se rellena de blanco igual que ella. */
   .vista {
     all: unset;
-    display: inline-flex;
-    vertical-align: -0.15em;
-    margin-left: 0.8em;
-    padding: 0.2em;
-    border-radius: 4px;
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    box-sizing: border-box;
+    font-size: clamp(0.6875rem, 0.85vw, 1.0625rem);
+    width: calc(2em + 2px);
+    height: calc(2em + 2px);
+    border: 1px solid rgb(255 255 255 / 0.85);
+    border-radius: var(--radius-full);
     cursor: var(--cursor);
+    transition:
+      background var(--transition-normal),
+      color var(--transition-normal),
+      border-color var(--transition-normal);
+  }
+
+  .vista:hover {
+    background: var(--white);
+    border-color: var(--white);
+    color: var(--color-brand);
   }
 
   .vista svg {
@@ -897,8 +897,13 @@ const folio = (n: number) => String(n).padStart(2, '0');
     outline-offset: 2px;
   }
 
-  .indice:has(.vista:hover, .vista:focus-visible) {
-    opacity: 1;
+  /* El mismo mínimo táctil que la píldora. */
+  @media (max-width: 48rem) {
+    .vista {
+      width: 44px;
+      height: 44px;
+      font-size: 0.875rem;
+    }
   }
 
   .vista .icono-baraja,
@@ -1322,9 +1327,6 @@ const folio = (n: number) => String(n).padStart(2, '0');
           }
         });
       });
-
-      const marcador = document.querySelector('[data-indice]');
-      if (marcador) marcador.textContent = String(activo + 1);
 
       // El proyecto que llega arriba empieza por su primera hoja. Las demás
       // capas se quedan como estaban: van apagadas, nadie ve en qué hoja quedan.

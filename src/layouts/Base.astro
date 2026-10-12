@@ -66,7 +66,7 @@ const titulo = tituloExacto ? title : `${title} — Estudio Bastos`;
   <!-- El sitio entero va sobre azul de marca: no hay páginas en blanco. -->
   <body class="surface-brand">
     <a class="skip" href="#contenido">Saltar al contenido</a>
-    <Header accion={accion} href={accionHref} />
+    <Header accion={accion} href={accionHref}><slot name="cabecera" /></Header>
     <main id="contenido">
       <slot />
     </main>
