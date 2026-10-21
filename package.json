@@ -13,8 +13,7 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.14.1",
-    "qrcode-generator": "2.0.4"
+    "astro": "^5.14.1"
   },
   "devDependencies": {
     "sharp": "^0.34.4",
