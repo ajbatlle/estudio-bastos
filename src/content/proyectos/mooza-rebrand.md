@@ -11,12 +11,13 @@ anio: 2026
 enlace: https://mooza.cl
 enlaceTexto: mooza.cl
 media: mooza-rebrand.mp4
-pieza: identidad
+pieza: herramienta
 mediaAlt: >-
-  Láminas del rebrand: la agenda cultural, el cartel de un evento, la semana en
-  siete columnas, el feed, las historias, las musas y las poleras.
+  Recorrido por el caso de estudio del rebrand: la grilla de siete columnas, los
+  colores, la tipografía, el logo, los carteles, las historias, las viñetas,
+  las fotos, el logo como fondo, las musas, las poleras y el carrusel.
 logo: mooza
 orden: 0
 ---
 
-<!-- Por confirmar con Antonio: descripción, rol y año. Falta el video mooza-rebrand.mp4 en public/media/. -->
+<!-- Por confirmar con Antonio: descripción, rol y año. -->
