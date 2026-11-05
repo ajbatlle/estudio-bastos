@@ -16,7 +16,7 @@ mediaAlt: >-
   Láminas del rebrand: la agenda cultural, el cartel de un evento, la semana en
   siete columnas, el feed, las historias, las musas y las poleras.
 logo: mooza
-orden: 15
+orden: 0
 ---
 
 <!-- Por confirmar con Antonio: descripción, rol y año. Falta el video mooza-rebrand.mp4 en public/media/. -->
