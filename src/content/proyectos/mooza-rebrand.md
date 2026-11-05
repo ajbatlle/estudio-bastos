@@ -16,7 +16,7 @@ mediaAlt: >-
   Recorrido por el caso de estudio del rebrand: la grilla de siete columnas, los
   colores, la tipografía, el logo, los carteles, las historias, las viñetas,
   las fotos, el logo como fondo, las musas, las poleras y el carrusel.
-logo: mooza
+logo: mooza-azul
 orden: 0
 ---
 
