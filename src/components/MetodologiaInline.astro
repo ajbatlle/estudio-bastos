@@ -8,7 +8,12 @@
 // hace, no una etapa numerada. Ordenar y Diseñar son el «da forma» del propio
 // manifiesto; Escuchar dice de dónde sale lo que una marca tiene para contar y
 // Entregar dónde termina.
-const fases = ['Escuchar', 'Ordenar', 'Diseñar', 'Entregar'];
+import { idioma } from '../i18n';
+
+const en = idioma(Astro.url) === 'en';
+const fases = en
+  ? ['Listen', 'Organize', 'Design', 'Deliver']
+  : ['Escuchar', 'Ordenar', 'Diseñar', 'Entregar'];
 ---
 
 <span class="metodo" data-metodo>
@@ -21,7 +26,7 @@ const fases = ['Escuchar', 'Ordenar', 'Diseñar', 'Entregar'];
     id="panel-metodologia"
     data-panel
     role="group"
-    aria-label="Metodología de trabajo"
+    aria-label={en ? 'Working method' : 'Metodología de trabajo'}
   >
     <span class="ruta">
       {/* La línea va detrás de los puntos y se dibuja de izquierda a derecha. */}

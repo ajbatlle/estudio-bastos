@@ -65,6 +65,21 @@ const proyectos = defineCollection({
        * fondo para el que están hechos —sobre el azul varios se desvanecen—.
        */
       logo: z.string().optional(),
+      /**
+       * Textos en inglés. Lo que falte aquí cae al español, así que un proyecto
+       * sin traducir sigue apareciendo en /en/ en vez de desaparecer.
+       */
+      en: z
+        .object({
+          titulo: z.string(),
+          descripcion: z.string(),
+          tipo: z.string(),
+          rol: z.string(),
+          enlaceTexto: z.string(),
+          mediaAlt: z.string(),
+        })
+        .partial()
+        .optional(),
       /** Posición en el listado, de menor a mayor. */
       orden: z.number().default(0),
     }),

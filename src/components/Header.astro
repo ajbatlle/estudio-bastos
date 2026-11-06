@@ -2,6 +2,8 @@
 // Cabecera: logotipo a la izquierda, un único botón píldora a la derecha que
 // alterna entre las dos páginas del sitio. Sin menú y sin footer, según los
 // mockups de agosto de 2026.
+import { idioma, ruta } from '../i18n';
+
 interface Props {
   /** Texto del botón. Ej. "Ver proyectos" / "Volver al inicio". */
   accion: string;
@@ -11,10 +13,11 @@ interface Props {
 
 const { accion, href } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const lang = idioma(Astro.url);
 ---
 
 <header class="container">
-  <a href={base} class="logo" aria-label="Estudio Bastos — Inicio">
+  <a href={ruta(lang)} class="logo" aria-label={lang === 'en' ? 'Estudio Bastos — Home' : 'Estudio Bastos — Inicio'}>
     <img src={`${base}brand/Logo-blanco.svg`} alt="" width="176" height="44" />
   </a>
 

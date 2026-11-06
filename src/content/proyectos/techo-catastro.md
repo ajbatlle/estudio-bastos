@@ -14,6 +14,12 @@ mediaAlt: >-
   y los mapas de Tarapacá y de la Región Metropolitana con los campamentos
   marcados en amarillo.
 logo: techo
+en:
+  titulo: "National Census of Informal Settlements – Techo"
+  descripcion: "Layout of the census and design of the maps. The settlements (campamentos) go in yellow over light and dark blue, a high contrast that makes the maps easier to read"
+  tipo: "Data report / institutional publication"
+  rol: "Layout and map design"
+  mediaAlt: "Photographs of the printed book: the cover, the index, data spreads and the maps of Tarapacá and the Metropolitan Region with the settlements marked in yellow."
 orden: 4
 ---
 

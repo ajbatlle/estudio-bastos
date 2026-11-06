@@ -6,13 +6,17 @@ import MarcasInline from '../components/MarcasInline.astro';
 import ProyectosInline from '../components/ProyectosInline.astro';
 import MetodologiaInline from '../components/MetodologiaInline.astro';
 import AgendaDialogo from '../components/AgendaDialogo.astro';
+import { idioma, ruta } from '../i18n';
+
+const lang = idioma(Astro.url);
+const en = lang === 'en';
 ---
 
 <Base
   title="Estudio Bastos"
   tituloExacto
-  accion="Ver proyectos"
-  accionHref={`${import.meta.env.BASE_URL}proyectos`}
+  accion={en ? 'View projects' : 'Ver proyectos'}
+  accionHref={ruta(lang, 'proyectos')}
 >
   <section class="container manifiesto">
     {/* Las marcas se alternan: abren el primer y el tercer párrafo, cierran el
@@ -23,6 +27,41 @@ import AgendaDialogo from '../components/AgendaDialogo.astro';
     {/* El punto final va siempre dentro de la frase que cierra —fusión,
         subrayado y todo—: fuera queda como un resto suelto de otro color. */}
     <h1>
+      {en ? (
+        <>
+          <span class="parrafo">
+            <MarcaInline forma="rombos" etiqueta="sound" posicion="abre" control="sonido" />
+            Bastos is a <EquipoInline>design and communications studio</EquipoInline> specialized in <strong
+              >giving shape</strong
+            > to what others <strong
+              class="fusion">have to tell.</strong
+            >
+          </span>
+
+          <span class="parrafo">
+            We work on the <strong>identity</strong> of <MarcasInline
+              >brands, organizations and people</MarcasInline
+            >, and develop
+            <ProyectosInline
+              >editorial publications, digital platforms and other communication products.</ProyectosInline
+            >
+            <MarcaInline forma="asterisco" etiqueta="light" posicion="cierra" control="luz" />
+          </span>
+
+          <span class="parrafo">
+            <MarcaInline forma="circulos" etiqueta="texture" posicion="abre" control="textura" />
+            Each project takes a minimum of <MetodologiaInline>4&nbsp;weeks.</MetodologiaInline>
+          </span>
+
+          <span class="parrafo">
+            <button class="cta" type="button" data-agenda-abrir
+              ><strong>Write to us and we'll schedule a conversation.</strong></button
+            >
+            <MarcaInline forma="flor" etiqueta="game" posicion="cierra" control="juego" />
+          </span>
+        </>
+      ) : (
+        <>
       <span class="parrafo">
         <MarcaInline forma="rombos" etiqueta="sonido" posicion="abre" control="sonido" />
         Bastos es un <EquipoInline>estudio de diseño y comunicaciones</EquipoInline> especializado en <strong
@@ -53,6 +92,8 @@ import AgendaDialogo from '../components/AgendaDialogo.astro';
         >
         <MarcaInline forma="flor" etiqueta="juego" posicion="cierra" control="juego" />
       </span>
+        </>
+      )}
     </h1>
   </section>
 

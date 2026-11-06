@@ -2,18 +2,20 @@
 // La enumeración de lo que hacemos lleva al portafolio. Es el mismo destino que
 // la píldora de la cabecera, y al pasar por encima lo dice con la misma píldora
 // blanca que usan las etiquetas de las marcas: el sitio ya tiene ese gesto.
-const base = import.meta.env.BASE_URL;
+import { idioma, ruta } from '../i18n';
+
+const lang = idioma(Astro.url);
 ---
 
 <span class="proyectos" data-pista-raiz>
-  <a href={`${base}proyectos`}>
+  <a href={ruta(lang, 'proyectos')}>
     <strong><slot /></strong>
   </a>
 
   {/* En minúscula como las etiquetas de las marcas: en el manifiesto, lo que
       aparece al pasar por encima se nombra siempre así.
       Decorativo: el enlace ya se anuncia solo, y repetirlo lo diría dos veces. */}
-  <span class="pista" data-pista aria-hidden="true">ver proyectos</span>
+  <span class="pista" data-pista aria-hidden="true">{lang === 'en' ? 'view projects' : 'ver proyectos'}</span>
 </span>
 
 <style>

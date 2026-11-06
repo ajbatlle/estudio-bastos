@@ -16,5 +16,12 @@ mediaAlt: >-
   Grabación del generador: se escribe un título, se cambian la grilla, la
   simetría, el papel y las tintas, y la composición se rehace con cada versión.
 logo: bastos
+en:
+  titulo: "Poster Generator – Bastos"
+  descripcion: "Part of an exploration of AI and what it allows for producing graphic design seriously: adding chance to composition on a grid. It is designed from limits, with adjustable parameters that form a figure whose authorship is unclear"
+  tipo: "Own project / web tool"
+  rol: "Design and development"
+  enlaceTexto: "Open the generator"
+  mediaAlt: "Recording of the generator: a title is typed, the grid, symmetry, paper and inks are changed, and the composition is redone with each version."
 orden: 2
 ---

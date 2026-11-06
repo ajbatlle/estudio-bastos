@@ -22,7 +22,13 @@
         mando.toggleAttribute('data-sonando', sonando);
         mando.setAttribute(
           'aria-label',
-          sonando ? 'Sonido: sonando. Pulsa para detener.' : 'Sonido: en silencio. Pulsa para oír.',
+          document.documentElement.lang === 'en'
+            ? sonando
+              ? 'Sound: playing. Press to stop.'
+              : 'Sound: silent. Press to listen.'
+            : sonando
+              ? 'Sonido: sonando. Pulsa para detener.'
+              : 'Sonido: en silencio. Pulsa para oír.',
         );
       });
     };

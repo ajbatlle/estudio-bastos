@@ -98,12 +98,12 @@ import { CORREO } from '../datos/estudio';
           seleccion?.removeAllRanges();
           seleccion?.addRange(rango);
         }
-        if (aviso) aviso.textContent = 'Selecciona y copia la dirección.';
+        if (aviso) aviso.textContent = document.documentElement.lang === 'en' ? 'Select and copy the address.' : 'Selecciona y copia la dirección.';
         return;
       }
 
       boton.setAttribute('data-copiado', '');
-      if (aviso) aviso.textContent = 'Dirección copiada.';
+      if (aviso) aviso.textContent = document.documentElement.lang === 'en' ? 'Address copied.' : 'Dirección copiada.';
 
       clearTimeout((boton as any).__vuelta);
       (boton as any).__vuelta = setTimeout(() => {

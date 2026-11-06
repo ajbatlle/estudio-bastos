@@ -16,6 +16,12 @@ mediaAlt: >-
   El isotipo de wift se eleva y aparece la palabra; luego las exploraciones de
   color y tipografía, la web y la marca sobre fotos de autos y carreteras.
 logo: wift
+en:
+  titulo: "Naming and Identity – wift"
+  descripcion: "The naming and the identity respond to one idea: lightness. Wift makes life easier, lightens the load of owning a car. A one-syllable word, soft-sounding, easy to pronounce in different languages and close to swift, written in lowercase next to an isotype of two figures that form something like a wheel and a wing: always flight, weightlessness"
+  tipo: "Identity / naming"
+  rol: "Naming, logotype and guidelines, with Juan Croxatto"
+  mediaAlt: "The wift isotype rises and the word appears; then the color and typography explorations, the web and the brand over photos of cars and highways."
 orden: 11
 ---
 

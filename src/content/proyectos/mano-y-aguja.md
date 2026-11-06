@@ -14,6 +14,12 @@ mediaAlt: >-
   Recorrido por el sitio del taller: el catálogo con sus filtros, la ficha de
   una prenda y la página del taller.
 logo: manoyaguja
+en:
+  titulo: "Website and Social Media – Mano y Aguja"
+  descripcion: "Design and build of the workshop's website, and strategy and management of its social media. The brand identity is by Sofía Correa"
+  tipo: "Website / social media"
+  rol: "Site design and build, social media strategy and management"
+  mediaAlt: "Walkthrough of the workshop's site: the catalog with its filters, a garment page and the workshop page."
 orden: 1
 ---
 

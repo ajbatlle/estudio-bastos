@@ -6,6 +6,7 @@ import Footer from '../components/Footer.astro';
 import Sonido from '../components/Sonido.astro';
 import Juego from '../components/Juego.astro';
 import Iman from '../components/Iman.astro';
+import { idioma, otraVersion } from '../i18n';
 
 interface Props {
   /** Título de la pestaña. Se le añade el sufijo de marca. */
@@ -20,13 +21,22 @@ interface Props {
   accionHref: string;
 }
 
+const lang = idioma(Astro.url);
+const en = lang === 'en';
+
 const {
   title,
   tituloExacto = false,
-  description = 'Bastos es un estudio de diseño y comunicaciones especializado en dar forma a lo que otros tienen para contar.',
+  description = en
+    ? 'Bastos is a design and communications studio specialized in giving shape to what others have to tell.'
+    : 'Bastos es un estudio de diseño y comunicaciones especializado en dar forma a lo que otros tienen para contar.',
   accion,
   accionHref,
 } = Astro.props;
+
+// La misma página en el otro idioma, para los buscadores.
+const otra = otraVersion(Astro.url);
+const urlOtra = new URL(otra.href, Astro.site);
 
 const base = import.meta.env.BASE_URL;
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -37,7 +47,7 @@ const titulo = tituloExacto ? title : `${title} — Estudio Bastos`;
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -45,6 +55,8 @@ const titulo = tituloExacto ? title : `${title} — Estudio Bastos`;
     <title>{titulo}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang={lang} href={canonical} />
+    <link rel="alternate" hreflang={otra.lang} href={urlOtra} />
 
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32.png`} />
     <link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
@@ -55,7 +67,7 @@ const titulo = tituloExacto ? title : `${title} — Estudio Bastos`;
     <meta property="og:title" content={titulo} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:locale" content="es_CL" />
+    <meta property="og:locale" content={en ? 'en_US' : 'es_CL'} />
 
     {/* Navegación sin recarga: el paso entre páginas se funde en vez de
         parpadear. Astro desactiva la animación solo si el sistema pide
@@ -65,7 +77,7 @@ const titulo = tituloExacto ? title : `${title} — Estudio Bastos`;
 
   <!-- El sitio entero va sobre azul de marca: no hay páginas en blanco. -->
   <body class="surface-brand">
-    <a class="skip" href="#contenido">Saltar al contenido</a>
+    <a class="skip" href="#contenido">{en ? 'Skip to content' : 'Saltar al contenido'}</a>
     <Header accion={accion} href={accionHref}><slot name="cabecera" /></Header>
     <main id="contenido">
       <slot />

@@ -14,6 +14,12 @@ mediaAlt: >-
   Mosaico de dobles páginas del reporte y su portada: las aperturas de capítulo
   con números grandes sobre fotos del mar, las cifras del centro y los mapas.
 logo: meric
+en:
+  titulo: "Eight-Year Report – MERIC"
+  descripcion: "Organizing the information from the center's different areas, which worked with little communication between them: resolving contradictions and consolidating the final content of the report. Also editorial design, layout, covers, image retouching and graphics"
+  tipo: "Institutional publication / technical report"
+  rol: "Content coordination and editorial design"
+  mediaAlt: "Mosaic of report spreads and its cover: chapter openers with large numbers over photos of the sea, the center's figures and maps."
 orden: 6
 ---
 

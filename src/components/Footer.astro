@@ -6,13 +6,23 @@
 // vacío en el HTML y se rellena al cargar; si no hubiera JavaScript, el pie
 // aparece sin texto, que es preferible a mostrar una fecha falsa.
 import { ZONA } from '../datos/estudio';
+import { idioma, otraVersion } from '../i18n';
+
+const en = idioma(Astro.url) === 'en';
+const otra = otraVersion(Astro.url);
 ---
 
 <footer class="container">
   <p class="fecha" data-reloj-fecha></p>
   <p class="hora">
     <span data-reloj-hora></span>
-    <span class="zona">santiago de chile</span>
+    <span class="zona">{en ? 'santiago, chile' : 'santiago de chile'}</span>
+    {/* El cambio de idioma va aquí, junto a la ciudad: es lo último que se mira
+        en la página y no compite con nada. Lleva el nombre del otro idioma en
+        ese idioma, para que quien no lee el actual lo reconozca. */}
+    <a class="idioma" href={otra.href} lang={otra.lang} hreflang={otra.lang}>
+      {otra.lang === 'en' ? 'english' : 'español'}
+    </a>
   </p>
 </footer>
 
@@ -50,27 +60,51 @@ import { ZONA } from '../datos/estudio';
   .zona {
     color: rgb(255 255 255 / 0.38);
   }
+
+  /* Casi invisible en reposo, igual que la ciudad; se enciende al pasar. */
+  .idioma {
+    color: rgb(255 255 255 / 0.38);
+    transition: color var(--transition-normal);
+  }
+
+  .idioma::before {
+    content: '·';
+    margin-right: 0.6em;
+  }
+
+  .idioma:hover,
+  .idioma:focus-visible {
+    color: rgb(255 255 255 / 0.9);
+    opacity: 1;
+  }
 </style>
 
 <script define:vars={{ zona: ZONA }}>
   if (!window.__relojMontado) {
     window.__relojMontado = true;
 
-    const formatoFecha = new Intl.DateTimeFormat('es-CL', {
-      timeZone: zona,
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-
-    const formatoHora = new Intl.DateTimeFormat('es-CL', {
-      timeZone: zona,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    });
+    // El idioma se lee en cada tic y no al montar: este guion se carga una
+    // sola vez, y al pasar de /proyectos a /en/proyectos sigue vivo.
+    const formatos = {};
+    const formatosDe = (lang) => {
+      const locale = lang === 'en' ? 'en-GB' : 'es-CL';
+      return (formatos[lang] ??= {
+        fecha: new Intl.DateTimeFormat(locale, {
+          timeZone: zona,
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }),
+        hora: new Intl.DateTimeFormat(locale, {
+          timeZone: zona,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        }),
+      });
+    };
 
     let tic;
 
@@ -81,8 +115,12 @@ import { ZONA } from '../datos/estudio';
 
       const pintar = () => {
         const ahora = new Date();
-        fecha.textContent = formatoFecha.format(ahora);
-        hora.textContent = formatoHora.format(ahora);
+        const lang = document.documentElement.lang === 'en' ? 'en' : 'es';
+        const f = formatosDe(lang);
+        // es-CL ya devuelve el día y el mes en minúscula; en-GB no.
+        const texto = f.fecha.format(ahora);
+        fecha.textContent = lang === 'en' ? texto.toLowerCase() : texto;
+        hora.textContent = f.hora.format(ahora);
       };
 
       pintar();

@@ -17,28 +17,33 @@ import {
   ZONA,
 } from '../datos/estudio';
 import CorreoCopiable from './CorreoCopiable.astro';
+import { idioma } from '../i18n';
+
+const en = idioma(Astro.url) === 'en';
 ---
 
 <dialog class="agenda" data-agenda aria-labelledby="agenda-titulo">
-  <button class="cerrar" data-agenda-cerrar aria-label="Cerrar" data-iman="0.45">
+  <button class="cerrar" data-agenda-cerrar aria-label={en ? 'Close' : 'Cerrar'} data-iman="0.45">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
       <path d="M6 6l12 12M18 6L6 18" />
     </svg>
   </button>
 
-  <h2 id="agenda-titulo">Agendemos una conversación</h2>
+  <h2 id="agenda-titulo">{en ? "Let's schedule a conversation" : 'Agendemos una conversación'}</h2>
   <p class="entrada">
-    Cuéntanos qué tienes en mente y propón un horario. Te confirmamos por correo.
+    {en
+      ? "Tell us what you have in mind and suggest a time. We'll confirm by email."
+      : 'Cuéntanos qué tienes en mente y propón un horario. Te confirmamos por correo.'}
   </p>
 
   <form data-agenda-form novalidate>
     <label>
-      <span>Nombre</span>
+      <span>{en ? 'Name' : 'Nombre'}</span>
       <input type="text" name="nombre" required autocomplete="name" />
     </label>
 
     <label>
-      <span>Correo</span>
+      <span>{en ? 'Email' : 'Correo'}</span>
       <input type="email" name="correo" required autocomplete="email" />
     </label>
 
@@ -46,22 +51,26 @@ import CorreoCopiable from './CorreoCopiable.astro';
         quedarían clavadas en el día del despliegue. */}
     <div class="par">
       <label>
-        <span>Día</span>
+        <span>{en ? 'Day' : 'Día'}</span>
         <select name="dia" data-agenda-dias required></select>
       </label>
 
       <label>
-        <span>Hora</span>
+        <span>{en ? 'Time' : 'Hora'}</span>
         <select name="hora" required>
           {HORAS.map((h) => <option value={h}>{h}</option>)}
         </select>
       </label>
     </div>
 
-    <p class="nota">Atendemos lunes, miércoles y viernes de 15 a 18 h.</p>
+    <p class="nota">
+      {en
+        ? 'We take meetings on Mondays, Wednesdays and Fridays, 3 to 6 pm Chile time.'
+        : 'Atendemos lunes, miércoles y viernes de 15 a 18 h.'}
+    </p>
 
     <label>
-      <span>Qué tienes en mente</span>
+      <span>{en ? 'What you have in mind' : 'Qué tienes en mente'}</span>
       <textarea name="mensaje" rows="4" required></textarea>
     </label>
 
@@ -71,17 +80,17 @@ import CorreoCopiable from './CorreoCopiable.astro';
 
     <p class="error" data-agenda-error hidden></p>
 
-    <button type="submit" data-agenda-enviar data-iman>Enviar propuesta</button>
+    <button type="submit" data-agenda-enviar data-iman>{en ? 'Send proposal' : 'Enviar propuesta'}</button>
   </form>
 
   <div class="listo" data-agenda-listo hidden>
-    <p class="listo-titulo">Recibido.</p>
-    <p>Te respondemos a tu correo para confirmar el horario.</p>
-    <button type="button" data-agenda-cerrar data-iman>Cerrar</button>
+    <p class="listo-titulo">{en ? 'Received.' : 'Recibido.'}</p>
+    <p>{en ? "We'll reply to your email to confirm the time." : 'Te respondemos a tu correo para confirmar el horario.'}</p>
+    <button type="button" data-agenda-cerrar data-iman>{en ? 'Close' : 'Cerrar'}</button>
   </div>
 
   <p class="alterna">
-    O escríbenos directamente a <CorreoCopiable />
+    {en ? 'Or write to us directly at' : 'O escríbenos directamente a'} <CorreoCopiable />
   </p>
 </dialog>
 
@@ -367,7 +376,7 @@ import CorreoCopiable from './CorreoCopiable.astro';
       // Se avanza en UTC para que los cambios de horario de verano no muevan
       // el día al sumar jornadas.
       const cursor = new Date(Date.UTC(anio, mes - 1, dia));
-      const etiqueta = new Intl.DateTimeFormat('es-CL', {
+      const etiqueta = new Intl.DateTimeFormat(document.documentElement.lang === 'en' ? 'en-GB' : 'es-CL', {
         timeZone: 'UTC',
         weekday: 'long',
         day: 'numeric',
@@ -437,6 +446,7 @@ import CorreoCopiable from './CorreoCopiable.astro';
       const boton = form.querySelector('[data-agenda-enviar]');
       const listo = panel.querySelector('[data-agenda-listo]');
       const etiquetaBoton = boton.textContent;
+      const en = document.documentElement.lang === 'en';
 
       form.addEventListener('submit', async (evento) => {
         evento.preventDefault();
@@ -444,17 +454,23 @@ import CorreoCopiable from './CorreoCopiable.astro';
 
         if (datos.botcheck) return; // Señuelo relleno: es un robot.
 
-        if (!datos.nombre?.trim()) return mostrarError('Falta tu nombre.');
+        if (!datos.nombre?.trim()) return mostrarError(en ? 'Your name is missing.' : 'Falta tu nombre.');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.correo ?? ''))
-          return mostrarError('Revisa el correo: no parece una dirección válida.');
-        if (!datos.dia) return mostrarError('Elige un día.');
-        if (!datos.mensaje?.trim()) return mostrarError('Cuéntanos brevemente qué tienes en mente.');
+          return mostrarError(
+            en
+              ? "Check the email: it doesn't look like a valid address."
+              : 'Revisa el correo: no parece una dirección válida.',
+          );
+        if (!datos.dia) return mostrarError(en ? 'Pick a day.' : 'Elige un día.');
+        if (!datos.mensaje?.trim()) return mostrarError(
+            en ? 'Tell us briefly what you have in mind.' : 'Cuéntanos brevemente qué tienes en mente.',
+          );
 
         const cuerpo = [
           `Nombre: ${datos.nombre}`,
           `Correo: ${datos.correo}`,
           `Horario propuesto: ${datos.dia} a las ${datos.hora}`,
-          '',
+          en ? 'Idioma del sitio: inglés' : '',
           datos.mensaje,
         ].join('\n');
 
@@ -469,7 +485,7 @@ import CorreoCopiable from './CorreoCopiable.astro';
         }
 
         boton.disabled = true;
-        boton.textContent = 'Enviando…';
+        boton.textContent = en ? 'Sending…' : 'Enviando…';
 
         try {
           const respuesta = await fetch('https://api.web3forms.com/submit', {
@@ -484,6 +500,7 @@ import CorreoCopiable from './CorreoCopiable.astro';
               correo: datos.correo,
               horario: `${datos.dia} a las ${datos.hora}`,
               mensaje: datos.mensaje,
+              idioma: en ? 'inglés' : 'español',
             }),
           });
 
@@ -494,7 +511,9 @@ import CorreoCopiable from './CorreoCopiable.astro';
           listo.hidden = false;
         } catch {
           mostrarError(
-            `No pudimos enviarlo. Escríbenos a ${CORREO} y lo vemos.`,
+            en
+              ? `We couldn't send it. Write to us at ${CORREO} and we'll sort it out.`
+              : `No pudimos enviarlo. Escríbenos a ${CORREO} y lo vemos.`,
           );
           boton.disabled = false;
           boton.textContent = etiquetaBoton;

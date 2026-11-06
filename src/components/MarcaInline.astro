@@ -232,11 +232,12 @@ const archivo = {
       luz: {
         porDefecto: 'auto',
         niveles: [
-          { valor: 'auto', texto: 'automática' },
-          { valor: 'dia', texto: 'de día' },
-          { valor: 'noche', texto: 'de noche' },
+          { valor: 'auto', texto: 'automática', en: 'automatic' },
+          { valor: 'dia', texto: 'de día', en: 'day' },
+          { valor: 'noche', texto: 'de noche', en: 'night' },
         ],
         nombre: 'Luz',
+        nombreEn: 'Light',
         // «auto» sigue el reloj del estudio, no el del visitante.
         resolver: (valor: string) =>
           valor === 'auto' ? (hora() >= 20 || hora() < 7 ? 'noche' : 'dia') : valor,
@@ -244,11 +245,12 @@ const archivo = {
       textura: {
         porDefecto: 'medio',
         niveles: [
-          { valor: 'medio', texto: 'grano medio' },
-          { valor: 'alto', texto: 'grano alto' },
-          { valor: 'limpio', texto: 'sin grano' },
+          { valor: 'medio', texto: 'grano medio', en: 'medium grain' },
+          { valor: 'alto', texto: 'grano alto', en: 'heavy grain' },
+          { valor: 'limpio', texto: 'sin grano', en: 'no grain' },
         ],
         nombre: 'Textura',
+        nombreEn: 'Texture',
       },
     };
 
@@ -282,7 +284,12 @@ const archivo = {
       // La etiqueta visible no se toca: dice el nombre del canal y nada más.
       // El estado va solo en el `aria-label`, que es donde hace falta nombrarlo.
       document.querySelectorAll<HTMLElement>(`[data-control="${clave}"]`).forEach((mando) => {
-        mando.setAttribute('aria-label', `${perilla.nombre}: ${nivel.texto}. Pulsa para cambiar.`);
+        mando.setAttribute(
+          'aria-label',
+          document.documentElement.lang === 'en'
+            ? `${perilla.nombreEn}: ${nivel.en}. Press to change.`
+            : `${perilla.nombre}: ${nivel.texto}. Pulsa para cambiar.`,
+        );
 
         if (!avisar) return;
         mando.setAttribute('data-recien-cambiado', '');

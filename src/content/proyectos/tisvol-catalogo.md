@@ -13,6 +13,12 @@ mediaAlt: >-
   Mosaico de dobles páginas del catálogo y su portada: semirremolques,
   procesos de fábrica y los titulares de la serie «Superiores».
 logo: tisvol
+en:
+  titulo: "Sales Catalog – Tisvol"
+  descripcion: "Support for the agency Aspid, from Barcelona, on a project in development: bringing the Tisvol brand to its sales material, an A4 catalog of about 36 pages laid out from the existing identity"
+  tipo: "Sales catalog / for Aspid, Barcelona"
+  rol: "Brand adaptation and layout"
+  mediaAlt: "Mosaic of catalog spreads and its cover: semi-trailers, factory processes and the headlines of the “Superiores” series."
 orden: 9
 ---
 

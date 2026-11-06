@@ -1,16 +1,21 @@
 ---
 import Base from '../layouts/Base.astro';
+import { idioma, ruta } from '../i18n';
 
 const base = import.meta.env.BASE_URL;
+const lang = idioma(Astro.url);
+const en = lang === 'en';
 ---
 
 <Base
-  title="Afiches"
-  description="Generador de afiches de Estudio Bastos. Composición sobre grilla con los elementos de la marca: cada combinación produce una pieza distinta, numerada y descargable."
-  accion="Ver proyectos"
-  accionHref={`${base}proyectos`}
+  title={en ? 'Posters' : 'Afiches'}
+  description={en
+    ? 'Estudio Bastos poster generator. Composition on a grid with the brand elements: each combination produces a different piece, numbered and downloadable.'
+    : 'Generador de afiches de Estudio Bastos. Composición sobre grilla con los elementos de la marca: cada combinación produce una pieza distinta, numerada y descargable.'}
+  accion={en ? 'View projects' : 'Ver proyectos'}
+  accionHref={ruta(lang, 'proyectos')}
 >
-  <h1 class="visually-hidden">Afiches bastos</h1>
+  <h1 class="visually-hidden">{en ? 'Bastos posters' : 'Afiches bastos'}</h1>
 
   {/* Una sola pantalla, como proyectos y como el juego: la lámina a la
       izquierda, todos los mandos a la derecha y nada que desplazar. */}
@@ -25,24 +30,24 @@ const base = import.meta.env.BASE_URL;
     <div class="panel">
       <div class="mandos">
         <div class="campo">
-          <label for="obraTitle">Título</label>
+          <label for="obraTitle">{en ? 'Title' : 'Título'}</label>
           <input
             type="text"
             id="obraTitle"
             class="texto"
-            placeholder="sin título"
+            placeholder={en ? 'untitled' : 'sin título'}
             maxlength="60"
             autocomplete="off"
           />
         </div>
 
         <div class="campo">
-          <label for="seedInput">Semilla</label>
+          <label for="seedInput">{en ? 'Seed' : 'Semilla'}</label>
           <input type="number" id="seedInput" class="texto" value="1" min="0" step="1" autocomplete="off" />
         </div>
 
         <div class="campo ancho">
-          <label>Grilla</label>
+          <label>{en ? 'Grid' : 'Grilla'}</label>
           <div class="segmento" id="gridSegment">
             <button type="button" data-grid="3">3</button>
             <button type="button" data-grid="4">4</button>
@@ -54,96 +59,96 @@ const base = import.meta.env.BASE_URL;
         </div>
 
         <div class="campo">
-          <label>Junta</label>
+          <label>{en ? 'Gutter' : 'Junta'}</label>
           <div class="segmento" id="gapSegment">
-            <button type="button" data-gap="0">continua</button>
-            <button type="button" data-gap="0.08" class="activo">fina</button>
-            <button type="button" data-gap="0.18">amplia</button>
+            <button type="button" data-gap="0">{en ? 'continuous' : 'continua'}</button>
+            <button type="button" data-gap="0.08" class="activo">{en ? 'fine' : 'fina'}</button>
+            <button type="button" data-gap="0.18">{en ? 'wide' : 'amplia'}</button>
           </div>
         </div>
 
         <div class="campo">
-          <label>Giros</label>
+          <label>{en ? 'Rotations' : 'Giros'}</label>
           <div class="segmento" id="rotSegment">
-            <button type="button" data-rot="fija" class="activo">fija</button>
+            <button type="button" data-rot="fija" class="activo">{en ? 'fixed' : 'fija'}</button>
             <button type="button" data-rot="giros">90°</button>
           </div>
         </div>
 
         <div class="campo">
-          <label>Simetría</label>
+          <label>{en ? 'Symmetry' : 'Simetría'}</label>
           <div class="segmento" id="symSegment">
-            <button type="button" data-sym="libre" class="activo">libre</button>
-            <button type="button" data-sym="espejo">espejo</button>
-            <button type="button" data-sym="cuaterna">cuaterna</button>
+            <button type="button" data-sym="libre" class="activo">{en ? 'free' : 'libre'}</button>
+            <button type="button" data-sym="espejo">{en ? 'mirror' : 'espejo'}</button>
+            <button type="button" data-sym="cuaterna">{en ? 'quad' : 'cuaterna'}</button>
           </div>
         </div>
 
         <div class="campo">
-          <label for="density">Densidad <span class="cifra" id="valDensity">100%</span></label>
+          <label for="density">{en ? 'Density' : 'Densidad'} <span class="cifra" id="valDensity">100%</span></label>
           <input type="range" id="density" min="30" max="100" value="100" />
         </div>
 
         <div class="campo">
-          <label for="variety">Variedad <span class="cifra" id="valVariety">101</span></label>
+          <label for="variety">{en ? 'Variety' : 'Variedad'} <span class="cifra" id="valVariety">101</span></label>
           <input type="range" id="variety" min="1" max="101" value="101" />
         </div>
 
         <div class="campo">
-          <label>Papel</label>
+          <label>{en ? 'Paper' : 'Papel'}</label>
           <div class="muestras" id="bgSwatches">
-            <button type="button" class="muestra activo" data-c="#F2F3F9" style="--c:#F2F3F9" aria-label="Papel gris azulado"></button>
-            <button type="button" class="muestra" data-c="#F2EDE0" style="--c:#F2EDE0" aria-label="Papel hueso"></button>
-            <button type="button" class="muestra" data-c="#FAFAF8" style="--c:#FAFAF8" aria-label="Papel blanco"></button>
-            <button type="button" class="muestra" data-c="#003EC0" style="--c:#003EC0" aria-label="Papel azul de marca"></button>
+            <button type="button" class="muestra activo" data-c="#F2F3F9" style="--c:#F2F3F9" aria-label={en ? 'Blue-gray paper' : 'Papel gris azulado'}></button>
+            <button type="button" class="muestra" data-c="#F2EDE0" style="--c:#F2EDE0" aria-label={en ? 'Bone paper' : 'Papel hueso'}></button>
+            <button type="button" class="muestra" data-c="#FAFAF8" style="--c:#FAFAF8" aria-label={en ? 'White paper' : 'Papel blanco'}></button>
+            <button type="button" class="muestra" data-c="#003EC0" style="--c:#003EC0" aria-label={en ? 'Brand blue paper' : 'Papel azul de marca'}></button>
           </div>
         </div>
 
         <div class="campo">
-          <label>Tinta</label>
+          <label>{en ? 'Ink' : 'Tinta'}</label>
           <div class="muestras" id="inkSwatches">
-            <button type="button" class="muestra auto activo" data-c="auto" aria-label="Tinta automática">A</button>
-            <button type="button" class="muestra" data-c="#003EC0" style="--c:#003EC0" aria-label="Tinta azul"></button>
-            <button type="button" class="muestra" data-c="#D0452B" style="--c:#D0452B" aria-label="Tinta roja"></button>
-            <button type="button" class="muestra" data-c="#1B1B1B" style="--c:#1B1B1B" aria-label="Tinta negra"></button>
-            <button type="button" class="muestra" data-c="#F2EDE0" style="--c:#F2EDE0" aria-label="Tinta hueso"></button>
+            <button type="button" class="muestra auto activo" data-c="auto" aria-label={en ? 'Automatic ink' : 'Tinta automática'}>A</button>
+            <button type="button" class="muestra" data-c="#003EC0" style="--c:#003EC0" aria-label={en ? 'Blue ink' : 'Tinta azul'}></button>
+            <button type="button" class="muestra" data-c="#D0452B" style="--c:#D0452B" aria-label={en ? 'Red ink' : 'Tinta roja'}></button>
+            <button type="button" class="muestra" data-c="#1B1B1B" style="--c:#1B1B1B" aria-label={en ? 'Black ink' : 'Tinta negra'}></button>
+            <button type="button" class="muestra" data-c="#F2EDE0" style="--c:#F2EDE0" aria-label={en ? 'Bone ink' : 'Tinta hueso'}></button>
           </div>
         </div>
 
         <div class="campo">
-          <label>Segunda tinta</label>
+          <label>{en ? 'Second ink' : 'Segunda tinta'}</label>
           <div class="muestras" id="ink2Swatches">
-            <button type="button" class="muestra ninguna activo" data-c="none" aria-label="Sin segunda tinta">/</button>
-            <button type="button" class="muestra" data-c="#003EC0" style="--c:#003EC0" aria-label="Segunda tinta azul"></button>
-            <button type="button" class="muestra" data-c="#D0452B" style="--c:#D0452B" aria-label="Segunda tinta roja"></button>
-            <button type="button" class="muestra" data-c="#1B1B1B" style="--c:#1B1B1B" aria-label="Segunda tinta negra"></button>
-            <button type="button" class="muestra" data-c="#F2EDE0" style="--c:#F2EDE0" aria-label="Segunda tinta hueso"></button>
+            <button type="button" class="muestra ninguna activo" data-c="none" aria-label={en ? 'No second ink' : 'Sin segunda tinta'}>/</button>
+            <button type="button" class="muestra" data-c="#003EC0" style="--c:#003EC0" aria-label={en ? 'Second ink, blue' : 'Segunda tinta azul'}></button>
+            <button type="button" class="muestra" data-c="#D0452B" style="--c:#D0452B" aria-label={en ? 'Second ink, red' : 'Segunda tinta roja'}></button>
+            <button type="button" class="muestra" data-c="#1B1B1B" style="--c:#1B1B1B" aria-label={en ? 'Second ink, black' : 'Segunda tinta negra'}></button>
+            <button type="button" class="muestra" data-c="#F2EDE0" style="--c:#F2EDE0" aria-label={en ? 'Second ink, bone' : 'Segunda tinta hueso'}></button>
           </div>
         </div>
 
         <div class="campo">
-          <label for="mix">Mezcla <span class="cifra" id="valMix">30%</span></label>
+          <label for="mix">{en ? 'Mix' : 'Mezcla'} <span class="cifra" id="valMix">30%</span></label>
           <input type="range" id="mix" min="5" max="50" value="30" />
         </div>
 
         <div class="campo">
-          <label for="invert">Inversión <span class="cifra" id="valInvert">0%</span></label>
+          <label for="invert">{en ? 'Inversion' : 'Inversión'} <span class="cifra" id="valInvert">0%</span></label>
           <input type="range" id="invert" min="0" max="100" value="0" />
         </div>
       </div>
 
       <div class="cierre">
         <dl class="datos">
-          <div><dt>grilla</dt><dd id="statGrid">10×10</dd></div>
-          <div><dt>llenas</dt><dd id="statFilled">0</dd></div>
-          <div><dt>distintos</dt><dd id="statDistinct">0</dd></div>
-          <div><dt>nº</dt><dd id="statSerial">Nº01</dd></div>
+          <div><dt>{en ? 'grid' : 'grilla'}</dt><dd id="statGrid">10×10</dd></div>
+          <div><dt>{en ? 'filled' : 'llenas'}</dt><dd id="statFilled">0</dd></div>
+          <div><dt>{en ? 'distinct' : 'distintos'}</dt><dd id="statDistinct">0</dd></div>
+          <div><dt>{en ? 'no.' : 'nº'}</dt><dd id="statSerial">Nº01</dd></div>
         </dl>
 
         <div class="botones">
-          <button type="button" class="boton" id="versionBtn">Otra versión</button>
-          <button type="button" class="boton" id="randBtn">Aleatorizar</button>
-          <button type="button" class="boton lleno" id="saveBtn">Descargar</button>
+          <button type="button" class="boton" id="versionBtn">{en ? 'Another version' : 'Otra versión'}</button>
+          <button type="button" class="boton" id="randBtn">{en ? 'Randomize' : 'Aleatorizar'}</button>
+          <button type="button" class="boton lleno" id="saveBtn">{en ? 'Download' : 'Descargar'}</button>
         </div>
       </div>
       </div>

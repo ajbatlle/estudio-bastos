@@ -14,6 +14,12 @@ mediaAlt: >-
   vivienda vista en dos casos, violencia intrafamiliar y hacinamiento crítico,
   con un acercamiento a cada situación.
 logo: vivienda
+en:
+  titulo: "Brand Coordination – Fundación Vivienda"
+  descripcion: "Brand coordination for the foundation. In the video, Cuarentena en hacinamiento (Quarantine in Overcrowded Conditions): infographics about the problem of spending quarantine in a small space inhabited by large families"
+  tipo: "Brand coordination"
+  rol: "Brand coordination"
+  mediaAlt: "Walkthrough of the Cuarentena en hacinamiento infographics: the same home seen in two cases, domestic violence and critical overcrowding, with a close-up of each situation."
 orden: 5
 ---
 

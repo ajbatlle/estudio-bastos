@@ -7,20 +7,23 @@
 // La serpiente está hecha del mismo elemento que se pulsó, y come ese mismo
 // elemento. Se dibuja en blanco sobre un lienzo en `difference`, igual que las
 // marcas del manifiesto: el ámbar no está pintado, lo produce el fondo.
+import { idioma } from '../i18n';
+
+const en = idioma(Astro.url) === 'en';
 ---
 
 <section class="juego" data-juego-panel tabindex="-1" aria-label="Snake">
   <canvas data-lienzo></canvas>
 
   <div class="container datos">
-    <p class="marcador">Puntos <strong data-puntos>0</strong></p>
+    <p class="marcador">{en ? 'Points' : 'Puntos'} <strong data-puntos>0</strong></p>
   </div>
 
   {/* La cuenta atrás da tiempo a mirar el campo antes de que la serpiente
       arranque. Cada número entra y se va con su propio pulso. */}
   <p class="cuenta" data-cuenta hidden>
     <strong data-cuenta-numero>4</strong>
-    <span data-cuenta-texto>segundos para jugar snake</span>
+    <span data-cuenta-texto>{en ? 'seconds to play snake' : 'segundos para jugar snake'}</span>
   </p>
 
   <p class="aviso" data-aviso hidden></p>
@@ -251,7 +254,7 @@
           if (!serpiente.some((c) => c.x === x && c.y === y)) libres.push({ x, y });
         }
       }
-      if (!libres.length) return morir('No queda tablero.');
+      if (!libres.length) return morir('lleno');
       comida = libres[Math.floor(Math.random() * libres.length)];
     };
 
@@ -323,7 +326,11 @@
       });
     };
 
-    const morir = (motivo = 'Chocaste.') => {
+    const morir = (motivo = 'choque') => {
+      const en = document.documentElement.lang === 'en';
+      const frases = en
+        ? { choque: 'You crashed.', lleno: 'No board left.', campo: 'You left the field.', mordida: 'You bit yourself.' }
+        : { choque: 'Chocaste.', lleno: 'No queda tablero.', campo: 'Te fuiste del campo.', mordida: 'Te mordiste.' };
       vivo = false;
       cancelAnimationFrame(cuadro);
       cuadro = 0;
@@ -332,10 +339,10 @@
       if (!aviso) return;
       aviso.replaceChildren(
         Object.assign(document.createElement('strong'), {
-          textContent: `${motivo} ${puntos} ${puntos === 1 ? 'punto' : 'puntos'}.`,
+          textContent: `${(frases as Record<string, string>)[motivo]} ${puntos} ${en ? (puntos === 1 ? 'point' : 'points') : puntos === 1 ? 'punto' : 'puntos'}.`,
         }),
         Object.assign(document.createElement('span'), {
-          textContent: 'Enter o un toque para volver a jugar',
+          textContent: en ? 'Enter or a tap to play again' : 'Enter o un toque para volver a jugar',
         }),
       );
       aviso.hidden = false;
@@ -348,13 +355,13 @@
       const cabeza = { x: serpiente[0].x + rumbo.x, y: serpiente[0].y + rumbo.y };
 
       if (cabeza.x < 0 || cabeza.y < 0 || cabeza.x >= columnas || cabeza.y >= filas) {
-        return morir('Te fuiste del campo.');
+        return morir('campo');
       }
       // La última celda se libera en este mismo paso, así que pisarla es legal.
       if (
         serpiente.some((c, i) => i < serpiente.length - 1 && c.x === cabeza.x && c.y === cabeza.y)
       ) {
-        return morir('Te mordiste.');
+        return morir('mordida');
       }
 
       serpiente.unshift(cabeza);
@@ -407,7 +414,10 @@
       const pintar = () => {
         numero.textContent = String(quedan);
         if (texto) {
-          texto.textContent = `${quedan === 1 ? 'segundo' : 'segundos'} para jugar snake`;
+          texto.textContent =
+          document.documentElement.lang === 'en'
+            ? `${quedan === 1 ? 'second' : 'seconds'} to play snake`
+            : `${quedan === 1 ? 'segundo' : 'segundos'} para jugar snake`;
         }
         // Sin este corte la animación no vuelve a empezar: es el mismo nodo y
         // el navegador no ve motivo para relanzarla.

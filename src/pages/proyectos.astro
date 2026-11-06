@@ -3,12 +3,17 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { getCollection } from 'astro:content';
 import sharp from 'sharp';
 import Base from '../layouts/Base.astro';
+import { idioma, ruta as rutaSitio } from '../i18n';
+
+const lang = idioma(Astro.url);
+const en = lang === 'en';
 
 const base = import.meta.env.BASE_URL;
 
-const proyectos = (await getCollection('proyectos')).sort(
-  (a, b) => a.data.orden - b.data.orden,
-);
+// En inglés, lo que el .md traduce pisa al español; lo que no, se queda.
+const proyectos = (await getCollection('proyectos'))
+  .sort((a, b) => a.data.orden - b.data.orden)
+  .map((p) => ({ ...p, data: { ...p.data, ...(en ? p.data.en : {}) } }));
 
 // Las láminas de cada serie se buscan en el disco: un documento puede tener
 // cien páginas y enumerarlas en el .md no lo leería nadie. Solo cuentan las
@@ -153,10 +158,12 @@ const folio = (n: number) => String(n).padStart(2, '0');
 ---
 
 <Base
-  title="Proyectos"
-  description="Proyectos del estudio: identidad, publicaciones editoriales, plataformas digitales y otros productos de comunicación."
-  accion="Volver al inicio"
-  accionHref={import.meta.env.BASE_URL}
+  title={en ? 'Projects' : 'Proyectos'}
+  description={en
+    ? 'Studio projects: identity, editorial publications, digital platforms and other communication products.'
+    : 'Proyectos del estudio: identidad, publicaciones editoriales, plataformas digitales y otros productos de comunicación.'}
+  accion={en ? 'Back to home' : 'Volver al inicio'}
+  accionHref={rutaSitio(lang)}
 >
   {/* El paso a la grilla va en la cabecera, junto a la píldora: abajo, en la
       esquina, no se leía como botón. Mismo contorno que la píldora, pero
@@ -168,7 +175,7 @@ const folio = (n: number) => String(n).padStart(2, '0');
     data-vista-cambiar
     data-iman
     aria-pressed="false"
-    aria-label="Ver todos los proyectos"
+    aria-label={en ? 'View all projects' : 'Ver todos los proyectos'}
   >
     {/* Cuatro cuadros en la baraja; uno solo en la grilla, que es a donde
         lleva el botón en cada caso. */}
@@ -183,7 +190,7 @@ const folio = (n: number) => String(n).padStart(2, '0');
     </svg>
   </button>
 
-  <h1 class="visually-hidden">Proyectos</h1>
+  <h1 class="visually-hidden">{en ? 'Projects' : 'Proyectos'}</h1>
 
   {/* Una baraja, no un listado: los proyectos están apilados y solo se ve el de
       arriba, con el siguiente asomando por detrás. Cada capa ocupa el escenario
@@ -205,23 +212,23 @@ const folio = (n: number) => String(n).padStart(2, '0');
             class="proyecto container"
             data-proyecto
             data-estado={indice === 0 ? 'activo' : indice === 1 ? 'siguiente' : indice === 2 ? 'fondo' : 'oculto'}
-            aria-label={`${indice + 1} de ${proyectos.length}: ${titulo}`}
+            aria-label={`${indice + 1} ${en ? 'of' : 'de'} ${proyectos.length}: ${titulo}`}
           >
             <div class="ficha">
               <h2>{titulo}</h2>
               {descripcion && <p class="descripcion">{descripcion}</p>}
 
               <dl class="meta">
-                <dt class="visually-hidden">Tipo</dt>
+                <dt class="visually-hidden">{en ? 'Type' : 'Tipo'}</dt>
                 <dd>{tipo}</dd>
                 {/* Si el rol dice lo mismo que el tipo, o no está, la línea sobra. */}
                 {rol && rol !== tipo && (
                   <>
-                    <dt class="visually-hidden">Rol</dt>
+                    <dt class="visually-hidden">{en ? 'Role' : 'Rol'}</dt>
                     <dd>{rol}</dd>
                   </>
                 )}
-                <dt class="visually-hidden">Año</dt>
+                <dt class="visually-hidden">{en ? 'Year' : 'Año'}</dt>
                 <dd>{anio}</dd>
               </dl>
 
@@ -230,13 +237,13 @@ const folio = (n: number) => String(n).padStart(2, '0');
                   arrastre, que arranca justo ahí. Este botón es esa puerta, y
                   solo aparece al tabular. */}
               <button type="button" class="visually-hidden" data-ampliar>
-                Ver la pieza ampliada
+                {en ? 'View the piece enlarged' : 'Ver la pieza ampliada'}
               </button>
 
               {enlace && (
                 <a
                   class="enlace"
-                  href={enlace.startsWith('/') ? `${base}${enlace.slice(1)}` : enlace}
+                  href={enlace.startsWith('/') ? rutaSitio(lang, enlace.slice(1)) : enlace}
                   target={enlace.startsWith('/') ? undefined : '_blank'}
                   rel={enlace.startsWith('/') ? undefined : 'noopener'}
                 >
@@ -255,7 +262,7 @@ const folio = (n: number) => String(n).padStart(2, '0');
                     <path d="M5.5 4.5h6v6" />
                   </svg>
                   {!enlace.startsWith('/') && (
-                    <span class="visually-hidden">(se abre en una pestaña nueva)</span>
+                    <span class="visually-hidden">{en ? '(opens in a new tab)' : '(se abre en una pestaña nueva)'}</span>
                   )}
                 </a>
               )}
@@ -422,16 +429,16 @@ const folio = (n: number) => String(n).padStart(2, '0');
     {/* Con rueda, teclado y dedo se avanza sin botones, pero un lector de
         pantalla necesita algo que pulsar. Están ahí y solo se ven al tabular. */}
     <div class="mandos container">
-      <button type="button" class="visually-hidden" data-anterior>Proyecto anterior</button>
-      <button type="button" class="visually-hidden" data-siguiente>Proyecto siguiente</button>
+      <button type="button" class="visually-hidden" data-anterior>{en ? 'Previous project' : 'Proyecto anterior'}</button>
+      <button type="button" class="visually-hidden" data-siguiente>{en ? 'Next project' : 'Proyecto siguiente'}</button>
     </div>
   </div>
 
   {/* El visor. Va fuera del escenario porque no es una capa más de la baraja:
       se pone delante de todo. Es un <dialog>, así que el navegador ya trae el
       cierre con Esc, el foco atrapado dentro y el resto de la página inerte. */}
-  <dialog class="visor" data-visor aria-label="Pieza ampliada">
-    <button type="button" class="cerrar" data-visor-cerrar aria-label="Cerrar">
+  <dialog class="visor" data-visor aria-label={en ? 'Enlarged piece' : 'Pieza ampliada'}>
+    <button type="button" class="cerrar" data-visor-cerrar aria-label={en ? 'Close' : 'Cerrar'}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
         <path d="M6 6l12 12M18 6L6 18" />
       </svg>
@@ -1483,7 +1490,10 @@ const folio = (n: number) => String(n).padStart(2, '0');
       lista.inert = false;
       const boton = document.querySelector('[data-vista-cambiar]');
       boton?.setAttribute('aria-pressed', 'true');
-      boton?.setAttribute('aria-label', 'Volver a la vista de proyecto');
+      boton?.setAttribute(
+        'aria-label',
+        document.documentElement.lang === 'en' ? 'Back to the project view' : 'Volver a la vista de proyecto',
+      );
 
       // Se abre mostrando el proyecto en que se estaba. Se mueve solo la grilla:
       // `scrollIntoView` correría también la página, que no tiene scroll pero
@@ -1505,7 +1515,10 @@ const folio = (n: number) => String(n).padStart(2, '0');
       lista.querySelectorAll('video').forEach((video) => video.pause());
       const boton = document.querySelector('[data-vista-cambiar]');
       boton?.setAttribute('aria-pressed', 'false');
-      boton?.setAttribute('aria-label', 'Ver todos los proyectos');
+      boton?.setAttribute(
+        'aria-label',
+        document.documentElement.lang === 'en' ? 'View all projects' : 'Ver todos los proyectos',
+      );
 
       // Un salto, no un paso: va directo al elegido, sin el cerrojo del gesto.
       const cambia = destino !== activo;
