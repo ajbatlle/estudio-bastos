@@ -79,8 +79,9 @@ const archivo = {
   .marca {
     position: relative;
     display: inline-block;
-    width: clamp(15px, 1.3vw, 25px);
-    height: clamp(15px, 1.3vw, 25px);
+    --lado: clamp(15px, 1.3vw, 25px);
+    width: var(--lado);
+    height: var(--lado);
     /* Alinea el elemento con la altura de la x en vez de con la línea base. */
     vertical-align: -0.06em;
     transition: transform var(--transition-slow);
@@ -101,7 +102,14 @@ const archivo = {
   /* La separación va del lado del texto. La que abre no lleva margen izquierdo
      para quedar a plomo con las líneas que envuelven debajo. */
   .marca[data-posicion='abre']   { margin-right: 0.42em; }
-  .marca[data-posicion='cierra'] { margin-left: 0.42em; }
+  /* La que cierra no ocupa sitio en la línea: el margen derecho negativo cancela
+     su ancho y el izquierdo. Así nunca hace que una línea se rompa antes de
+     ella, y no queda sola en una línea propia cuando el texto llega al borde;
+     se asoma al margen en vez de saltar. */
+  .marca[data-posicion='cierra'] {
+    margin-left: 0.42em;
+    margin-right: calc(-1 * (var(--lado) + 0.42em));
+  }
 
   .marca[data-forma='rombos']    { --giro: 6s; }
   .marca[data-forma='asterisco'] { --giro: 8s; }
