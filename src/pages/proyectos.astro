@@ -792,8 +792,13 @@ const folio = (n: number) => String(n).padStart(2, '0');
   .media[data-pieza='herramienta'] .pliego {
     --barra: clamp(14px, 4.5cqh, 22px);
     flex-direction: column;
-    width: min(100cqw, calc((100cqh - var(--barra)) * var(--proporcion)));
+    /* La ventana entera (barra incluida) lleva la proporción de la grabación:
+       así, con una grabación 16:10 en un recuadro 16:10, llena el ancho y su
+       borde queda a ras del texto. Descontar la barra del alto la estrechaba
+       y la dejaba centrada, desalineada. */
+    width: min(100cqw, calc(100cqh * var(--proporcion)));
     height: auto;
+    aspect-ratio: var(--proporcion);
     border: 1px solid rgb(0 0 0 / 0.1);
     border-radius: 6px;
     overflow: hidden;
@@ -818,10 +823,13 @@ const folio = (n: number) => String(n).padStart(2, '0');
   }
 
   .media[data-pieza='herramienta'] .pliego :is(img, video) {
-    flex: none;
+    /* Ocupa lo que deja la barra; recorta unos píxeles en vez de encoger. */
+    flex: 1 1 0;
     width: 100%;
     height: auto;
-    aspect-ratio: var(--proporcion);
+    min-height: 0;
+    aspect-ratio: auto;
+    object-fit: cover;
     outline: none;
   }
 
