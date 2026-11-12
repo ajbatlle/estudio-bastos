@@ -663,9 +663,12 @@ const folio = (n: number) => String(n).padStart(2, '0');
     align-items: center;
     gap: 1em;
     max-width: calc(100vw - 2rem);
-    padding: 0.7em 1.25em;
-    border-radius: var(--radius-full);
-    background: rgb(0 8 40 / 0.8);
+    padding: 0.65em 1.3em;
+    /* Radio fijo: `--radius-full` vale 50% y en una caja alargada da una elipse. */
+    border-radius: 999px;
+    /* El mismo contorno fino de la píldora de la cabecera. */
+    border: 1px solid rgb(255 255 255 / 0.85);
+    background: rgb(0 30 120 / 0.55);
     backdrop-filter: blur(10px);
     color: var(--white);
     font-size: var(--text-body-sm);
