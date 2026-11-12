@@ -371,7 +371,7 @@ const folio = (n: number) => String(n).padStart(2, '0');
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding-block: clamp(2rem, 7vh, 4.5rem) clamp(6rem, 18vh, 10rem);
+    padding-bottom: clamp(6rem, 18vh, 10rem);
   }
 
   .proyecto {
@@ -387,6 +387,12 @@ const folio = (n: number) => String(n).padStart(2, '0');
     column-gap: 7%;
     align-items: start;
     padding-top: var(--aire);
+  }
+
+  /* El primero arranca casi pegado a la cabecera: el aire de arriba ya lo
+     pone ella, y sumarle el de entre proyectos dejaba media pantalla vacía. */
+  .proyecto:first-child {
+    padding-top: clamp(1rem, 4vh, 2.5rem);
   }
 
   .proyecto .ficha {
